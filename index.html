@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 自由对话（带日志）</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<style>
+:root {
+    --bg-light: linear-gradient(135deg, #ffe6f0, #ffd6e0);
+    --text-light: #333;
+    --panel-bg-light: rgba(255,255,255,0.5);
+    --white-bubble: #fff;
+    --btn-pink: linear-gradient(45deg, #ff9eb5, #ffb3c6);
+    --slider-pink: linear-gradient(90deg, #ff9eb5, #ffb3c6);
+}
+body {
+    margin: 0;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg-light);
+    color: var(--text-light);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+}
+.fade-in-up { animation: fadeInUp 0.8s ease-in-out forwards; opacity: 0; transform: translateY(20px); }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+#sessionTabs { display: flex; gap: 5px; padding: 5px 10px; background: rgba(255,255,255,0.3); border-radius: 12px; margin: 8px; flex-wrap: wrap; }
+.sessionTab { padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.8); cursor: pointer; transition: transform 0.3s ease; display: flex; align-items: center; }
+.sessionTab:hover { transform: scale(1.05); }
+.sessionTab.active { background: #ffb3c6; color: white; font-weight: bold; }
+.sessionTab span { margin-left: 6px; cursor: pointer; }
+.round-btn { border: none; border-radius: 20px; background: var(--btn-pink); color: white; font-size: 14px; padding: 6px 14px; cursor: pointer; transition: all 0.3s ease-in-out; flex-shrink: 0; }
+.round-btn:hover { transform: scale(1.05); box-shadow: 0 4px 10px rgba(255, 182, 193, 0.6); }
+#controlPanel { background: rgba(255,255,255,0.3); padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; border-radius: 12px; margin: 0 8px; align-items: center; }
+#controlPanel input, #controlPanel select { padding: 8px 12px; border-radius: 20px; border: none; background: rgba(255,255,255,0.85); font-size: 14px; }
+.icon-btn, .pink-btn { border: none; border-radius: 20px; background: var(--btn-pink); color: white; font-size: 16px; cursor: pointer; transition: all 0.3s ease-in-out; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover, .pink-btn:hover { transform: scale(1.1); box-shadow: 0 4px 10px rgba(255, 182, 193, 0.6); }
+.pink-btn { padding: 8px 14px; font-size: 14px; flex-shrink: 0; }
+
+/* 只取消“获取模型”按钮的动效 */
+#getModelBtn { transition: none !important; }
+#getModelBtn:hover { transform: none !important; box-shadow: none !important; }
+
+/* 取消发送按钮动效 */
+#sendBtn { 
+    padding: 12px 20px; 
+    border: none; 
+    border-radius: 20px; 
+    background: var(--btn-pink); 
+    color: white; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: none !important; 
+    flex-shrink: 0; 
+}
+#sendBtn:hover { 
+    transform: none !important; 
+    box-shadow: none !important; 
+}
+
+#chatContainer { flex: 1; display: flex; justify-content: center; padding: 10px; }
+#chatArea { display: flex; flex-direction: column; background: var(--panel-bg-light); border-radius: 20px; padding: 10px; max-width: 900px; width: 100%; animation: fadeInUp 1s ease-in-out forwards; }
+#historyPanel { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.message { display: flex; max-width: 80%; animation: bubbleFade 0.4s ease-out; }
+.userMsg { align-self: flex-end; }
+.aiMsg { align-self: flex-start; }
+@keyframes bubbleFade { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.bubble { padding: 4px 14px; border-radius: 20px; background: var(--white-bubble); color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.1); position: relative; }
+#inputArea { display: flex; gap: 8px; margin-top: 8px; }
+#userInput { flex: 1; padding: 12px; border-radius: 20px; border: none; background: rgba(255,255,255,0.85); font-size: 14px; }
+#settingsModal, #logModal, #welcomeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000; }
+#settingsContent, #logContentBox, #welcomeBox { background: var(--bg-light); padding: 20px; border-radius: 20px; width: 500px; max-width: 90%; max-height: 80%; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; animation: fadeInUp 0.5s ease-in-out; }
+#settingsContent label { font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+#settingsContent input, #settingsContent textarea { border-radius: 12px; border: none; padding: 8px; background: rgba(255,255,255,0.85); font-size: 14px; }
+#settingsContent input[type="range"] { -webkit-appearance: none; height: 6px; border-radius: 5px; background: var(--slider-pink); outline: none; }
+#settingsContent input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2px solid #ff9eb5; cursor: pointer; transition: transform 0.2s ease; }
+#settingsClose, #logClose { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--btn-pink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; }
+#settingsClose svg, #logClose svg { width: 14px; height: 14px; stroke: white; stroke-width: 2; }
+#settingsClose:hover, #logClose:hover { transform: scale(1.15); box-shadow: 0 4px 8px rgba(255,182,193,0.6); }
+#welcomeModal { z-index: 2000; }
+#welcomeBox { max-width: 400px; text-align: center; }
+.mobile-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 600px) {
+    body { font-size: 14px; }
+    .round-btn, .pink-btn, #sendBtn { font-size: 12px; padding: 6px 10px; }
+    #controlPanel { flex-direction: column; align-items: stretch; }
+    #controlPanel label { width: 100%; display: flex; flex-direction: column; }
+    #controlPanel input, #controlPanel select { width: 100%; font-size: 12px; }
+    #sessionTabs { justify-content: center; }
+    .message { max-width: 95%; }
+    #inputArea { flex-direction: column; }
+    #userInput { font-size: 14px; }
+    #sendBtn { width: 100%; }
+    .mobile-btn-group { display: flex; flex-direction: row; justify-content: center; gap: 6px; }
+}
+</style>
+</head>
+<body>
+<!-- 欢迎语模态框 -->
+<div id="welcomeModal">
+    <div id="welcomeBox">
+        <h2 style="margin-top:0;">欢迎使用</h2>
+        <p style="font-size: 15px; line-height:1.6;">
+            本网站 <b>100% 由 GPT-5</b> 模型制作，<br>
+            请连接 VPN 后点击 <b>获取模型</b>，<br>
+            获取成功后即可开始使用。
+        </p>
+        <button id="welcomeBtn" class="pink-btn" style="margin-top: 12px;">我知道了</button>
+    </div>
+</div>
+<!-- 会话标签栏 -->
+<div id="sessionTabs" class="fade-in-up">
+    <div class="sessionTab active" onclick="switchSession(0)">会话 1</div>
+    <button class="round-btn" onclick="newSession()">➕ 新建</button>
+</div>
+<!-- 控制面板 -->
+<div id="controlPanel" class="fade-in-up">
+    <label>API Key: 
+        <input id="apiKey" type="password" value="sk-x8NQeuVOe1zr0tW37f72696415884e43Ad15B3532d3b7061" placeholder="输入API Key">
+    </label>
+    <label>模型: 
+        <select id="modelSelect" onchange="adjustMaxTokens()">
+            <option disabled selected>等待获取模型...</option>
+        </select>
+    </label>
+    <button id="getModelBtn" class="pink-btn" onclick="loadModels()">获取模型</button>
+    <div class="mobile-btn-group">
+        <button class="icon-btn" onclick="exportTxt()" title="保存TXT">💾</button>
+        <button class="icon-btn" onclick="clearHistory()" title="清空记录">🗑</button>
+        <button class="icon-btn" onclick="openSettings()" title="参数设置">⚙</button>
+        <button class="icon-btn" onclick="openLog()" title="查看日志">📜</button>
+    </div>
+</div>
+
+<!-- 设置模态框 -->
+<div id="settingsModal">
+    <div id="settingsContent">
+        <div id="settingsClose" onclick="closeSettings()" title="关闭">
+            <svg viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+        </div>
+        <label>Temperature: 
+            <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.8" oninput="tempValue.textContent=this.value">
+            <span>当前值: <span id="tempValue">0.8</span></span>
+        </label>
+        <label>Max Tokens: 
+            <input type="range" id="maxTokens" min="1" max="12800" step="50" value="12800" oninput="maxTokensValue.textContent=this.value">
+            <span>当前值: <span id="maxTokensValue">12800</span></span>
+        </label>
+        <label>预设 Prompt: 
+            <textarea id="presetPrompt" rows="3" placeholder="在这里输入系统预设提示语"></textarea>
+        </label>
+    </div>
+</div>
+<!-- 日志模态框 -->
+<div id="logModal">
+    <div id="logContentBox">
+        <div id="logClose" onclick="closeLog()" title="关闭">
+            <svg viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+        </div>
+        <h3>操作日志</h3>
+        <div id="logContent" style="white-space: pre-wrap; font-size: 14px; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; max-height: 60vh; overflow-y: auto;"></div>
+        <div style="margin-top:10px; text-align:right;">
+            <button class="pink-btn" onclick="clearLog()">清空日志</button>
+        </div>
+    </div>
+</div>
+<!-- 聊天区域 -->
+<div id="chatContainer" class="fade-in-up">
+    <div id="chatArea">
+        <div id="historyPanel"></div>
+        <div id="inputArea">
+            <input id="userInput" type="text" placeholder="输入消息..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <button id="sendBtn" onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+</div>
+<script>
+marked.setOptions({
+    highlight: (code, lang) => hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value
+});
+let sessions = [{ name: "会话 1", history: [], temp: 0.8, maxTokens: 12800, model: "", preset: "" }];
+let currentSessionIndex = 0;
+let logs = JSON.parse(localStorage.getItem("ai_chat_logs") || "[]");
+function logAction(action) {
+    const time = new Date().toLocaleString();
+    logs.unshift(`[${time}] ${action}`);
+    if (logs.length > 200) logs.pop();
+    localStorage.setItem("ai_chat_logs", JSON.stringify(logs));
+}
+function getPublicApiKey(){
+    const key = "sk-x8NQeuVOe1zr0tW37f72696415884e43Ad15B3532d3b7061";
+    document.getElementById("apiKey").value = key;
+    saveAll();
+    logAction("已获取公用 API Key");
+}
+function adjustMaxTokens() {
+    const slider = document.getElementById("maxTokens");
+    const display = document.getElementById("maxTokensValue");
+    slider.max = 12800;
+    if (parseInt(slider.value) > 12800) slider.value = 12800;
+    display.textContent = slider.value;
+    sessions[currentSessionIndex].maxTokens = parseInt(slider.value);
+    saveAll();
+}
+function saveAll() {
+    localStorage.setItem("ai_chat_sessions", JSON.stringify(sessions));
+    localStorage.setItem("ai_chat_apiKey", document.getElementById('apiKey').value.trim());
+}
+function loadAll() {
+    let saved = localStorage.getItem("ai_chat_sessions");
+    let savedKey = localStorage.getItem("ai_chat_apiKey");
+    if (saved) sessions = JSON.parse(saved);
+    if (savedKey) document.getElementById('apiKey').value = savedKey;
+    renderTabs();
+    loadSession(currentSessionIndex);
+}
+function renderTabs() {
+    let tabBar = document.getElementById("sessionTabs");
+    tabBar.innerHTML = "";
+    sessions.forEach((s, i) => {
+        let tab = document.createElement("div");
+        tab.className = "sessionTab" + (i === currentSessionIndex ? " active" : "");
+        tab.textContent = s.name;
+        tab.onclick = () => switchSession(i);
+        let close = document.createElement("span");
+        close.textContent = "×";
+        close.onclick = (e) => {
+            e.stopPropagation();
+            deleteSession(i);
+        };
+        tab.appendChild(close);
+        tabBar.appendChild(tab);
+    });
+    let addBtn = document.createElement("button");
+    addBtn.textContent = "➕ 新建";
+    addBtn.className = "round-btn";
+    addBtn.onclick = newSession;
+    tabBar.appendChild(addBtn);
+}
+function newSession() {
+    sessions.push({ name: "会话 " + (sessions.length + 1), history: [], temp: 0.8, maxTokens: 12800, model: "", preset: "" });
+    logAction(`新建会话: ${sessions[sessions.length - 1].name}`);
+    currentSessionIndex = sessions.length - 1;
+    renderTabs();
+    loadSession(currentSessionIndex);
+    saveAll();
+}
+function deleteSession(index) {
+    if (sessions.length === 1) { alert("至少保留一个会话"); return; }
+    logAction(`删除会话: ${sessions[index].name}`);
+    sessions.splice(index, 1);
+    if (currentSessionIndex >= sessions.length) currentSessionIndex = sessions.length - 1;
+    renderTabs();
+    loadSession(currentSessionIndex);
+    saveAll();
+}
+function switchSession(index) {
+    currentSessionIndex = index;
+    logAction(`切换到 ${sessions[index].name}`);
+    renderTabs();
+    loadSession(index);
+}
+function loadSession(index) {
+    let s = sessions[index];
+    document.getElementById("historyPanel").innerHTML = "";
+    document.getElementById("temperature").value = s.temp;
+    document.getElementById("tempValue").textContent = s.temp;
+    document.getElementById("maxTokens").value = s.maxTokens;
+    document.getElementById("maxTokensValue").textContent = s.maxTokens;
+    document.getElementById("presetPrompt").value = s.preset || "";
+    document.getElementById("modelSelect").innerHTML = s.model ? `<option value="${s.model}">${s.model}</option>` : `<option disabled selected>等待获取模型...</option>`;
+    s.history.forEach(m => updateHistory(m.role, m.content));
+}
+function updateHistory(role, text) {
+    let panel = document.getElementById('historyPanel');
+    let msgDiv = document.createElement('div');
+    msgDiv.className = 'message ' + (role === "user" ? 'userMsg' : 'aiMsg');
+
+    let bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = marked.parse(text);
+    msgDiv.appendChild(bubble);
+
+    // 仅在 AI 消息时添加复制按钮
+    if (role === "assistant") {
+        let copyBtn = document.createElement('button');
+        copyBtn.textContent = '📋';
+        copyBtn.title = '复制内容';
+        copyBtn.style.marginLeft = '6px';
+        copyBtn.style.cursor = 'pointer';
+        copyBtn.style.border = 'none';
+        copyBtn.style.background = 'transparent';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(text).then(() => {
+                logAction("已复制 AI 消息到剪贴板");
+            }).catch(err => {
+                alert("复制失败：" + err);
+            });
+        };
+        msgDiv.appendChild(copyBtn);
+    }
+
+    panel.appendChild(msgDiv);
+    panel.scrollTop = panel.scrollHeight;
+}
+async function sendMessage() {
+    let apiKey = document.getElementById('apiKey').value.trim();
+    if (!apiKey) { alert("请输入API Key"); return; }
+    let input = document.getElementById('userInput');
+    let text = input.value.trim();
+    if (!text) return;
+    logAction(`发送消息: ${text}`);
+
+    let sess = sessions[currentSessionIndex];
+    sess.temp = parseFloat(document.getElementById('temperature').value);
+    sess.maxTokens = parseInt(document.getElementById('maxTokens').value);
+    sess.model = document.getElementById('modelSelect').value;
+    sess.preset = document.getElementById('presetPrompt').value.trim();
+
+    if (sess.preset && !sess.history.find(m => m.role === "system")) {
+        sess.history.unshift({ role: "system", content: sess.preset });
+    }
+
+    // 用户消息
+    updateHistory("user", text);
+    sess.history.push({ role: "user", content: text });
+    saveAll();
+    input.value = "";
+
+    // 创建 AI 消息占位
+    let panel = document.getElementById('historyPanel');
+    let msgDiv = document.createElement('div');
+    msgDiv.className = 'message aiMsg';
+    let bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = ""; // 初始为空
+    msgDiv.appendChild(bubble);
+    panel.appendChild(msgDiv);
+    panel.scrollTop = panel.scrollHeight;
+
+    let fullReply = "";
+
+    try {
+        const response = await fetch("https://love.qinyan.icu/v1/chat/completions", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + apiKey
+            },
+            body: JSON.stringify({ 
+                model: sess.model, 
+                messages: sess.history, 
+                temperature: sess.temp, 
+                max_tokens: sess.maxTokens,
+                stream: true
+            })
+        });
+
+        if (!response.ok || !response.body) {
+            throw new Error("网络错误或不支持流式输出");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            let lines = buffer.split("\n");
+            buffer = lines.pop(); // 最后一行可能未完整
+
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith("data: ")) {
+                    let dataStr = line.replace("data: ", "");
+                    if (dataStr === "[DONE]") {
+                        break;
+                    }
+                    try {
+                        let json = JSON.parse(dataStr);
+                        let delta = json.choices[0].delta?.content;
+                        if (delta) {
+                            fullReply += delta;
+                            bubble.innerHTML = marked.parse(fullReply);
+                            panel.scrollTop = panel.scrollHeight;
+                        }
+                    } catch (e) {
+                        console.error("解析流数据出错", e, line);
+                    }
+                }
+            }
+        }
+
+        sess.history.push({ role: "assistant", content: fullReply });
+        saveAll();
+
+    } catch (err) {
+        bubble.innerHTML = "❌ 出错: " + err.message;
+    }
+}
+async function loadModels() {
+    let apiKey = document.getElementById('apiKey').value.trim();
+    if (!apiKey) { 
+        alert("请输入 API Key"); 
+        return; 
+    }
+    logAction("获取模型列表");
+    try {
+        const res = await fetch("https://love.qinyan.icu/v1/models", {
+            headers: { "Authorization": "Bearer " + apiKey }
+        });
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const select = document.getElementById("modelSelect");
+        select.innerHTML = "";
+        if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+            const defaultOpt = document.createElement("option");
+            defaultOpt.value = "gpt-5-chat-latest";
+            defaultOpt.textContent = "gpt-5-chat-latest";
+            defaultOpt.selected = true;
+            select.appendChild(defaultOpt);
+
+            let models = data.data.map(m => m.id).sort();
+            models.forEach(model => {
+                if (model !== "gpt-5-chat-latest") {
+                    const opt = document.createElement("option");
+                    opt.value = model;
+                    opt.textContent = model;
+                    select.appendChild(opt);
+                }
+            });
+
+            sessions[currentSessionIndex].model = "gpt-5-chat-latest";
+            saveAll();
+            adjustMaxTokens();
+
+            alert(`✅ 获取模型成功，可用模型 ${models.length} 个`);
+            logAction(`获取模型成功，可用 ${models.length} 个`);
+        } else {
+            alert("❌ 未获取到可用模型，请检查 API Key 或接口状态。");
+            logAction("获取模型失败：未获取到可用模型");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("❌ 获取模型失败：" + err.message);
+        logAction("获取模型失败：" + err.message);
+    }
+}function exportTxt(){
+    let sess=sessions[currentSessionIndex];
+    let content=sess.history.map(m=>`${m.role==="user"?"你":m.role==="assistant"?"AI":"系统"}: ${m.content}`).join("\n");
+    let blob=new Blob([content],{type:"text/plain;charset=utf-8"});
+    let url=URL.createObjectURL(blob);
+    let a=document.createElement('a');
+    a.href=url;
+    a.download=sess.name+".txt";
+    a.click();
+    URL.revokeObjectURL(url);
+    logAction(`导出会话: ${sess.name}`);
+}
+function clearHistory(){
+    if(confirm("确定要清空当前会话记录吗？")){
+        logAction(`清空会话记录: ${sessions[currentSessionIndex].name}`);
+        sessions[currentSessionIndex].history=[];
+        document.getElementById("historyPanel").innerHTML="";
+        saveAll();
+    }
+}
+function openSettings(){ document.getElementById("settingsModal").style.display="flex"; }
+function closeSettings(){ document.getElementById("settingsModal").style.display="none"; saveAll(); }
+function openLog(){
+    const logBox = document.getElementById("logContent");
+    if (logs.length === 0) {
+        logBox.textContent = "暂无日志记录。";
+    } else {
+        logBox.textContent = logs.join("\n\n");
+    }
+    document.getElementById("logModal").style.display = "flex";
+}
+function closeLog(){ document.getElementById("logModal").style.display = "none"; }
+function clearLog(){
+    if(confirm("确定要清空日志吗？")){
+        logs = [];
+        localStorage.setItem("ai_chat_logs", JSON.stringify([]));
+        document.getElementById("logContent").textContent = "暂无日志记录。";
+    }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    loadAll();
+    if (!localStorage.getItem("welcome_shown")) {
+        document.getElementById("welcomeModal").style.display = "flex";
+    }
+    document.getElementById("welcomeBtn").addEventListener("click", () => {
+        document.getElementById("welcomeModal").style.display = "none";
+        localStorage.setItem("welcome_shown", "1");
+    });
+});
+</script>
+</body>
+</html>

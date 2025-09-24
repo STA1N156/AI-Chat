@@ -51,6 +51,7 @@ body {
 .sessionTab:hover { transform: scale(1.05); }
 .sessionTab.active { background: #007aff; color: white; font-weight: bold; }
 .sessionTab span { margin-left: 8px; cursor: pointer; }
+/* 公共按钮样式 */
 .round-btn, .pink-btn, #sendBtn, .icon-btn {
     background: var(--btn-blue);
     color: white;
@@ -59,11 +60,29 @@ body {
     font-weight: 500;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.round-btn:hover, .pink-btn:hover, #sendBtn:hover, .icon-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0,122,255,0.3);
+
+/* 桌面端有 hover 和 active 效果 */
+@media (hover: hover) and (pointer: fine) {
+    .round-btn:hover, .pink-btn:hover, #sendBtn:hover, .icon-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0,122,255,0.3);
+    }
+    .round-btn:active, .pink-btn:active, #sendBtn:active, .icon-btn:active {
+        transform: scale(0.96);
+    }
 }
-.round-btn:active, .pink-btn:active, #sendBtn:active, .icon-btn:active { transform: scale(0.96); }
+
+/* 移动端无 hover，只有点击缩小效果 */
+@media (hover: none) and (pointer: coarse) {
+    .round-btn:hover, .pink-btn:hover, #sendBtn:hover, .icon-btn:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    .round-btn:active, .pink-btn:active, #sendBtn:active, .icon-btn:active {
+        transform: scale(0.96);
+        box-shadow: none;
+    }
+}
 .icon-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
 #controlPanel {
     background: rgba(255,255,255,0.25);
@@ -153,7 +172,7 @@ body {
     <div id="welcomeBox">
         <h2 style="margin-top:0;">欢迎使用</h2>
         <p style="font-size: 15px; line-height:1.6;">
-            本网站 <b>100% 由 GPT-5</b> 模型制作，<br>
+            本网站 <b> 由 GPT-5</b> 模型制作，<br>
             请连接 VPN 后点击 <b>获取模型</b>，<br>
             获取成功后即可开始使用。
         </p>

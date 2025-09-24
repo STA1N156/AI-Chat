@@ -820,22 +820,33 @@
                 color: white;
             }
 
-            /* 移动端侧边栏 */
+            /* 移动端侧边栏 - 优化圆角和毛玻璃效果 */
             .sidebar {
                 position: fixed;
                 top: 0;
                 left: 0;
-                width: 67vw;
+                width: 75vw;
                 height: 100vh;
                 height: 100dvh;
-                background: var(--card-background);
-                border-radius: 0;
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(40px);
+                -webkit-backdrop-filter: blur(40px);
+                border-radius: 0 24px 24px 0;
                 transform: translateX(-100%);
                 z-index: 2000;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+                box-shadow: 0 0 50px rgba(0, 0, 0, 0.1), 0 25px 50px rgba(0, 0, 0, 0.15);
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            /* 深色模式下的侧边栏 */
+            @media (prefers-color-scheme: dark) {
+                .sidebar {
+                    background: rgba(28, 28, 30, 0.9);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
             }
 
             .sidebar.open {
@@ -843,68 +854,77 @@
             }
 
             .sidebar-header {
-                padding: max(20px, env(safe-area-inset-top)) 20px 20px;
-                background: var(--primary-color);
+                padding: max(24px, env(safe-area-inset-top, 24px)) 24px 24px;
+                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
                 color: white;
                 position: relative;
                 flex-shrink: 0;
+                border-radius: 0 24px 0 0;
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
             }
 
             .mobile-sidebar-title {
-                font-size: 20px;
+                font-size: 22px;
                 font-weight: 700;
-                margin-bottom: 16px;
+                margin-bottom: 20px;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             }
 
             .mobile-back-btn {
                 position: absolute;
-                top: max(20px, env(safe-area-inset-top));
-                right: 20px;
-                background: rgba(255, 255, 255, 0.15);
+                top: max(24px, env(safe-area-inset-top, 24px));
+                right: 24px;
+                background: rgba(255, 255, 255, 0.2);
                 border: none;
                 color: white;
-                width: 40px;
-                height: 40px;
-                border-radius: 20px;
+                width: 44px;
+                height: 44px;
+                border-radius: 22px;
                 font-size: 20px;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                backdrop-filter: blur(10px);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
 
             .mobile-back-btn:active {
-                background: rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.3);
                 transform: scale(0.95);
             }
 
             .sidebar-actions {
                 flex-direction: column;
-                gap: 12px;
+                gap: 16px;
             }
 
             .new-chat-btn, .clear-all-btn {
-                background: rgba(255, 255, 255, 0.15);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 color: white;
-                padding: 16px 20px;
-                border-radius: 16px;
+                padding: 18px 24px;
+                border-radius: 20px;
                 font-size: 16px;
                 font-weight: 600;
                 min-height: 56px;
-                backdrop-filter: blur(10px);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
             }
 
             .new-chat-btn:active, .clear-all-btn:active {
-                background: rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.3);
                 transform: scale(0.98);
             }
 
             .conversation-list {
-                background: var(--background-color);
-                padding: 0;
+                background: transparent;
+                padding: 16px;
                 margin: 0;
                 flex: 1;
                 overflow-y: scroll;
@@ -913,14 +933,26 @@
             }
 
             .conversation-item {
-                background: var(--card-background);
-                margin: 1px 0;
-                border-radius: 0;
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                margin: 0 0 12px 0;
+                border-radius: 20px;
                 padding: 20px;
-                border-bottom: 1px solid var(--border-color);
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 min-height: 80px;
                 display: flex;
                 align-items: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+
+            /* 深色模式下的对话项 */
+            @media (prefers-color-scheme: dark) {
+                .conversation-item {
+                    background: rgba(44, 44, 46, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
             }
 
             .conversation-item:first-child {
@@ -928,18 +960,19 @@
             }
 
             .conversation-item:last-child {
-                border-bottom: none;
-                margin-bottom: max(0px, env(safe-area-inset-bottom));
+                margin-bottom: max(16px, env(safe-area-inset-bottom));
             }
 
             .conversation-item.active {
-                background: rgba(0, 122, 255, 0.1);
-                border-left: 4px solid var(--primary-color);
+                background: rgba(0, 122, 255, 0.15);
+                border: 2px solid var(--primary-color);
                 color: var(--text-primary);
+                box-shadow: 0 8px 24px rgba(0, 122, 255, 0.2);
             }
 
             .conversation-item:active {
-                background: rgba(0, 122, 255, 0.05);
+                transform: scale(0.98);
+                background: rgba(0, 122, 255, 0.1);
             }
 
             .conversation-header {
@@ -965,22 +998,28 @@
 
             .conversation-count {
                 font-size: 12px;
-                padding: 4px 8px;
+                padding: 4px 10px;
                 border-radius: 12px;
+                background: rgba(0, 122, 255, 0.15);
+                backdrop-filter: blur(10px);
             }
 
             .delete-btn {
                 opacity: 1;
-                width: 40px;
-                height: 40px;
-                border-radius: 20px;
+                width: 44px;
+                height: 44px;
+                border-radius: 22px;
                 font-size: 18px;
-                background: rgba(255, 59, 48, 0.1);
+                background: rgba(255, 59, 48, 0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 59, 48, 0.2);
+                box-shadow: 0 4px 12px rgba(255, 59, 48, 0.1);
             }
 
             .delete-btn:active {
                 background: var(--danger-color);
                 color: white;
+                transform: scale(0.95);
             }
 
             .header {
@@ -1217,7 +1256,7 @@
                 flex-shrink: 0;
             }
 
-            /* 移动端Toast */
+            /* 移动端Toast - 优化显示和隐藏效果 */
             .toast {
                 position: fixed;
                 top: max(20px, env(safe-area-inset-top, 20px));
@@ -1226,17 +1265,58 @@
                 width: auto;
                 max-width: none;
                 min-width: auto;
-                transform: translateY(-120px);
+                transform: translateY(-150px);
+                opacity: 0;
                 font-size: 16px;
-                padding: 16px 20px;
+                padding: 18px 24px;
                 border-radius: 16px;
                 text-align: center;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
                 z-index: 9999;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+
+            /* 深色模式下的Toast */
+            @media (prefers-color-scheme: dark) {
+                .toast {
+                    background: rgba(44, 44, 46, 0.95);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
             }
 
             .toast.show {
                 transform: translateY(0);
+                opacity: 1;
+            }
+
+            /* Toast隐藏动画 - 向上消失 */
+            .toast.hide {
+                transform: translateY(-150px) scale(0.9);
+                opacity: 0;
+                transition: all 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53);
+            }
+
+            /* Toast类型样式调整 */
+            .toast.success {
+                border-left: 4px solid var(--success-color);
+                background: rgba(52, 199, 89, 0.1);
+                backdrop-filter: blur(20px);
+            }
+
+            .toast.warning {
+                border-left: 4px solid var(--warning-color);
+                background: rgba(255, 149, 0, 0.1);
+                backdrop-filter: blur(20px);
+            }
+
+            .toast.error {
+                border-left: 4px solid var(--error-color);
+                background: rgba(255, 59, 48, 0.1);
+                backdrop-filter: blur(20px);
             }
 
             .empty-state {
@@ -2063,7 +2143,7 @@
             // 指示器会在updateMessage中被替换，无需额外操作
         }
 
-        // 解析Markdown
+        // 解析Markdown - 修复代码复制按钮
         function parseMarkdown(text) {
             const html = marked.parse(text);
             
@@ -2075,6 +2155,8 @@
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'copy-code-btn';
                 copyBtn.textContent = '复制';
+                
+                // 使用addEventListener而不是内联onclick
                 copyBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -2087,6 +2169,8 @@
                         fallbackCopy(block.textContent, this);
                     }
                 });
+                
+                // 为移动端添加touchend事件
                 copyBtn.addEventListener('touchend', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -2515,7 +2599,7 @@
             localStorage.setItem('conversations', JSON.stringify(conversations));
         }
 
-        // 修复Toast显示函数
+        // 优化Toast显示函数 - 完成后消失而不是隐藏
         function showToast(message, type = 'success') {
             // 清除之前的超时
             if (toastTimeout) {
@@ -2523,19 +2607,44 @@
             }
 
             const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
             
-            // 确保toast显示
+            // 如果Toast正在显示，先隐藏它
+            if (toast.classList.contains('show')) {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    displayToast(toast, message, type);
+                }, 200);
+            } else {
+                displayToast(toast, message, type);
+            }
+        }
+
+        // 实际显示Toast的函数
+        function displayToast(toast, message, type) {
+            // 移除所有状态类
+            toast.classList.remove('show', 'hide', 'success', 'warning', 'error');
+            
+            // 设置内容和类型
+            toast.textContent = message;
+            toast.classList.add(type);
+            
+            // 显示Toast
             setTimeout(() => {
                 toast.classList.add('show');
             }, 50);
             
-            // 设置自动隐藏
+            // 设置自动隐藏 - 使用向上消失的动画
             toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
+                toast.classList.add('hide');
+                
+                // 动画完成后重置状态
+                setTimeout(() => {
+                    toast.classList.remove('hide', type);
+                }, 400);
+                
                 toastTimeout = null;
-            }, 3000);
+            }, 2000);
         }
 
         // 工具函数

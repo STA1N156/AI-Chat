@@ -116,6 +116,10 @@
             flex: 1;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .new-chat-btn:hover {
@@ -136,6 +140,10 @@
             box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .clear-all-btn:hover {
@@ -223,6 +231,7 @@
             margin-bottom: 6px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             word-break: break-word;
@@ -267,6 +276,12 @@
             flex-shrink: 0;
         }
 
+        .delete-btn:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
         .conversation-item:hover .delete-btn {
             opacity: 1;
         }
@@ -302,6 +317,14 @@
             padding: 8px;
             border-radius: 8px;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: var(--background-color);
+            transform: scale(1.05);
         }
 
         .header-actions {
@@ -321,7 +344,13 @@
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--background-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
         }
 
         .model-select {
@@ -394,6 +423,14 @@
             cursor: pointer;
             font-size: 12px;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
         }
 
         .typing-indicator {
@@ -468,8 +505,20 @@
             box-shadow: var(--shadow);
         }
 
+        .send-btn:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
         .stop-btn {
             background: #FF3B30;
+        }
+
+        .stop-btn:hover {
+            background: #e03428;
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
         }
 
         /* 通用模态框样式 */
@@ -532,6 +581,15 @@
             padding: 4px;
             border-radius: 6px;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-primary);
+            transform: rotate(90deg);
         }
 
         .setting-group {
@@ -610,6 +668,11 @@
             overflow: hidden;
             min-width: 120px;
             justify-content: center;
+        }
+
+        .save-settings-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
         }
 
         /* Toast样式 */
@@ -710,12 +773,21 @@
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: #abb2bf;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .copy-code-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
         }
 
         pre:hover .copy-code-btn {
@@ -1492,7 +1564,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 桌面端继续隐藏移动端组件 */
+            /* 桌面端继续隐藏移动端组件 */
         @media (min-width: 769px) {
             .mobile-header,
             .mobile-model-picker,
@@ -1502,6 +1574,60 @@
 
             body {
                 overflow: hidden;
+            }
+        }
+
+        /* SVG图标样式 */
+        .icon-svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            vertical-align: middle;
+            transition: all 0.2s;
+        }
+
+        .btn .icon-svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .menu-btn .icon-svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .send-btn .icon-svg,
+        .stop-btn .icon-svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.5;
+        }
+
+        .delete-btn .icon-svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .copy-btn .icon-svg,
+        .copy-code-btn .icon-svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .new-chat-btn .icon-svg,
+        .clear-all-btn .icon-svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .icon-svg {
+                width: 20px;
+                height: 20px;
             }
         }
     </style>
@@ -1529,10 +1655,20 @@
                 <div class="mobile-sidebar-title">对话列表</div>
                 <div class="sidebar-actions">
                     <button class="new-chat-btn" onclick="createNewChat()">
-                        ➕ 新对话
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        新对话
                     </button>
                     <button class="clear-all-btn" onclick="clearAllConversations()">
-                        🗑️ 清空全部
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        清空全部
                     </button>
                 </div>
             </div>
@@ -1550,17 +1686,48 @@
             <!-- 桌面端头部（移动端隐藏） -->
             <div class="header">
                 <div class="header-left">
-                    <button class="menu-btn" onclick="toggleSidebar()" aria-label="打开菜单">☰</button>
+                    <button class="menu-btn" onclick="toggleSidebar()" aria-label="打开菜单">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
                     <select class="model-select" id="modelSelect" aria-label="选择AI模型">
                         <option value="">选择模型</option>
                         <option value="gpt-5-chat-latest">gpt-5-chat-latest</option>
                     </select>
                 </div>
                 <div class="header-actions">
-                    <button class="btn" onclick="getModels()" aria-label="获取模型">🔄 获取模型</button>
-                    <button class="btn" onclick="openSettings()" aria-label="打开设置">⚙️ 设置</button>
-                    <button class="btn" onclick="exportChat()" aria-label="导出对话">📤 导出</button>
-                    <button class="btn" onclick="clearChat()" aria-label="清空对话">🗑️ 清空</button>
+                    <button class="btn" onclick="getModels()" aria-label="获取模型">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        获取模型
+                    </button>
+                    <button class="btn" onclick="openSettings()" aria-label="打开设置">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m5.2-14.2l-4.2 4.2m-2 2l-4.2 4.2M23 12h-6m-6 0H5m14.2 5.2l-4.2-4.2m-2-2l-4.2-4.2"></path>
+                        </svg>
+                        设置
+                    </button>
+                    <button class="btn" onclick="exportChat()" aria-label="导出对话">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        导出
+                    </button>
+                    <button class="btn" onclick="clearChat()" aria-label="清空对话">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        清空
+                    </button>
                 </div>
             </div>
 
@@ -1585,8 +1752,17 @@
                         oninput="autoResize(this)"
                         aria-label="输入消息"
                     ></textarea>
-                    <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="发送消息">➤</button>
-                    <button class="stop-btn" id="stopBtn" onclick="stopGeneration()" style="display: none;" aria-label="停止生成">◼</button>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="发送消息">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                    <button class="stop-btn" id="stopBtn" onclick="stopGeneration()" style="display: none;" aria-label="停止生成">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1611,7 +1787,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">设置</h3>
-                <button class="close-btn" onclick="closeSettings()" aria-label="关闭设置">✕</button>
+                <button class="close-btn" onclick="closeSettings()" aria-label="关闭设置">
+                    <svg class="icon-svg" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
             
             <!-- 移动端使用滚动主体 -->
@@ -1638,7 +1819,14 @@
                 </div>
             </div>
 
-            <button class="save-settings-btn" onclick="saveSettings()">💾 保存设置</button>
+            <button class="save-settings-btn" onclick="saveSettings()">
+                <svg class="icon-svg" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                保存设置
+            </button>
         </div>
     </div>
 
@@ -1992,6 +2180,8 @@
             if (content) {
                 if (role === 'assistant') {
                     bubbleElement.innerHTML = parseMarkdown(content);
+                    // 绑定代码复制按钮事件
+                    bindCodeCopyButtons(bubbleElement);
                 } else {
                     bubbleElement.textContent = content;
                 }
@@ -2004,7 +2194,7 @@
                 // 使用事件委托而不是内联onclick
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'copy-btn';
-                copyBtn.textContent = '📋';
+                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
                 copyBtn.setAttribute('data-message-id', messageId);
                 copyBtn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -2041,14 +2231,32 @@
             const messageElement = document.getElementById(messageId);
             if (messageElement) {
                 const bubbleElement = messageElement.querySelector('.message-bubble');
-                const actionsElement = bubbleElement.querySelector('.message-actions');
                 
+                // 设置内容
                 bubbleElement.innerHTML = parseMarkdown(content);
                 
-                // 重新添加操作按钮
-                if (actionsElement) {
-                    bubbleElement.appendChild(actionsElement);
-                }
+                // 绑定代码复制按钮事件
+                bindCodeCopyButtons(bubbleElement);
+                
+                // 重新创建操作按钮（因为innerHTML会清除事件监听器）
+                const actionsElement = document.createElement('div');
+                actionsElement.className = 'message-actions';
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                copyBtn.setAttribute('data-message-id', messageId);
+                copyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyMessageContent(this);
+                });
+                copyBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyMessageContent(this);
+                });
+                actionsElement.appendChild(copyBtn);
+                bubbleElement.appendChild(actionsElement);
 
                 // 滚动到底部
                 const chatContainer = document.getElementById('chatContainer');
@@ -2106,11 +2314,11 @@
         // 显示复制成功反馈
         function showCopySuccess(button) {
             showToast('消息已复制', 'success');
-            const originalText = button.textContent;
-            button.textContent = '✓';
+            const originalHTML = button.innerHTML;
+            button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
             button.style.background = 'rgba(52, 199, 89, 0.2)';
             setTimeout(() => {
-                button.textContent = originalText;
+                button.innerHTML = originalHTML;
                 button.style.background = '';
             }, 1000);
         }
@@ -2143,7 +2351,7 @@
             // 指示器会在updateMessage中被替换，无需额外操作
         }
 
-        // 解析Markdown - 修复代码复制按钮
+        // 解析Markdown - 只处理高亮，不绑定事件
         function parseMarkdown(text) {
             const html = marked.parse(text);
             
@@ -2152,45 +2360,58 @@
             tempDiv.innerHTML = html;
             
             tempDiv.querySelectorAll('pre code').forEach((block) => {
+                // 进行语法高亮
+                hljs.highlightElement(block);
+                
+                // 设置父元素样式
+                block.parentElement.style.position = 'relative';
+                
+                // 添加复制按钮的HTML（不绑定事件）
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'copy-code-btn';
-                copyBtn.textContent = '复制';
-                
-                // 使用addEventListener而不是内联onclick
-                copyBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (navigator.clipboard && window.isSecureContext) {
-                        navigator.clipboard.writeText(block.textContent).then(() => {
-                            showToast('代码已复制', 'success');
-                        });
-                    } else {
-                        fallbackCopy(block.textContent, this);
-                    }
-                });
-                
-                // 为移动端添加touchend事件
-                copyBtn.addEventListener('touchend', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (navigator.clipboard && window.isSecureContext) {
-                        navigator.clipboard.writeText(block.textContent).then(() => {
-                            showToast('代码已复制', 'success');
-                        });
-                    } else {
-                        fallbackCopy(block.textContent, this);
-                    }
-                });
-                
-                block.parentElement.style.position = 'relative';
+                copyBtn.setAttribute('data-code-content', block.textContent);
+                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
                 block.parentElement.appendChild(copyBtn);
-                
-                hljs.highlightElement(block);
             });
             
             return tempDiv.innerHTML;
+        }
+
+        // 绑定代码复制按钮事件
+        function bindCodeCopyButtons(container) {
+            container.querySelectorAll('.copy-code-btn').forEach((button) => {
+                // 移除旧的事件监听器（如果有）
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                // 绑定新的事件
+                const copyCode = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 获取代码内容
+                    const codeBlock = this.parentElement.querySelector('code');
+                    const codeText = codeBlock ? codeBlock.textContent : this.getAttribute('data-code-content');
+                    
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(codeText).then(() => {
+                            const originalHTML = this.innerHTML;
+                            this.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                            showToast('代码已复制', 'success');
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                            }, 1000);
+                        }).catch(() => {
+                            fallbackCopy(codeText, this);
+                        });
+                    } else {
+                        fallbackCopy(codeText, this);
+                    }
+                };
+                
+                newButton.addEventListener('click', copyCode);
+                newButton.addEventListener('touchend', copyCode);
+            });
         }
 
         // 自动调整输入框高度
@@ -2339,6 +2560,8 @@
             
             if (role === 'assistant') {
                 bubbleElement.innerHTML = parseMarkdown(content);
+                // 绑定代码复制按钮事件
+                bindCodeCopyButtons(bubbleElement);
             } else {
                 bubbleElement.textContent = content;
             }
@@ -2348,7 +2571,7 @@
                 actionsElement.className = 'message-actions';
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'copy-btn';
-                copyBtn.textContent = '📋';
+                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
                 copyBtn.setAttribute('data-message-id', messageId);
                 copyBtn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -2425,7 +2648,12 @@
                                 </div>
                             </div>
                             <button class="delete-btn" onclick="deleteConversation('${conv.id}', event)" title="删除对话" aria-label="删除对话">
-                                🗑️
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
                             </button>
                         </div>
                     </div>

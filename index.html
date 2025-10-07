@@ -408,10 +408,16 @@
             right: 4px;
             opacity: 0;
             transition: opacity 0.2s;
+            z-index: 10;
         }
 
         .message-bubble:hover .message-actions {
             opacity: 1;
+        }
+        
+        /* 桌面端消息操作按钮 */
+        .message .message-actions-wrapper {
+            display: none;
         }
 
         .copy-btn {
@@ -483,10 +489,29 @@
             background-color: var(--background-color);
             color: var(--text-primary);
             font-size: 16px;
-            resize: none;
+            resize: none !important;
             outline: none;
             transition: all 0.2s;
             font-family: inherit;
+            overflow: hidden;
+            overflow-y: auto;
+        }
+
+        .input-field::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .input-field::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .input-field::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .input-field::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
 
         .send-btn, .stop-btn {
@@ -846,19 +871,28 @@
                 color: white;
                 width: 40px;
                 height: 40px;
-                border-radius: 20px;
+                border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 18px;
-                font-weight: bold;
                 cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
             }
 
             .mobile-menu-btn:active {
                 transform: scale(0.95);
+                box-shadow: 0 1px 4px rgba(0, 122, 255, 0.2);
+            }
+
+            .mobile-menu-btn svg {
+                width: 20px;
+                height: 20px;
+                stroke: white;
+                stroke-width: 2.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
             }
 
             .mobile-title {
@@ -873,23 +907,40 @@
             }
 
             .mobile-action-btn {
-                background: var(--background-color);
-                border: 1px solid var(--border-color);
+                background: transparent;
+                border: none;
                 color: var(--text-primary);
                 width: 40px;
                 height: 40px;
-                border-radius: 20px;
+                border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 16px;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
+                position: relative;
             }
 
             .mobile-action-btn:active {
-                background: var(--primary-color);
-                color: white;
+                background: rgba(0, 122, 255, 0.1);
+                transform: scale(0.95);
+            }
+
+            .mobile-action-btn svg {
+                width: 22px;
+                height: 22px;
+                stroke: var(--text-primary);
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+            }
+
+            /* 深色模式下的移动端按钮优化 */
+            @media (prefers-color-scheme: dark) {
+                .mobile-action-btn:active {
+                    background: rgba(0, 122, 255, 0.15);
+                }
             }
 
             /* 移动端侧边栏 - 优化圆角和毛玻璃效果 */
@@ -951,10 +1002,9 @@
                 color: white;
                 width: 44px;
                 height: 44px;
-                border-radius: 22px;
-                font-size: 20px;
+                border-radius: 50%;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -967,6 +1017,16 @@
             .mobile-back-btn:active {
                 background: rgba(255, 255, 255, 0.3);
                 transform: scale(0.95);
+            }
+
+            .mobile-back-btn svg {
+                width: 20px;
+                height: 20px;
+                stroke: white;
+                stroke-width: 2.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
             }
 
             .sidebar-actions {
@@ -1134,45 +1194,59 @@
                 margin-right: 20%;
             }
 
-            /* 移动端复制按钮优化 */
+            /* 移动端复制按钮优化 - 放在气泡内部右下角 */
             .message-actions {
+                position: absolute;
+                bottom: 6px;
+                right: 6px;
                 opacity: 1; /* 移动端始终显示 */
-                bottom: 8px;
-                right: 8px;
                 z-index: 10;
             }
 
-            .copy-btn {
-                background: rgba(0, 0, 0, 0.2);
-                backdrop-filter: blur(4px);
+            /* 隐藏外部复制按钮容器 */
+            .message.assistant .message-actions-wrapper {
+                display: none;
+            }
+
+            /* 移动端气泡内复制按钮样式 */
+            .message-bubble .copy-btn {
+                background: rgba(0, 0, 0, 0.08);
+                backdrop-filter: blur(10px);
                 color: inherit;
-                padding: 8px 12px;
-                font-size: 14px;
-                border-radius: 10px;
-                min-height: 36px;
-                min-width: 36px;
+                padding: 4px 8px;
+                font-size: 11px;
+                border-radius: 8px;
+                border: none;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                gap: 3px;
                 cursor: pointer;
                 -webkit-tap-highlight-color: transparent;
-                border: none;
                 outline: none;
                 transition: all 0.2s ease;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
             }
 
-            .copy-btn:active {
+            .message-bubble .copy-btn:active {
                 transform: scale(0.95);
-                background: rgba(0, 0, 0, 0.3);
+                background: rgba(0, 0, 0, 0.15);
             }
 
-            .message.user .copy-btn {
-                background: rgba(255, 255, 255, 0.2);
-                color: white;
+            .message-bubble .copy-btn svg {
+                width: 11px;
+                height: 11px;
             }
 
-            .message.user .copy-btn:active {
-                background: rgba(255, 255, 255, 0.3);
+            /* 深色模式下的气泡内复制按钮 */
+            @media (prefers-color-scheme: dark) {
+                .message.assistant .message-bubble .copy-btn {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .message.assistant .message-bubble .copy-btn:active {
+                    background: rgba(255, 255, 255, 0.15);
+                }
             }
 
             .input-container {
@@ -1637,19 +1711,43 @@
         <!-- 移动端专用顶部导航栏 -->
         <div class="mobile-header">
             <div class="mobile-header-left">
-                <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="打开菜单">☰</button>
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="打开菜单">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
                 <div class="mobile-title" id="mobileTitle">AI Chat</div>
             </div>
             <div class="mobile-header-right">
-                <button class="mobile-action-btn" onclick="toggleModelPicker()" aria-label="选择模型" title="选择模型">🤖</button>
-                <button class="mobile-action-btn" onclick="openSettings()" aria-label="设置" title="设置">⚙️</button>
+                <button class="mobile-action-btn" onclick="toggleModelPicker()" aria-label="选择模型" title="选择模型">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="11" width="7" height="9" rx="1"></rect>
+                        <rect x="14" y="11" width="7" height="9" rx="1"></rect>
+                        <path d="M14 4h-4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                        <line x1="6.5" y1="16" x2="6.5" y2="16.01"></line>
+                        <line x1="17.5" y1="16" x2="17.5" y2="16.01"></line>
+                    </svg>
+                </button>
+                <button class="mobile-action-btn" onclick="openSettings()" aria-label="设置" title="设置">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m5.2-14.2l-4.2 4.2m-2 2l-4.2 4.2M23 12h-6m-6 0H5m14.2 5.2l-4.2-4.2m-2-2l-4.2-4.2"></path>
+                    </svg>
+                </button>
             </div>
         </div>
 
         <!-- 侧边栏 -->
         <div class="sidebar" id="sidebar">
             <!-- 移动端返回按钮 -->
-            <button class="mobile-back-btn" onclick="toggleSidebar()" aria-label="返回">←</button>
+            <button class="mobile-back-btn" onclick="toggleSidebar()" aria-label="返回">
+                <svg viewBox="0 0 24 24">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
             
             <div class="sidebar-header">
                 <div class="mobile-sidebar-title">对话列表</div>
@@ -1838,7 +1936,35 @@
         const API_BASE = 'https://love.qinyan.icu';
         const API_KEY = 'sk-VhzFYRGJqD4IP6a26d2141C5E52049529f9a8eE4D575E60e';
         
-        let conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        // 加载并验证对话数据
+        function loadAndValidateConversations() {
+            try {
+                const rawData = JSON.parse(localStorage.getItem('conversations') || '[]');
+                // 验证并清理数据
+                return rawData.map(conv => {
+                    if (!conv.messages || !Array.isArray(conv.messages)) {
+                        conv.messages = [];
+                    }
+                    // 验证每条消息的role字段
+                    conv.messages = conv.messages.filter(msg => {
+                        if (!msg.role || (msg.role !== 'user' && msg.role !== 'assistant')) {
+                            console.warn('发现无效的消息role:', msg);
+                            return false;
+                        }
+                        if (!msg.content) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    return conv;
+                });
+            } catch (e) {
+                console.error('加载对话数据失败:', e);
+                return [];
+            }
+        }
+        
+        let conversations = loadAndValidateConversations();
         let currentConversationId = null;
         let isGenerating = false;
         let currentController = null;
@@ -2162,6 +2288,12 @@
 
         // 添加消息到界面
         function addMessage(role, content) {
+            // 验证role字段
+            if (role !== 'user' && role !== 'assistant') {
+                console.error('addMessage: 无效的role -', role, '内容:', content);
+                return null;
+            }
+            
             const chatContainer = document.getElementById('chatContainer');
             const messageId = 'msg-' + Date.now();
             
@@ -2189,28 +2321,53 @@
 
             // 添加复制按钮（仅对AI消息）
             if (role === 'assistant') {
+                // 气泡内的复制按钮（桌面端）
                 const actionsElement = document.createElement('div');
                 actionsElement.className = 'message-actions';
-                // 使用事件委托而不是内联onclick
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-                copyBtn.setAttribute('data-message-id', messageId);
-                copyBtn.addEventListener('click', function(e) {
+                const copyBtnInside = document.createElement('button');
+                copyBtnInside.className = 'copy-btn';
+                copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                copyBtnInside.setAttribute('data-message-id', messageId);
+                copyBtnInside.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     copyMessageContent(this);
                 });
-                copyBtn.addEventListener('touchend', function(e) {
+                copyBtnInside.addEventListener('touchend', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     copyMessageContent(this);
                 });
-                actionsElement.appendChild(copyBtn);
+                actionsElement.appendChild(copyBtnInside);
                 bubbleElement.appendChild(actionsElement);
+                
+                // 气泡外的复制按钮（移动端）
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'message-actions-wrapper';
+                const copyBtnOutside = document.createElement('button');
+                copyBtnOutside.className = 'copy-btn';
+                copyBtnOutside.innerHTML = `
+                    <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>复制</span>
+                `;
+                copyBtnOutside.setAttribute('data-message-id', messageId);
+                copyBtnOutside.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyMessageContent(this);
+                });
+                copyBtnOutside.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyMessageContent(this);
+                });
+                actionsWrapper.appendChild(copyBtnOutside);
+                messageElement.appendChild(bubbleElement);
+                messageElement.appendChild(actionsWrapper);
+            } else {
+                messageElement.appendChild(bubbleElement);
             }
 
-            messageElement.appendChild(bubbleElement);
             chatContainer.appendChild(messageElement);
             
             // 滚动到底部
@@ -2238,25 +2395,51 @@
                 // 绑定代码复制按钮事件
                 bindCodeCopyButtons(bubbleElement);
                 
-                // 重新创建操作按钮（因为innerHTML会清除事件监听器）
+                // 重新创建气泡内的操作按钮（桌面端）
                 const actionsElement = document.createElement('div');
                 actionsElement.className = 'message-actions';
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-                copyBtn.setAttribute('data-message-id', messageId);
-                copyBtn.addEventListener('click', function(e) {
+                const copyBtnInside = document.createElement('button');
+                copyBtnInside.className = 'copy-btn';
+                copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                copyBtnInside.setAttribute('data-message-id', messageId);
+                copyBtnInside.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     copyMessageContent(this);
                 });
-                copyBtn.addEventListener('touchend', function(e) {
+                copyBtnInside.addEventListener('touchend', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     copyMessageContent(this);
                 });
-                actionsElement.appendChild(copyBtn);
+                actionsElement.appendChild(copyBtnInside);
                 bubbleElement.appendChild(actionsElement);
+                
+                // 更新外部的复制按钮（移动端）
+                let actionsWrapper = messageElement.querySelector('.message-actions-wrapper');
+                if (!actionsWrapper) {
+                    actionsWrapper = document.createElement('div');
+                    actionsWrapper.className = 'message-actions-wrapper';
+                    const copyBtnOutside = document.createElement('button');
+                    copyBtnOutside.className = 'copy-btn';
+                    copyBtnOutside.innerHTML = `
+                        <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>复制</span>
+                    `;
+                    copyBtnOutside.setAttribute('data-message-id', messageId);
+                    copyBtnOutside.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        copyMessageContent(this);
+                    });
+                    copyBtnOutside.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        copyMessageContent(this);
+                    });
+                    actionsWrapper.appendChild(copyBtnOutside);
+                    messageElement.appendChild(actionsWrapper);
+                }
 
                 // 滚动到底部
                 const chatContainer = document.getElementById('chatContainer');
@@ -2268,8 +2451,16 @@
 
         // 复制消息内容 - 修复移动端复制问题
         function copyMessageContent(button) {
-            const messageElement = button.closest('.message-bubble');
-            let text = messageElement.textContent.replace('📋', '').trim();
+            // 尝试从气泡内或外部找到消息气泡
+            let messageElement = button.closest('.message-bubble');
+            if (!messageElement) {
+                // 如果按钮在外部，通过message元素找到气泡
+                const messageContainer = button.closest('.message');
+                messageElement = messageContainer ? messageContainer.querySelector('.message-bubble') : null;
+            }
+            if (!messageElement) return;
+            
+            let text = messageElement.textContent.replace('📋', '').replace('复制', '').trim();
             
             // 使用现代复制API
             if (navigator.clipboard && window.isSecureContext) {
@@ -2544,6 +2735,12 @@
 
         // 仅添加到UI，不更新对话记录
         function addMessageToUI(role, content) {
+            // 验证role字段
+            if (role !== 'user' && role !== 'assistant') {
+                console.error('addMessageToUI: 无效的role -', role, '内容:', content);
+                return;
+            }
+            
             const chatContainer = document.getElementById('chatContainer');
             const messageId = 'msg-' + Date.now() + '-' + Math.random();
             
@@ -2567,27 +2764,53 @@
             }
 
             if (role === 'assistant') {
+                // 气泡内的复制按钮（桌面端）
                 const actionsElement = document.createElement('div');
                 actionsElement.className = 'message-actions';
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-                copyBtn.setAttribute('data-message-id', messageId);
-                copyBtn.addEventListener('click', function(e) {
+                const copyBtnInside = document.createElement('button');
+                copyBtnInside.className = 'copy-btn';
+                copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                copyBtnInside.setAttribute('data-message-id', messageId);
+                copyBtnInside.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     copyMessageContent(this);
                 });
-                copyBtn.addEventListener('touchend', function(e) {
+                copyBtnInside.addEventListener('touchend', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     copyMessageContent(this);
                 });
-                actionsElement.appendChild(copyBtn);
+                actionsElement.appendChild(copyBtnInside);
                 bubbleElement.appendChild(actionsElement);
+                
+                // 气泡外的复制按钮（移动端）
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'message-actions-wrapper';
+                const copyBtnOutside = document.createElement('button');
+                copyBtnOutside.className = 'copy-btn';
+                copyBtnOutside.innerHTML = `
+                    <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>复制</span>
+                `;
+                copyBtnOutside.setAttribute('data-message-id', messageId);
+                copyBtnOutside.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyMessageContent(this);
+                });
+                copyBtnOutside.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyMessageContent(this);
+                });
+                actionsWrapper.appendChild(copyBtnOutside);
+                messageElement.appendChild(bubbleElement);
+                messageElement.appendChild(actionsWrapper);
+            } else {
+                messageElement.appendChild(bubbleElement);
             }
 
-            messageElement.appendChild(bubbleElement);
             chatContainer.appendChild(messageElement);
         }
 
@@ -2667,6 +2890,18 @@
 
             const conversation = conversations.find(conv => conv.id === currentConversationId);
             if (!conversation) return;
+
+            // 验证role字段
+            if (role !== 'user' && role !== 'assistant') {
+                console.error('无效的消息role:', role);
+                return;
+            }
+
+            // 验证content
+            if (!content || typeof content !== 'string') {
+                console.error('无效的消息内容:', content);
+                return;
+            }
 
             conversation.messages.push({ role, content });
             

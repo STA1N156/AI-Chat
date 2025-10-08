@@ -3731,53 +3731,40 @@
                     filesContainer.className = 'message-file-attachments';
                     
                     files.forEach(file => {
-                        // 如果是图片且有预览数据，直接显示图片
-                        if (file.preview && file.type && file.type.startsWith('image/')) {
-                            const imgElement = document.createElement('img');
-                            imgElement.src = file.preview;
-                            imgElement.alt = file.name || '图片';
-                            imgElement.style.maxWidth = '300px';
-                            imgElement.style.maxHeight = '300px';
-                            imgElement.style.borderRadius = '8px';
-                            imgElement.style.marginTop = '8px';
-                            imgElement.style.cursor = 'pointer';
-                            imgElement.title = file.name || '点击查看大图';
-                            // 点击图片可以在新窗口打开
-                            imgElement.onclick = function() {
-                                window.open(file.preview, '_blank');
-                            };
-                            filesContainer.appendChild(imgElement);
+                        // 统一显示文件图标，不直接显示完整图片
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'message-file-item';
+                        
+                        const fileIcon = document.createElement('span');
+                        fileIcon.className = 'message-file-icon';
+                        
+                        // 根据文件类型显示不同图标
+                        if (file.type && file.type.startsWith('image/')) {
+                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"/>
+                            </svg>`;
+                        } else if (file.type === 'text/plain') {
+                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                            </svg>`;
+                        } else if (file.type === 'application/pdf') {
+                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                <text x="12" y="16" text-anchor="middle" font-size="8" fill="white">PDF</text>
+                            </svg>`;
                         } else {
-                            // 非图片文件显示文件图标
-                            const fileItem = document.createElement('div');
-                            fileItem.className = 'message-file-item';
-                            
-                            const fileIcon = document.createElement('span');
-                            fileIcon.className = 'message-file-icon';
-                            
-                            if (file.type === 'text/plain') {
-                                fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                                </svg>`;
-                            } else if (file.type === 'application/pdf') {
-                                fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                                    <text x="12" y="16" text-anchor="middle" font-size="8" fill="white">PDF</text>
-                                </svg>`;
-                            } else {
-                                fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                                </svg>`;
-                            }
-                            
-                            const fileName = document.createElement('span');
-                            fileName.className = 'message-file-name';
-                            fileName.textContent = file.name;
-                            
-                            fileItem.appendChild(fileIcon);
-                            fileItem.appendChild(fileName);
-                            filesContainer.appendChild(fileItem);
+                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                            </svg>`;
                         }
+                        
+                        const fileName = document.createElement('span');
+                        fileName.className = 'message-file-name';
+                        fileName.textContent = file.name;
+                        
+                        fileItem.appendChild(fileIcon);
+                        fileItem.appendChild(fileName);
+                        filesContainer.appendChild(fileItem);
                     });
                     
                     bubbleElement.appendChild(filesContainer);

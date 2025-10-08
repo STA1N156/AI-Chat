@@ -962,6 +962,9 @@
             border-radius: 20px;
             border: 1px solid rgba(0, 122, 255, 0.2);
             box-shadow: 0 4px 16px rgba(0, 122, 255, 0.12);
+            min-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .progress-status {
@@ -979,64 +982,6 @@
             font-size: 22px;
             animation: pulse 2s ease-in-out infinite;
             flex-shrink: 0;
-        }
-
-        /* 沙漏图标动画 */
-        .hourglass-icon {
-            width: 24px;
-            height: 24px;
-            position: relative;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-
-        .hourglass-icon::before,
-        .hourglass-icon::after {
-            content: '';
-            position: absolute;
-            border: 2px solid var(--primary-color);
-            border-radius: 3px;
-        }
-
-        .hourglass-icon::before {
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 10px;
-            border-bottom: none;
-            background: linear-gradient(to bottom, rgba(0, 122, 255, 0.3) 0%, transparent 100%);
-            animation: sandTop 2s ease-in-out infinite;
-        }
-
-        .hourglass-icon::after {
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 10px;
-            border-top: none;
-            background: linear-gradient(to top, var(--primary-color) 0%, rgba(0, 122, 255, 0.5) 100%);
-            animation: sandBottom 2s ease-in-out infinite;
-        }
-
-        @keyframes sandTop {
-            0% { height: 10px; opacity: 1; }
-            50% { height: 3px; opacity: 0.6; }
-            100% { height: 10px; opacity: 1; }
-        }
-
-        @keyframes sandBottom {
-            0% { height: 3px; }
-            50% { height: 10px; }
-            100% { height: 3px; }
-        }
-
-        .progress-status.waiting .hourglass-icon {
-            animation: hourglassRotate 3s ease-in-out infinite;
-        }
-
-        @keyframes hourglassRotate {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(180deg); }
         }
 
         .progress-status.completed .progress-status-icon {
@@ -1067,19 +1012,6 @@
             .progress-bar-wrapper {
                 background: rgba(255, 255, 255, 0.08);
                 box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-            }
-            
-            .hourglass-icon::before,
-            .hourglass-icon::after {
-                border-color: rgba(0, 122, 255, 0.9);
-            }
-            
-            .hourglass-icon::before {
-                background: linear-gradient(to bottom, rgba(0, 122, 255, 0.5) 0%, transparent 100%);
-            }
-            
-            .hourglass-icon::after {
-                background: linear-gradient(to top, rgba(0, 122, 255, 0.9) 0%, rgba(0, 122, 255, 0.6) 100%);
             }
         }
 
@@ -1174,6 +1106,45 @@
         .progress-link a:active {
             transform: translateY(0);
             box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+        }
+
+        /* 旋转加载图标 - 进行中状态 */
+        .spinner-icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .spinner-icon::before {
+            content: '';
+            box-sizing: border-box;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin-top: -10px;
+            margin-left: -10px;
+            border-radius: 50%;
+            border: 2.5px solid transparent;
+            border-top-color: var(--primary-color);
+            border-right-color: var(--primary-color);
+            animation: spinner 0.8s linear infinite;
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .spinner-icon::before {
+                border-top-color: rgba(0, 122, 255, 0.9);
+                border-right-color: rgba(0, 122, 255, 0.9);
+                box-shadow: 0 0 12px rgba(0, 122, 255, 0.4);
+            }
         }
 
         /* 完成图标 - 简约圆形打勾 */
@@ -2901,6 +2872,12 @@
             .message.assistant .message-bubble {
                 border-bottom-left-radius: 6px;
                 margin-right: 20%;
+            }
+
+            /* 移动端进度条适配 */
+            .progress-container {
+                min-width: 280px;
+                padding: 16px;
             }
 
             /* 移动端复制按钮优化 - 放在气泡内部右下角 */
@@ -4964,10 +4941,51 @@
                 const bubbleElement = messageElement.querySelector('.message-bubble');
                 
                 // 检查是否是进度内容
-                const isGenerating = convertProgressToHTML(content) !== null;
+                const progressInfo = getProgressInfo(content);
+                const isGenerating = progressInfo !== null;
                 
-                // 设置内容
-                bubbleElement.innerHTML = parseMarkdown(content);
+                // 如果是进度更新且已存在进度条，只更新进度值
+                const existingProgressBar = bubbleElement.querySelector('.progress-bar');
+                const existingProgressText = bubbleElement.querySelector('.progress-text');
+                
+                if (isGenerating && existingProgressBar && existingProgressText) {
+                    // 获取当前进度值
+                    const currentWidth = existingProgressBar.style.width;
+                    const currentProgress = currentWidth ? parseFloat(currentWidth) : 0;
+                    
+                    // 确保进度只能前进，不能后退（除非是完成状态）
+                    const newProgress = progressInfo.status === 'completed' ? 100 : Math.max(currentProgress, progressInfo.progress);
+                    
+                    // 只更新进度值，保留现有元素以启用transition动画
+                    existingProgressBar.style.width = newProgress + '%';
+                    existingProgressText.textContent = newProgress.toFixed(1) + '%';
+                    
+                    // 更新状态
+                    const progressStatus = bubbleElement.querySelector('.progress-status');
+                    if (progressStatus) {
+                        progressStatus.className = 'progress-status ' + progressInfo.status;
+                        const statusIcon = progressStatus.querySelector('.progress-status-icon');
+                        const statusTextEl = progressStatus.querySelector('span:last-child');
+                        if (statusIcon) statusIcon.innerHTML = progressInfo.statusIcon;
+                        if (statusTextEl) statusTextEl.textContent = progressInfo.statusText;
+                    }
+                    
+                    // 如果完成了，添加链接
+                    if (progressInfo.status === 'completed' && progressInfo.linkHTML) {
+                        let linkContainer = bubbleElement.querySelector('.progress-link');
+                        if (!linkContainer) {
+                            const progressContainer = bubbleElement.querySelector('.progress-container');
+                            if (progressContainer) {
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = progressInfo.linkHTML;
+                                progressContainer.appendChild(tempDiv.firstElementChild);
+                            }
+                        }
+                    }
+                } else {
+                    // 首次创建或非进度内容，重新生成HTML
+                    bubbleElement.innerHTML = parseMarkdown(content);
+                }
                 
                 // 如果是生成状态，添加特殊样式类，不添加复制按钮
                 if (isGenerating) {
@@ -5132,8 +5150,8 @@
         // 隐藏打字指示器（在updateMessage中自动替换）
         function hideTypingIndicator(messageId) {}
 
-        // 检测并转换进度信息
-        function convertProgressToHTML(text) {
+        // 提取进度信息（返回对象而不是HTML）
+        function getProgressInfo(text) {
             // 检测是否包含进度信息
             const progressPattern = /🏃\s*进度[：:]\s*([\d.]+)%/g;
             const waitingPattern = /⌛️?\s*任务正在队列中[，,]?请耐心等待/;
@@ -5153,9 +5171,9 @@
                 ? parseFloat(progressMatches[progressMatches.length - 1][1]) 
                 : 0;
             
-            // 确定状态（优先级：完成 > 等待 > 进行中）
+            // 确定状态（优先级：完成 > 生成中）
             let status = 'running';
-            let statusIcon = '🏃';
+            let statusIcon = '<span class="spinner-icon"></span>';
             let statusText = '视频生成中';
             
             // 检测完成状态（优先级最高）
@@ -5165,18 +5183,11 @@
                 statusText = '生成完毕';
                 // 完成时进度自动设为100%
                 latestProgress = 100;
-            } else if (waitingPattern.test(text)) {
-                status = 'waiting';
-                statusIcon = '<span class="hourglass-icon"></span>';
-                statusText = '任务正在队列中，请耐心等待...';
-                // 等待时进度为0%
-                latestProgress = 0;
             }
             
             // 提取链接（如果有）
             let linkHTML = '';
             if (completedPattern.test(text)) {
-                // 尝试提取消息中的URL链接，排除末尾的括号、波浪号等特殊字符
                 const urlPattern = /(https?:\/\/[^\s<>"~()（）]+)/i;
                 const urlMatch = text.match(urlPattern);
                 
@@ -5193,18 +5204,34 @@
                 }
             }
             
+            return {
+                progress: latestProgress,
+                status: status,
+                statusIcon: statusIcon,
+                statusText: statusText,
+                linkHTML: linkHTML
+            };
+        }
+
+        // 检测并转换进度信息
+        function convertProgressToHTML(text) {
+            const progressInfo = getProgressInfo(text);
+            if (!progressInfo) {
+                return null;
+            }
+            
             // 生成进度条HTML
             const progressHTML = `
                 <div class="progress-container">
-                    <div class="progress-status ${status}">
-                        <span class="progress-status-icon">${statusIcon}</span>
-                        <span>${statusText}</span>
+                    <div class="progress-status ${progressInfo.status}">
+                        <span class="progress-status-icon">${progressInfo.statusIcon}</span>
+                        <span>${progressInfo.statusText}</span>
                     </div>
                     <div class="progress-bar-wrapper">
-                        <div class="progress-bar" style="width: ${latestProgress}%"></div>
-                        <div class="progress-text">${latestProgress.toFixed(1)}%</div>
+                        <div class="progress-bar" style="width: ${progressInfo.progress}%"></div>
+                        <div class="progress-text">${progressInfo.progress.toFixed(1)}%</div>
                     </div>
-                    ${linkHTML}
+                    ${progressInfo.linkHTML}
                 </div>
             `;
             

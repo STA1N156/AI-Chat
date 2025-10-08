@@ -2162,6 +2162,8 @@
             }
         }
     </style>
+    <!-- 引入 mammoth.js 用于解析 docx 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -2694,8 +2696,30 @@
                         updateFilePreview();
                     };
                     reader.readAsText(file);
+                } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                           file.name.toLowerCase().endsWith('.docx')) {
+                    // 如果是 docx 文件，使用 mammoth.js 解析
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                        fileInfo.content = result.value;
+                        fileInfo.type = 'text/plain'; // 标记为文本类型以便后续处理
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取 ${file.name} 的文本内容`, 'success');
+                    } catch (error) {
+                        console.error('解析 docx 文件失败:', error);
+                        showToast(`无法解析 ${file.name}`, 'error');
+                    }
+                } else if (file.type === 'application/msword' || file.name.toLowerCase().endsWith('.doc')) {
+                    // .doc 格式不支持
+                    showToast(`暂不支持 .doc 格式，请转换为 .docx 或 .txt`, 'warning');
+                } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    // PDF 暂不支持（需要额外的库）
+                    showToast(`暂不支持 PDF 格式，请转换为 .txt 或 .docx`, 'warning');
                 } else {
-                    // 其他类型文件
+                    // 其他类型文件，尝试作为文本读取
+                    showToast(`${file.name} 可能无法正确读取，建议使用 .txt 或 .docx 格式`, 'warning');
                     uploadedFiles.push(fileInfo);
                     updateFilePreview();
                 }
@@ -2879,131 +2903,133 @@
             let success = false;
             let isAborted = false;
 
-            while (retryCount <= MAX_RETRIES && !success) {
-                try {
-                    isGenerating = true;
-                    updateSendButton();
+            // 在 try 块外面先设置 isGenerating，确保状态正确
+            isGenerating = true;
+            updateSendButton();
 
-                    // 速率限制检查
-                    await checkRateLimit();
+            try {
+                while (retryCount <= MAX_RETRIES && !success) {
+                    try {
 
-                    currentController = new AbortController();
+                        // 速率限制检查
+                        await checkRateLimit();
 
-                    // 获取当前对话历史，构建多模态消息
-                    const conversation = conversations.find(conv => conv.id === currentConversationId);
-                    const messages = buildMultimodalMessages(conversation);
+                        currentController = new AbortController();
 
-                    // 如果是重试，显示提示
-                    if (retryCount > 0) {
-                        updateMessage(loadingId, `正在重试 (${retryCount}/${MAX_RETRIES})...`);
-                    }
+                        // 获取当前对话历史，构建多模态消息
+                        const conversation = conversations.find(conv => conv.id === currentConversationId);
+                        const messages = buildMultimodalMessages(conversation);
 
-                    const response = await fetch(`${API_BASE}/v1/chat/completions`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${API_KEY}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            model: currentModel,
-                            messages: messages,
-                            temperature: parseFloat(settings.temperature),
-                            max_tokens: parseInt(settings.maxTokens),
-                            stream: true
-                        }),
-                        signal: currentController.signal
-                    });
-
-                    // 处理 429 错误
-                    if (response.status === 429) {
-                        if (retryCount < MAX_RETRIES) {
-                            const retryDelay = RETRY_DELAYS[retryCount];
-                            console.log(`HTTP 429: 请求过于频繁，${retryDelay/1000}秒后重试...`);
-                            updateMessage(loadingId, `请求过于频繁，${retryDelay/1000}秒后自动重试 (${retryCount + 1}/${MAX_RETRIES})...`);
-                            showToast(`请求过于频繁，${retryDelay/1000}秒后重试...`, 'warning');
-                            await delay(retryDelay);
-                            retryCount++;
-                            continue;
-                        } else {
-                            throw new Error('HTTP 429: 请求过于频繁，请稍后再试');
+                        // 如果是重试，显示提示
+                        if (retryCount > 0) {
+                            updateMessage(loadingId, `正在重试 (${retryCount}/${MAX_RETRIES})...`);
                         }
-                    }
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+                        const response = await fetch(`${API_BASE}/v1/chat/completions`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: currentModel,
+                                messages: messages,
+                                temperature: parseFloat(settings.temperature),
+                                max_tokens: parseInt(settings.maxTokens),
+                                stream: true
+                            }),
+                            signal: currentController.signal
+                        });
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = '';
-                    let fullResponse = '';
+                        // 处理 429 错误
+                        if (response.status === 429) {
+                            if (retryCount < MAX_RETRIES) {
+                                const retryDelay = RETRY_DELAYS[retryCount];
+                                console.log(`HTTP 429: 请求过于频繁，${retryDelay/1000}秒后重试...`);
+                                updateMessage(loadingId, `请求过于频繁，${retryDelay/1000}秒后自动重试 (${retryCount + 1}/${MAX_RETRIES})...`);
+                                showToast(`请求过于频繁，${retryDelay/1000}秒后重试...`, 'warning');
+                                await delay(retryDelay);
+                                retryCount++;
+                                continue;
+                            } else {
+                                throw new Error('HTTP 429: 请求过于频繁，请稍后再试');
+                            }
+                        }
 
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        
-                        if (done) break;
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
 
-                        buffer += decoder.decode(value, { stream: true });
-                        const lines = buffer.split('\n');
-                        buffer = lines.pop();
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buffer = '';
+                        let fullResponse = '';
 
-                        for (const line of lines) {
-                            const trimmedLine = line.trim();
-                            if (trimmedLine.startsWith('data: ')) {
-                                const data = trimmedLine.slice(6);
-                                if (data === '[DONE]') {
-                                    break;
-                                }
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            
+                            if (done) break;
 
-                                try {
-                                    const parsed = JSON.parse(data);
-                                    const content = parsed.choices?.[0]?.delta?.content;
-                                    if (content) {
-                                        fullResponse += content;
-                                        updateMessage(loadingId, fullResponse);
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop();
+
+                            for (const line of lines) {
+                                const trimmedLine = line.trim();
+                                if (trimmedLine.startsWith('data: ')) {
+                                    const data = trimmedLine.slice(6);
+                                    if (data === '[DONE]') {
+                                        break;
                                     }
-                                } catch (e) {
-                                    console.warn('解析块数据失败:', e);
+
+                                    try {
+                                        const parsed = JSON.parse(data);
+                                        const content = parsed.choices?.[0]?.delta?.content;
+                                        if (content) {
+                                            fullResponse += content;
+                                            updateMessage(loadingId, fullResponse);
+                                        }
+                                    } catch (e) {
+                                        console.warn('解析块数据失败:', e);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // 更新对话记录
-                    updateConversationMessage('assistant', fullResponse);
-                    success = true;
-                    
-                } catch (error) {
-                    if (error.name === 'AbortError') {
-                        isAborted = true;
-                        updateMessage(loadingId, '已取消生成');
-                        break;
-                    } else {
-                        console.error('发送消息失败:', error);
+                        // 更新对话记录
+                        updateConversationMessage('assistant', fullResponse);
+                        success = true;
                         
-                        // 如果还有重试机会并且是网络错误，继续重试
-                        if (retryCount < MAX_RETRIES && (error.message.includes('429') || error.message.includes('网络'))) {
-                            retryCount++;
-                            const retryDelay = RETRY_DELAYS[Math.min(retryCount - 1, RETRY_DELAYS.length - 1)];
-                            console.log(`${retryDelay/1000}秒后重试...`);
-                            updateMessage(loadingId, `发生错误，${retryDelay/1000}秒后自动重试 (${retryCount}/${MAX_RETRIES})...`);
-                            await delay(retryDelay);
-                            continue;
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            isAborted = true;
+                            updateMessage(loadingId, '已取消生成');
+                            break;
+                        } else {
+                            console.error('发送消息失败:', error);
+                            
+                            // 如果还有重试机会并且是网络错误，继续重试
+                            if (retryCount < MAX_RETRIES && (error.message.includes('429') || error.message.includes('网络'))) {
+                                retryCount++;
+                                const retryDelay = RETRY_DELAYS[Math.min(retryCount - 1, RETRY_DELAYS.length - 1)];
+                                console.log(`${retryDelay/1000}秒后重试...`);
+                                updateMessage(loadingId, `发生错误，${retryDelay/1000}秒后自动重试 (${retryCount}/${MAX_RETRIES})...`);
+                                await delay(retryDelay);
+                                continue;
+                            }
+                            
+                            updateMessage(loadingId, '抱歉，发生了错误: ' + error.message);
+                            showToast('发送失败: ' + error.message, 'error');
+                            break;
                         }
-                        
-                        updateMessage(loadingId, '抱歉，发生了错误: ' + error.message);
-                        showToast('发送失败: ' + error.message, 'error');
-                        break;
-                    }
-                } finally {
-                    // 在成功、超过重试次数或被取消时，重置状态
-                    if (success || retryCount > MAX_RETRIES || isAborted) {
-                        isGenerating = false;
-                        currentController = null;
-                        updateSendButton();
-                        hideTypingIndicator(loadingId);
                     }
                 }
+            } finally {
+                // 无论如何都重置状态
+                isGenerating = false;
+                currentController = null;
+                updateSendButton();
+                hideTypingIndicator(loadingId);
             }
         }
 

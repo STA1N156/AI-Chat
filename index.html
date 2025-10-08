@@ -2854,6 +2854,7 @@
             // 重试逻辑
             let retryCount = 0;
             let success = false;
+            let isAborted = false;
 
             while (retryCount <= MAX_RETRIES && !success) {
                 try {
@@ -2951,6 +2952,7 @@
                     
                 } catch (error) {
                     if (error.name === 'AbortError') {
+                        isAborted = true;
                         updateMessage(loadingId, '已取消生成');
                         break;
                     } else {
@@ -2971,7 +2973,8 @@
                         break;
                     }
                 } finally {
-                    if (success || retryCount > MAX_RETRIES || error?.name === 'AbortError') {
+                    // 在成功、超过重试次数或被取消时，重置状态
+                    if (success || retryCount > MAX_RETRIES || isAborted) {
                         isGenerating = false;
                         currentController = null;
                         updateSendButton();

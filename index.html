@@ -2170,6 +2170,8 @@
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
     <!-- 引入 PDF.js 用于解析 PDF 文件 -->
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <!-- 引入 SheetJS 用于解析 Excel 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -2314,7 +2316,7 @@
                         id="fileInput" 
                         style="display: none;" 
                         multiple 
-                        accept="image/*,.pdf,.txt,.doc,.docx"
+                        accept="image/*,.pdf,.txt,.doc,.docx,.xlsx,.xls,.csv,.json,.md,.markdown,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.hpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.html,.css,.scss,.sass,.less,.xml,.sql,.sh,.bash,.ps1,.yaml,.yml,.toml,.ini,.conf"
                         onchange="handleFileSelect(event)"
                     />
                     <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()" aria-label="上传文件">
@@ -2691,6 +2693,61 @@
             }
         }
 
+        // 从 Excel 文件提取文本
+        async function extractTextFromExcel(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                let fullText = '';
+                
+                // 遍历所有工作表
+                workbook.SheetNames.forEach((sheetName, index) => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    const csvData = XLSX.utils.sheet_to_csv(worksheet);
+                    
+                    if (csvData.trim()) {
+                        fullText += `\n=== 工作表: ${sheetName} ===\n${csvData}\n`;
+                    }
+                });
+                
+                return fullText.trim();
+            } catch (error) {
+                console.error('Excel解析错误:', error);
+                throw error;
+            }
+        }
+
+        // 格式化 JSON 内容
+        function formatJSON(text) {
+            try {
+                const parsed = JSON.parse(text);
+                return JSON.stringify(parsed, null, 2);
+            } catch (error) {
+                // 如果解析失败，返回原始文本
+                return text;
+            }
+        }
+
+        // 格式化 CSV 内容（添加行号，使其更易读）
+        function formatCSV(text) {
+            const lines = text.split('\n');
+            return lines.map((line, index) => `${index + 1}. ${line}`).join('\n');
+        }
+
+        // 支持的代码文件扩展名
+        const CODE_EXTENSIONS = [
+            'js', 'jsx', 'ts', 'tsx', 'py', 'java', 'c', 'cpp', 'h', 'hpp',
+            'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt', 'scala',
+            'html', 'css', 'scss', 'sass', 'less', 'xml', 'sql',
+            'sh', 'bash', 'ps1', 'yaml', 'yml', 'toml', 'ini', 'conf'
+        ];
+
+        // 检查是否是代码文件
+        function isCodeFile(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            return CODE_EXTENSIONS.includes(ext);
+        }
+
         // 文件选择处理
         async function handleFileSelect(event) {
             const files = Array.from(event.target.files);
@@ -2761,11 +2818,83 @@
                         console.error('解析 PDF 文件失败:', error);
                         showToast(`无法解析 ${file.name}，请确保文件未损坏`, 'error');
                     }
+                } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+                           file.name.toLowerCase().endsWith('.xlsx')) {
+                    // 如果是 Excel 文件，使用 SheetJS 解析
+                    try {
+                        showToast(`正在解析 ${file.name}...`, 'info');
+                        const text = await extractTextFromExcel(file);
+                        fileInfo.content = text;
+                        fileInfo.type = 'text/plain';
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取 ${file.name} 的内容`, 'success');
+                    } catch (error) {
+                        console.error('解析 Excel 文件失败:', error);
+                        showToast(`无法解析 ${file.name}`, 'error');
+                    }
+                } else if (file.type === 'application/vnd.ms-excel' || file.name.toLowerCase().endsWith('.xls')) {
+                    // 旧版 Excel 也尝试使用 SheetJS 解析
+                    try {
+                        showToast(`正在解析 ${file.name}...`, 'info');
+                        const text = await extractTextFromExcel(file);
+                        fileInfo.content = text;
+                        fileInfo.type = 'text/plain';
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取 ${file.name} 的内容`, 'success');
+                    } catch (error) {
+                        console.error('解析 Excel 文件失败:', error);
+                        showToast(`无法解析 ${file.name}，建议转换为 .xlsx 格式`, 'error');
+                    }
+                } else if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
+                    // CSV 文件，直接读取并格式化
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        fileInfo.content = formatCSV(e.target.result);
+                        fileInfo.type = 'text/plain';
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取 ${file.name}`, 'success');
+                    };
+                    reader.readAsText(file);
+                } else if (file.type === 'application/json' || file.name.toLowerCase().endsWith('.json')) {
+                    // JSON 文件，读取并格式化
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        fileInfo.content = formatJSON(e.target.result);
+                        fileInfo.type = 'text/plain';
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取 ${file.name}`, 'success');
+                    };
+                    reader.readAsText(file);
+                } else if (file.name.toLowerCase().endsWith('.md') || file.name.toLowerCase().endsWith('.markdown')) {
+                    // Markdown 文件，直接读取
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        fileInfo.content = e.target.result;
+                        fileInfo.type = 'text/plain';
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取 ${file.name}`, 'success');
+                    };
+                    reader.readAsText(file);
+                } else if (isCodeFile(file.name)) {
+                    // 代码文件，直接读取
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        fileInfo.content = `// 文件类型: ${ext}\n${e.target.result}`;
+                        fileInfo.type = 'text/plain';
+                        uploadedFiles.push(fileInfo);
+                        updateFilePreview();
+                        showToast(`已读取代码文件 ${file.name}`, 'success');
+                    };
+                    reader.readAsText(file);
                 } else {
-                    // 其他类型文件，尝试作为文本读取
-                    showToast(`${file.name} 可能无法正确读取，建议使用 .txt、.docx 或 .pdf 格式`, 'warning');
-                    uploadedFiles.push(fileInfo);
-                    updateFilePreview();
+                    // 其他类型文件，提示不支持
+                    showToast(`不支持的文件格式: ${file.name}`, 'warning');
                 }
             }
             

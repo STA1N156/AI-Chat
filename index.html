@@ -2687,6 +2687,78 @@
             }
         }
 
+        /* ============ 移动端开场动画关键帧 ============ */
+        @keyframes mobileSlideInFromTop {
+            0% {
+                opacity: 0;
+                transform: translateY(-40px) translateZ(0);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) translateZ(0);
+            }
+        }
+
+        @keyframes mobileSlideInFromBottom {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) translateZ(0);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) translateZ(0);
+            }
+        }
+
+        @keyframes mobileFadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) translateZ(0);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) translateZ(0);
+            }
+        }
+
+        @keyframes mobileFadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.92) translateZ(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateZ(0);
+            }
+        }
+
+        @keyframes mobileIconBounce {
+            0% {
+                opacity: 0.4;
+                transform: scale(0.3) translateZ(0);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(1.1) translateZ(0);
+            }
+            100% {
+                opacity: 0.4;
+                transform: scale(1) translateZ(0);
+            }
+        }
+
+        /* 移动端文字淡入动画 - 保持0.8透明度 */
+        @keyframes mobileFadeInUpText {
+            0% {
+                opacity: 0.8;
+                transform: translateY(20px) translateZ(0);
+            }
+            100% {
+                opacity: 0.8;
+                transform: translateY(0) translateZ(0);
+            }
+        }
+
         /* ============ 移动端专用样式 ============ */
         @media (max-width: 768px) {
             /* 移动端typing indicator优化 */
@@ -2751,11 +2823,25 @@
                 height: 64px;
                 flex-shrink: 0;
             }
+            
+            /* 移动端顶部导航栏入场动画 - 仅首次加载 */
+            .initial-load .mobile-header {
+                animation: mobileSlideInFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
 
             .mobile-header-left {
                 display: flex;
                 align-items: center;
                 gap: 12px;
+            }
+            
+            /* 移动端头部左侧元素入场动画 */
+            .initial-load .mobile-header-left {
+                animation: mobileFadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s backwards;
+            }
+            
+            .initial-load .mobile-header-right {
+                animation: mobileFadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
             }
 
             .mobile-menu-btn {
@@ -3097,6 +3183,11 @@
                 /* 确保有足够的高度可以滚动 */
                 min-height: 0;
             }
+            
+            /* 移动端聊天容器入场动画 - 仅首次加载 */
+            .initial-load .chat-container {
+                animation: mobileFadeInScale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+            }
 
             .message {
                 margin-bottom: 20px;
@@ -3216,11 +3307,21 @@
                 bottom: 0;
                 flex-shrink: 0;
             }
+            
+            /* 移动端输入容器入场动画 - 仅首次加载 */
+            .initial-load .input-container {
+                animation: mobileSlideInFromBottom 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
+            }
 
             .input-wrapper {
                 gap: 12px;
                 max-width: none;
                 margin: 0;
+            }
+            
+            /* 移动端输入区域元素入场动画 */
+            .initial-load .input-wrapper {
+                animation: mobileFadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
             }
 
             .input-field {
@@ -3255,12 +3356,26 @@
                 font-size: 20px;
                 box-shadow: 0 6px 20px rgba(88, 86, 214, 0.3);
             }
+            
+            /* 移动端文件上传按钮入场动画 */
+            .initial-load .file-upload-btn {
+                animation: mobileFadeInScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards;
+            }
 
             .send-btn, .stop-btn {
                 width: 52px;
                 height: 52px;
                 font-size: 20px;
                 box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+            }
+            
+            /* 移动端发送按钮入场动画 */
+            .initial-load .send-btn {
+                animation: mobileFadeInScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.65s backwards;
+            }
+            
+            .initial-load .input-field {
+                animation: mobileFadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.55s backwards;
             }
 
             /* 移动端点击反馈动效 */
@@ -3473,11 +3588,21 @@
                 padding: 60px 20px;
                 color: var(--text-secondary);
             }
+            
+            /* 移动端空状态入场动画 - 仅首次加载 */
+            .initial-load .empty-state {
+                animation: mobileFadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
+            }
 
             .empty-state-icon {
                 font-size: 64px;
                 margin-bottom: 20px;
                 opacity: 0.4;
+            }
+            
+            /* 移动端空状态图标入场动画 - 弹跳效果 */
+            .initial-load .empty-state-icon {
+                animation: mobileIconBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.7s both;
             }
 
             .empty-state h3 {
@@ -3486,11 +3611,21 @@
                 margin-bottom: 12px;
                 color: var(--text-primary);
             }
+            
+            /* 移动端空状态标题入场动画 */
+            .initial-load .empty-state h3 {
+                animation: mobileFadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s backwards;
+            }
 
             .empty-state p {
                 font-size: 16px;
                 line-height: 1.5;
                 opacity: 0.8;
+            }
+            
+            /* 移动端空状态描述入场动画 - 保持0.8透明度 */
+            .initial-load .empty-state p {
+                animation: mobileFadeInUpText 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s backwards;
             }
 
             .sidebar-empty {

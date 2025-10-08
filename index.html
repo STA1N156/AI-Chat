@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -703,15 +702,6 @@
         .file-preview-remove:hover {
             background: #e03428;
             transform: scale(1.1);
-        }
-
-        .ocr-status {
-            font-size: 12px;
-            color: var(--success-color);
-            margin-top: 4px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .input-wrapper {
@@ -2683,39 +2673,16 @@
                     name: file.name,
                     size: file.size,
                     type: file.type,
-                    content: null,
-                    ocrText: null
+                    content: null
                 };
                 
-                // 如果是图片，读取预览和进行OCR
+                // 如果是图片，读取预览（多模态模式直接发送图片）
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         fileInfo.preview = e.target.result;
                         uploadedFiles.push(fileInfo);
                         updateFilePreview();
-                        
-                        // 开始OCR识别
-                        try {
-                            showToast('正在识别图片文字...', 'success');
-                            const { data: { text } } = await Tesseract.recognize(
-                                e.target.result,
-                                'chi_sim+eng', // 中文简体 + 英文
-                                {
-                                    logger: info => {
-                                        if (info.status === 'recognizing text') {
-                                            console.log(`OCR进度: ${(info.progress * 100).toFixed(0)}%`);
-                                        }
-                                    }
-                                }
-                            );
-                            fileInfo.ocrText = text;
-                            updateFilePreview();
-                            showToast('图片文字识别完成', 'success');
-                        } catch (error) {
-                            console.error('OCR识别失败:', error);
-                            showToast('图片文字识别失败', 'error');
-                        }
                     };
                     reader.readAsDataURL(file);
                 } else if (file.type === 'text/plain') {
@@ -2758,10 +2725,6 @@
                     <div class="file-preview-info">
                         <div class="file-preview-name">${fileInfo.name}</div>
                         <div class="file-preview-size">${formatFileSize(fileInfo.size)}</div>
-                        ${fileInfo.ocrText ? 
-                            '<div class="ocr-status">✓ OCR识别完成</div>' : 
-                            (fileInfo.preview && !fileInfo.ocrText ? '<div class="ocr-status">⏳ 识别中...</div>' : '')
-                        }
                     </div>
                     <button class="file-preview-remove" onclick="removeFile(${fileInfo.id})">✕</button>
                 </div>
@@ -2779,6 +2742,65 @@
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        // 构建支持多模态的消息（包含图片的base64）
+        function buildMultimodalMessages(conversation) {
+            const messages = [
+                { role: 'system', content: settings.systemPrompt }
+            ];
+            
+            // 遍历对话历史，构建多模态消息
+            for (let msg of conversation.messages) {
+                if (msg.role === 'user' && msg.files && msg.files.length > 0) {
+                    // 检查是否有图片文件
+                    const hasImages = msg.files.some(file => file.preview && file.type && file.type.startsWith('image/'));
+                    
+                    if (hasImages) {
+                        // 使用多模态格式
+                        const content = [];
+                        
+                        // 添加文本部分
+                        if (msg.content) {
+                            content.push({
+                                type: "text",
+                                text: msg.content
+                            });
+                        }
+                        
+                        // 添加图片部分
+                        for (let file of msg.files) {
+                            if (file.preview && file.type && file.type.startsWith('image/')) {
+                                content.push({
+                                    type: "image_url",
+                                    image_url: {
+                                        url: file.preview // base64格式的图片
+                                    }
+                                });
+                            }
+                        }
+                        
+                        messages.push({
+                            role: 'user',
+                            content: content
+                        });
+                    } else {
+                        // 没有图片，使用普通文本格式
+                        messages.push({
+                            role: msg.role,
+                            content: msg.content
+                        });
+                    }
+                } else {
+                    // 普通消息（助手回复或不含文件的用户消息）
+                    messages.push({
+                        role: msg.role,
+                        content: msg.content
+                    });
+                }
+            }
+            
+            return messages;
         }
 
         // 发送消息（带重试机制）
@@ -2805,41 +2827,17 @@
                 createNewChat();
             }
 
-            // 保存当前上传的文件信息（用于显示）
+            // 保存当前上传的文件信息（用于显示和发送）
             const currentFiles = [...uploadedFiles];
             
-            // 构建包含文件内容的完整消息（用于发送给API）
-            let fullMessageForAPI = message;
-            
-            // 添加文件内容到API消息
-            if (uploadedFiles.length > 0) {
-                const fileContents = [];
-                
-                for (const fileInfo of uploadedFiles) {
-                    if (fileInfo.ocrText) {
-                        fileContents.push(`\n\n【图片 ${fileInfo.name} 中的文字内容】:\n${fileInfo.ocrText}`);
-                    } else if (fileInfo.content) {
-                        fileContents.push(`\n\n【文件 ${fileInfo.name} 内容】:\n${fileInfo.content}`);
-                    } else if (fileInfo.preview) {
-                        fileContents.push(`\n\n【图片】: ${fileInfo.name} (正在识别中...)`);
-                    } else {
-                        fileContents.push(`\n\n【文件】: ${fileInfo.name}`);
-                    }
-                }
-                
-                if (fileContents.length > 0) {
-                    fullMessageForAPI = (message || '请分析以下文件内容') + fileContents.join('');
-                }
-            }
-
             // 添加用户消息（显示文件图标而不是完整内容）
             // 如果只有文件没有文字，则不显示额外文字
-            const displayMessage = (message || (currentFiles.length > 0 ? '' : '请分析以下文件内容'));
+            const displayMessage = (message || (currentFiles.length > 0 ? '请分析这些图片/文件' : ''));
             addMessage('user', displayMessage, currentFiles);
             
-            // 手动更新对话记录（使用包含文件内容的完整消息）
+            // 手动更新对话记录（保存文件信息以便后续构建多模态消息）
             if (currentConversationId) {
-                updateConversationMessage('user', fullMessageForAPI);
+                updateConversationMessage('user', displayMessage, currentFiles);
             }
             
             input.value = '';
@@ -2867,12 +2865,9 @@
 
                     currentController = new AbortController();
 
-                    // 获取当前对话历史
+                    // 获取当前对话历史，构建多模态消息
                     const conversation = conversations.find(conv => conv.id === currentConversationId);
-                    const messages = [
-                        { role: 'system', content: settings.systemPrompt },
-                        ...conversation.messages
-                    ];
+                    const messages = buildMultimodalMessages(conversation);
 
                     // 如果是重试，显示提示
                     if (retryCount > 0) {
@@ -3469,7 +3464,7 @@
                 `;
             } else {
                 conversation.messages.forEach(msg => {
-                    addMessageToUI(msg.role, msg.content);
+                    addMessageToUI(msg.role, msg.content, msg.files || []);
                 });
             }
 
@@ -3482,7 +3477,7 @@
         }
 
         // 仅添加到UI，不更新对话记录
-        function addMessageToUI(role, content) {
+        function addMessageToUI(role, content, files = []) {
             // 验证role字段
             if (role !== 'user' && role !== 'assistant') {
                 console.error('addMessageToUI: 无效的role -', role, '内容:', content);
@@ -3505,107 +3500,67 @@
             
             // 处理用户消息中的文件信息
             if (role === 'user') {
-                // 检查是否包含文件内容标记
-                const fileContentRegex = /【文件\s+([^】]+)\s+内容】:\s*([\s\S]*?)(?=【|$)/g;
-                const imageContentRegex = /【图片\s+([^】]+)\s+中的文字内容】:\s*([\s\S]*?)(?=【|$)/g;
-                const imageRegex = /【图片】:\s*([^】]+)\s*\(正在识别中\.\.\.\)/g;
-                const fileRegex = /【文件】:\s*([^】]+)/g;
-                
-                let displayContent = content;
-                let files = [];
-                
-                // 提取文件信息
-                let match;
-                while ((match = fileContentRegex.exec(content)) !== null) {
-                    const fileName = match[1];
-                    const fileContent = match[2];
-                    files.push({
-                        name: fileName,
-                        type: 'text/plain',
-                        content: fileContent
-                    });
-                }
-                
-                while ((match = imageContentRegex.exec(content)) !== null) {
-                    const fileName = match[1];
-                    const ocrText = match[2];
-                    files.push({
-                        name: fileName,
-                        type: 'image',
-                        ocrText: ocrText,
-                        preview: true
-                    });
-                }
-                
-                while ((match = imageRegex.exec(content)) !== null) {
-                    const fileName = match[1];
-                    files.push({
-                        name: fileName,
-                        type: 'image',
-                        preview: true
-                    });
-                }
-                
-                while ((match = fileRegex.exec(content)) !== null) {
-                    const fileName = match[1];
-                    files.push({
-                        name: fileName,
-                        type: 'application/octet-stream'
-                    });
-                }
-                
-                // 如果有文件，显示文件图标
+                // 如果有文件，显示文件内容
                 if (files.length > 0) {
                     const filesContainer = document.createElement('div');
                     filesContainer.className = 'message-file-attachments';
                     
                     files.forEach(file => {
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'message-file-item';
-                        
-                        const fileIcon = document.createElement('span');
-                        fileIcon.className = 'message-file-icon';
-                        
-                        // 使用SVG图标而不是emoji
-                        if (file.preview || file.type === 'image') {
-                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21,15 16,10 5,21"/>
-                            </svg>`;
-                        } else if (file.type === 'text/plain') {
-                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                            </svg>`;
-                        } else if (file.type === 'application/pdf') {
-                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                                <text x="12" y="16" text-anchor="middle" font-size="8" fill="white">PDF</text>
-                            </svg>`;
+                        // 如果是图片且有预览数据，直接显示图片
+                        if (file.preview && file.type && file.type.startsWith('image/')) {
+                            const imgElement = document.createElement('img');
+                            imgElement.src = file.preview;
+                            imgElement.alt = file.name || '图片';
+                            imgElement.style.maxWidth = '300px';
+                            imgElement.style.maxHeight = '300px';
+                            imgElement.style.borderRadius = '8px';
+                            imgElement.style.marginTop = '8px';
+                            imgElement.style.cursor = 'pointer';
+                            imgElement.title = file.name || '点击查看大图';
+                            // 点击图片可以在新窗口打开
+                            imgElement.onclick = function() {
+                                window.open(file.preview, '_blank');
+                            };
+                            filesContainer.appendChild(imgElement);
                         } else {
-                            fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                            </svg>`;
+                            // 非图片文件显示文件图标
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'message-file-item';
+                            
+                            const fileIcon = document.createElement('span');
+                            fileIcon.className = 'message-file-icon';
+                            
+                            if (file.type === 'text/plain') {
+                                fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                </svg>`;
+                            } else if (file.type === 'application/pdf') {
+                                fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                    <text x="12" y="16" text-anchor="middle" font-size="8" fill="white">PDF</text>
+                                </svg>`;
+                            } else {
+                                fileIcon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                </svg>`;
+                            }
+                            
+                            const fileName = document.createElement('span');
+                            fileName.className = 'message-file-name';
+                            fileName.textContent = file.name;
+                            
+                            fileItem.appendChild(fileIcon);
+                            fileItem.appendChild(fileName);
+                            filesContainer.appendChild(fileItem);
                         }
-                        
-                        const fileName = document.createElement('span');
-                        fileName.className = 'message-file-name';
-                        fileName.textContent = file.name;
-                        
-                        fileItem.appendChild(fileIcon);
-                        fileItem.appendChild(fileName);
-                        filesContainer.appendChild(fileItem);
                     });
                     
                     bubbleElement.appendChild(filesContainer);
-                    
-                    // 移除文件内容标记，只保留用户的实际消息
-                    displayContent = content.replace(/【[^】]+】:\s*[^【]*/g, '').trim();
                 }
                 
                 // 显示用户消息内容
-                if (displayContent) {
-                    const textNode = document.createTextNode(displayContent);
+                if (content) {
+                    const textNode = document.createTextNode(content);
                     bubbleElement.appendChild(textNode);
                 }
             } else if (role === 'assistant') {
@@ -3736,7 +3691,7 @@
         }
 
         // 更新对话消息
-        function updateConversationMessage(role, content) {
+        function updateConversationMessage(role, content, files = []) {
             if (!currentConversationId) return;
 
             const conversation = conversations.find(conv => conv.id === currentConversationId);
@@ -3754,7 +3709,12 @@
                 return;
             }
 
-            conversation.messages.push({ role, content });
+            // 保存消息，包括文件信息
+            const message = { role, content };
+            if (files && files.length > 0) {
+                message.files = files;
+            }
+            conversation.messages.push(message);
             
             // 当AI首次回复时，自动生成对话标题
             if (role === 'assistant' && conversation.title === '新对话' && conversation.messages.length >= 2) {

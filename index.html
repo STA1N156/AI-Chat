@@ -4772,8 +4772,16 @@
                     const currentWidth = existingProgressBar.style.width;
                     const currentProgress = currentWidth ? parseFloat(currentWidth) : 0;
                     
-                    // 确保进度只能前进，不能后退（除非是完成状态）
-                    const newProgress = progressInfo.status === 'completed' ? 100 : Math.max(currentProgress, progressInfo.progress);
+                    // 确保进度只能前进，不能后退（除非是完成或失败状态）
+                    let newProgress;
+                    if (progressInfo.status === 'completed') {
+                        newProgress = 100;
+                    } else if (progressInfo.status === 'failed') {
+                        // 失败时保持当前进度
+                        newProgress = currentProgress;
+                    } else {
+                        newProgress = Math.max(currentProgress, progressInfo.progress);
+                    }
                     
                     // 只更新进度值，保留现有元素以启用transition动画
                     existingProgressBar.style.width = newProgress + '%';
@@ -4783,10 +4791,13 @@
                     const progressStatus = bubbleElement.querySelector('.progress-status');
                     if (progressStatus) {
                         progressStatus.className = 'progress-status ' + progressInfo.status;
-                        const statusIcon = progressStatus.querySelector('.progress-status-icon');
-                        const statusTextEl = progressStatus.querySelector('span:last-child');
-                        if (statusIcon) statusIcon.innerHTML = progressInfo.statusIcon;
-                        if (statusTextEl) statusTextEl.textContent = progressInfo.statusText;
+                        // 直接重新生成状态内容，确保更新生效
+                        progressStatus.innerHTML = `
+                            <span class="progress-status-icon">${progressInfo.statusIcon}</span>
+                            <span>${progressInfo.statusText}</span>
+                        `;
+                        // 强制重绘
+                        void progressStatus.offsetHeight;
                     }
                     
                     // 如果完成了，添加链接
@@ -4799,6 +4810,14 @@
                                 tempDiv.innerHTML = progressInfo.linkHTML;
                                 progressContainer.appendChild(tempDiv.firstElementChild);
                             }
+                        }
+                    }
+                    
+                    // 如果失败了，确保移除可能存在的链接
+                    if (progressInfo.status === 'failed') {
+                        let linkContainer = bubbleElement.querySelector('.progress-link');
+                        if (linkContainer) {
+                            linkContainer.remove();
                         }
                     }
                 } else {
@@ -5009,7 +5028,7 @@
             if (failedPattern.test(text)) {
                 status = 'failed';
                 statusIcon = '❌';
-                statusText = '因含有版权内容，生成失败';
+                statusText = '因含有版权内容/API繁忙，生成失败';
                 // 失败时如果进度为0，保持为0；如果有进度则保持当前进度
             }
             

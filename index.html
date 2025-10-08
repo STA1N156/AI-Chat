@@ -5676,7 +5676,7 @@ function getProgressInfo(text) {
     // 检测失败状态（必须有❌符号）
     else if (failedPattern.test(text)) {
         status = 'failed';
-        statusIcon = 'error';
+        statusIcon = 'network error';
         statusText = 'API/网络繁忙，生成失败';
         // 失败时如果进度为0，保持为0；如果有进度则保持当前进度
     }

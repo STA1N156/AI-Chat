@@ -954,6 +954,280 @@
             animation: fadeInUp 0.5s ease-out;
         }
 
+        /* 进度条样式 */
+        .progress-container {
+            margin: 16px 0;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.05), rgba(88, 86, 214, 0.05));
+            border-radius: 20px;
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.12);
+        }
+
+        .progress-status {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .progress-status-icon {
+            font-size: 22px;
+            animation: pulse 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        /* 沙漏图标动画 */
+        .hourglass-icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .hourglass-icon::before,
+        .hourglass-icon::after {
+            content: '';
+            position: absolute;
+            border: 2px solid var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .hourglass-icon::before {
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            border-bottom: none;
+            background: linear-gradient(to bottom, rgba(0, 122, 255, 0.3) 0%, transparent 100%);
+            animation: sandTop 2s ease-in-out infinite;
+        }
+
+        .hourglass-icon::after {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            border-top: none;
+            background: linear-gradient(to top, var(--primary-color) 0%, rgba(0, 122, 255, 0.5) 100%);
+            animation: sandBottom 2s ease-in-out infinite;
+        }
+
+        @keyframes sandTop {
+            0% { height: 10px; opacity: 1; }
+            50% { height: 3px; opacity: 0.6; }
+            100% { height: 10px; opacity: 1; }
+        }
+
+        @keyframes sandBottom {
+            0% { height: 3px; }
+            50% { height: 10px; }
+            100% { height: 3px; }
+        }
+
+        .progress-status.waiting .hourglass-icon {
+            animation: hourglassRotate 3s ease-in-out infinite;
+        }
+
+        @keyframes hourglassRotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .progress-status.completed .progress-status-icon {
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .progress-bar-wrapper {
+            position: relative;
+            width: 100%;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .progress-bar-wrapper {
+                background: rgba(255, 255, 255, 0.08);
+                box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+            }
+            
+            .hourglass-icon::before,
+            .hourglass-icon::after {
+                border-color: rgba(0, 122, 255, 0.9);
+            }
+            
+            .hourglass-icon::before {
+                background: linear-gradient(to bottom, rgba(0, 122, 255, 0.5) 0%, transparent 100%);
+            }
+            
+            .hourglass-icon::after {
+                background: linear-gradient(to top, rgba(0, 122, 255, 0.9) 0%, rgba(0, 122, 255, 0.6) 100%);
+            }
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                var(--primary-color) 0%, 
+                var(--secondary-color) 100%);
+            border-radius: 16px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 122, 255, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .progress-bar {
+                box-shadow: 0 2px 12px rgba(0, 122, 255, 0.6),
+                            0 0 20px rgba(0, 122, 255, 0.3),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-primary);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .progress-text {
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5),
+                            0 0 8px rgba(0, 122, 255, 0.3);
+            }
+        }
+
+        .progress-link {
+            margin-top: 12px;
+            display: inline-block;
+        }
+
+        .progress-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 10px 20px;
+            background: rgba(0, 122, 255, 0.1);
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            letter-spacing: 0.3px;
+        }
+
+        .progress-link a:hover {
+            background: rgba(0, 122, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.25);
+        }
+
+        .progress-link a:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+        }
+
+        /* 完成图标 - 简约圆形打勾 */
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);
+        }
+
+        .check-icon::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 4px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .check-icon {
+                box-shadow: 0 2px 12px rgba(52, 199, 89, 0.6),
+                            0 0 20px rgba(52, 199, 89, 0.3);
+            }
+        }
+
+        /* 生成气泡专属样式 */
+        .generating-bubble {
+            background: var(--card-background) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 0 !important;
+        }
+
+        .generating-bubble .progress-container {
+            margin: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        /* 隐藏生成气泡的复制按钮 */
+        .message.assistant.generating .message-actions,
+        .message.assistant.generating .message-actions-wrapper {
+            display: none !important;
+        }
+
         .typing-dots {
             display: flex;
             gap: 6px;
@@ -4537,7 +4811,7 @@
             console.log(`📝 添加${role}消息到UI:`, content ? content.substring(0, 30) : '[空]');
             
             const chatContainer = document.getElementById('chatContainer');
-            const messageId = 'msg-' + Date.now();
+            const messageId = 'msg-' + Date.now() + '-' + Math.random();
             
             // 清除空状态
             if (chatContainer.querySelector('.empty-state')) {
@@ -4597,19 +4871,30 @@
                 bubbleElement.appendChild(filesContainer);
             }
             
+            // 检查是否是进度内容
+            let isGenerating = false;
+            
             if (content) {
                 if (role === 'assistant') {
+                    isGenerating = convertProgressToHTML(content) !== null;
                     bubbleElement.innerHTML = (bubbleElement.innerHTML || '') + parseMarkdown(content);
-                    // 绑定代码复制按钮事件
-                    bindCodeCopyButtons(bubbleElement);
+                    
+                    // 如果是生成状态，添加特殊样式
+                    if (isGenerating) {
+                        bubbleElement.classList.add('generating-bubble');
+                        messageElement.classList.add('generating');
+                    } else {
+                        // 绑定代码复制按钮事件
+                        bindCodeCopyButtons(bubbleElement);
+                    }
                 } else {
                     const textNode = document.createTextNode(content);
                     bubbleElement.appendChild(textNode);
                 }
             }
 
-            // 添加复制按钮（仅对AI消息）
-            if (role === 'assistant') {
+            // 添加复制按钮（仅对AI消息且非生成状态）
+            if (role === 'assistant' && !isGenerating) {
                 // 气泡内的复制按钮（桌面端）
                 const actionsElement = document.createElement('div');
                 actionsElement.className = 'message-actions';
@@ -4678,56 +4963,79 @@
             if (messageElement) {
                 const bubbleElement = messageElement.querySelector('.message-bubble');
                 
+                // 检查是否是进度内容
+                const isGenerating = convertProgressToHTML(content) !== null;
+                
                 // 设置内容
                 bubbleElement.innerHTML = parseMarkdown(content);
                 
-                // 绑定代码复制按钮事件
-                bindCodeCopyButtons(bubbleElement);
-                
-                // 重新创建气泡内的操作按钮（桌面端）
-                const actionsElement = document.createElement('div');
-                actionsElement.className = 'message-actions';
-                const copyBtnInside = document.createElement('button');
-                copyBtnInside.className = 'copy-btn';
-                copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-                copyBtnInside.setAttribute('data-message-id', messageId);
-                copyBtnInside.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyMessageContent(this);
-                });
-                copyBtnInside.addEventListener('touchend', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    copyMessageContent(this);
-                });
-                actionsElement.appendChild(copyBtnInside);
-                bubbleElement.appendChild(actionsElement);
-                
-                // 更新外部的复制按钮（移动端）
-                let actionsWrapper = messageElement.querySelector('.message-actions-wrapper');
-                if (!actionsWrapper) {
-                    actionsWrapper = document.createElement('div');
-                    actionsWrapper.className = 'message-actions-wrapper';
-                    const copyBtnOutside = document.createElement('button');
-                    copyBtnOutside.className = 'copy-btn';
-                    copyBtnOutside.innerHTML = `
-                        <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                        <span>复制</span>
-                    `;
-                    copyBtnOutside.setAttribute('data-message-id', messageId);
-                    copyBtnOutside.addEventListener('click', function(e) {
+                // 如果是生成状态，添加特殊样式类，不添加复制按钮
+                if (isGenerating) {
+                    bubbleElement.classList.add('generating-bubble');
+                    messageElement.classList.add('generating');
+                    
+                    // 移除已存在的复制按钮
+                    const existingActions = bubbleElement.querySelector('.message-actions');
+                    if (existingActions) {
+                        existingActions.remove();
+                    }
+                    const existingWrapper = messageElement.querySelector('.message-actions-wrapper');
+                    if (existingWrapper) {
+                        existingWrapper.remove();
+                    }
+                } else {
+                    // 移除生成状态类
+                    bubbleElement.classList.remove('generating-bubble');
+                    messageElement.classList.remove('generating');
+                    
+                    // 绑定代码复制按钮事件
+                    bindCodeCopyButtons(bubbleElement);
+                    
+                    // 重新创建气泡内的操作按钮（桌面端）
+                    const actionsElement = document.createElement('div');
+                    actionsElement.className = 'message-actions';
+                    const copyBtnInside = document.createElement('button');
+                    copyBtnInside.className = 'copy-btn';
+                    copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                    copyBtnInside.setAttribute('data-message-id', messageId);
+                    copyBtnInside.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
                         copyMessageContent(this);
                     });
-                    copyBtnOutside.addEventListener('touchend', function(e) {
+                    copyBtnInside.addEventListener('touchend', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
                         copyMessageContent(this);
                     });
-                    actionsWrapper.appendChild(copyBtnOutside);
-                    messageElement.appendChild(actionsWrapper);
+                    actionsElement.appendChild(copyBtnInside);
+                    bubbleElement.appendChild(actionsElement);
+                    
+                    // 更新外部的复制按钮（移动端）
+                    let actionsWrapper = messageElement.querySelector('.message-actions-wrapper');
+                    if (!actionsWrapper) {
+                        actionsWrapper = document.createElement('div');
+                        actionsWrapper.className = 'message-actions-wrapper';
+                        const copyBtnOutside = document.createElement('button');
+                        copyBtnOutside.className = 'copy-btn';
+                        copyBtnOutside.innerHTML = `
+                            <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>复制</span>
+                        `;
+                        copyBtnOutside.setAttribute('data-message-id', messageId);
+                        copyBtnOutside.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            copyMessageContent(this);
+                        });
+                        copyBtnOutside.addEventListener('touchend', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            copyMessageContent(this);
+                        });
+                        actionsWrapper.appendChild(copyBtnOutside);
+                        messageElement.appendChild(actionsWrapper);
+                    }
                 }
 
                 // 滚动到底部
@@ -4824,8 +5132,93 @@
         // 隐藏打字指示器（在updateMessage中自动替换）
         function hideTypingIndicator(messageId) {}
 
+        // 检测并转换进度信息
+        function convertProgressToHTML(text) {
+            // 检测是否包含进度信息
+            const progressPattern = /🏃\s*进度[：:]\s*([\d.]+)%/g;
+            const waitingPattern = /⌛️?\s*任务正在队列中[，,]?请耐心等待/;
+            const completedPattern = /✅/;  // 更宽松的完成检测：只要有✅就认为是完成
+            
+            // 检查是否包含进度相关内容
+            if (!progressPattern.test(text) && !waitingPattern.test(text) && !completedPattern.test(text)) {
+                return null; // 不包含进度信息，返回null
+            }
+            
+            // 重置正则表达式的lastIndex
+            progressPattern.lastIndex = 0;
+            
+            // 提取所有进度值
+            const progressMatches = [...text.matchAll(progressPattern)];
+            let latestProgress = progressMatches.length > 0 
+                ? parseFloat(progressMatches[progressMatches.length - 1][1]) 
+                : 0;
+            
+            // 确定状态（优先级：完成 > 等待 > 进行中）
+            let status = 'running';
+            let statusIcon = '🏃';
+            let statusText = '视频生成中';
+            
+            // 检测完成状态（优先级最高）
+            if (completedPattern.test(text)) {
+                status = 'completed';
+                statusIcon = '<span class="check-icon"></span>';
+                statusText = '生成完毕';
+                // 完成时进度自动设为100%
+                latestProgress = 100;
+            } else if (waitingPattern.test(text)) {
+                status = 'waiting';
+                statusIcon = '<span class="hourglass-icon"></span>';
+                statusText = '任务正在队列中，请耐心等待...';
+                // 等待时进度为0%
+                latestProgress = 0;
+            }
+            
+            // 提取链接（如果有）
+            let linkHTML = '';
+            if (completedPattern.test(text)) {
+                // 尝试提取消息中的URL链接，排除末尾的括号、波浪号等特殊字符
+                const urlPattern = /(https?:\/\/[^\s<>"~()（）]+)/i;
+                const urlMatch = text.match(urlPattern);
+                
+                if (urlMatch && urlMatch[1]) {
+                    // 找到了URL链接，清理可能的尾部标点符号
+                    let cleanUrl = urlMatch[1].replace(/[~)）]+$/, '');
+                    linkHTML = `<div class="progress-link"><a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">点击这里下载视频 ▶️</a></div>`;
+                } else {
+                    // 没有找到URL，尝试查找包含"查看视频"的文本
+                    const viewPattern = /点击(这里|此处)\s*查看视频/;
+                    if (viewPattern.test(text)) {
+                        linkHTML = '<div class="progress-link"><a href="#" onclick="alert(\'请在原消息中查找视频链接\'); return false;">点击查看视频 ▶️</a></div>';
+                    }
+                }
+            }
+            
+            // 生成进度条HTML
+            const progressHTML = `
+                <div class="progress-container">
+                    <div class="progress-status ${status}">
+                        <span class="progress-status-icon">${statusIcon}</span>
+                        <span>${statusText}</span>
+                    </div>
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar" style="width: ${latestProgress}%"></div>
+                        <div class="progress-text">${latestProgress.toFixed(1)}%</div>
+                    </div>
+                    ${linkHTML}
+                </div>
+            `;
+            
+            return progressHTML;
+        }
+
         // 解析Markdown - 只处理高亮，不绑定事件
         function parseMarkdown(text) {
+            // 首先检查是否包含进度信息
+            const progressHTML = convertProgressToHTML(text);
+            if (progressHTML) {
+                return progressHTML;
+            }
+            
             const html = marked.parse(text);
             
             // 处理代码高亮
@@ -5106,12 +5499,23 @@
                     bubbleElement.appendChild(textNode);
                 }
             } else if (role === 'assistant') {
+                const isGenerating = convertProgressToHTML(content) !== null;
                 bubbleElement.innerHTML = parseMarkdown(content);
-                // 绑定代码复制按钮事件
-                bindCodeCopyButtons(bubbleElement);
+                
+                // 如果是生成状态，添加特殊样式
+                if (isGenerating) {
+                    bubbleElement.classList.add('generating-bubble');
+                    messageElement.classList.add('generating');
+                } else {
+                    // 绑定代码复制按钮事件
+                    bindCodeCopyButtons(bubbleElement);
+                }
             }
 
-            if (role === 'assistant') {
+            // 检查是否是生成状态
+            const isGeneratingUI = role === 'assistant' && convertProgressToHTML(content) !== null;
+
+            if (role === 'assistant' && !isGeneratingUI) {
                 // 气泡内的复制按钮（桌面端）
                 const actionsElement = document.createElement('div');
                 actionsElement.className = 'message-actions';

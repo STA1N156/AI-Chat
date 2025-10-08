@@ -2250,7 +2250,7 @@
                     </button>
                     <select class="model-select" id="modelSelect" aria-label="选择AI模型">
                         <option value="">选择模型</option>
-                        <option value="gpt-5-all">gpt-5-all</option>
+                        <option value="claude-sonnet-4-5-20250929">claude-sonnet-4-5-20250929</option>
                     </select>
                 </div>
                 <div class="header-actions">
@@ -2346,8 +2346,8 @@
             <div class="model-picker-title">选择AI模型</div>
         </div>
         <div class="model-options" id="mobileModelOptions">
-            <div class="model-option selected" data-model="gpt-5-all">
-                <span>gpt-5-all</span>
+            <div class="model-option selected" data-model="claude-sonnet-4-5-20250929">
+                <span>claude-sonnet-4-5-20250929</span>
                 <span class="model-check">✓</span>
             </div>
         </div>
@@ -2442,7 +2442,7 @@
         let isGenerating = false;
         let currentController = null;
         let settings = JSON.parse(localStorage.getItem('settings') || '{"temperature": 0.9, "maxTokens": 8196, "systemPrompt": "你是一个有用的AI助手。"}');
-        let selectedModel = 'gpt-5-all';
+        let selectedModel = 'claude-sonnet-4-5-20250929';
         let toastTimeout = null;
         let uploadedFiles = []; // 存储上传的文件信息
         
@@ -2604,11 +2604,11 @@
                     optionsContainer.innerHTML = '';
                     
                     // 添加默认模型
-                    const defaultOption = createMobileModelOption('gpt-5-all', selectedModel === 'gpt-5-all');
+                    const defaultOption = createMobileModelOption('claude-sonnet-4-5-20250929', selectedModel === 'claude-sonnet-4-5-20250929');
                     optionsContainer.appendChild(defaultOption);
                     
                     models.forEach(model => {
-                        if (model.id !== 'gpt-5-all') {
+                        if (model.id !== 'claude-sonnet-4-5-20250929') {
                             const option = createMobileModelOption(model.id, selectedModel === model.id);
                             optionsContainer.appendChild(option);
                         }
@@ -2620,12 +2620,12 @@
                     modelSelect.innerHTML = '<option value="">选择模型</option>';
                     
                     const defaultOption = document.createElement('option');
-                    defaultOption.value = 'gpt-5-all';
-                    defaultOption.textContent = 'gpt-5-all';
+                    defaultOption.value = 'claude-sonnet-4-5-20250929';
+                    defaultOption.textContent = 'claude-sonnet-4-5-20250929';
                     modelSelect.appendChild(defaultOption);
                     
                     models.forEach(model => {
-                        if (model.id !== 'gpt-5-all') {
+                        if (model.id !== 'claude-sonnet-4-5-20250929') {
                             const option = document.createElement('option');
                             option.value = model.id;
                             option.textContent = model.id;

@@ -117,6 +117,7 @@
             z-index: 1000;
             overflow: hidden;
             box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            will-change: transform;
         }
 
         .sidebar.open {
@@ -400,7 +401,7 @@
             font-weight: 600;
             min-width: 200px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             position: relative;
             appearance: none;
@@ -419,16 +420,13 @@
                 16px 16px,
                 12px 12px;
             background-repeat: no-repeat;
+            will-change: transform;
         }
         
         .model-select:hover {
             border-color: var(--primary-color);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0, 122, 255, 0.2);
-            background-image: 
-                linear-gradient(135deg, rgba(0, 122, 255, 0.1), rgba(88, 86, 214, 0.1)),
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23007AFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'%3E%3C/path%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'%3E%3C/polyline%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'%3E%3C/line%3E%3C/svg%3E"),
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23007AFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
         }
         
         .model-select:focus {
@@ -1026,7 +1024,7 @@
         .toast.warning::before { background: var(--warning-color); }
         .toast.error::before { background: var(--error-color); }
 
-        .overlay {
+            .overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -1036,7 +1034,8 @@
             z-index: 999;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            will-change: opacity;
         }
 
         .overlay.show {
@@ -1243,7 +1242,7 @@
                 }
             }
 
-            /* 移动端侧边栏 - 优化圆角和毛玻璃效果 */
+            /* 移动端侧边栏 - 性能优化版本 */
             .sidebar {
                 position: fixed;
                 top: 0;
@@ -1252,29 +1251,35 @@
                 max-width: 280px;
                 height: 100vh;
                 height: 100dvh;
-                background: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(40px);
-                -webkit-backdrop-filter: blur(40px);
+                background: rgba(255, 255, 255, 0.95);
                 border-radius: 0 24px 24px 0;
-                transform: translateX(-100%);
+                transform: translateX(-100%) translateZ(0);
+                transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
                 z-index: 2000;
-                box-shadow: 0 0 50px rgba(0, 0, 0, 0.1), 0 25px 50px rgba(0, 0, 0, 0.15);
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
                 border: 1px solid rgba(255, 255, 255, 0.2);
+                will-change: transform;
+                -webkit-transform: translateX(-100%) translateZ(0);
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+                perspective: 1000px;
+                -webkit-perspective: 1000px;
             }
 
             /* 深色模式下的侧边栏 */
             @media (prefers-color-scheme: dark) {
                 .sidebar {
-                    background: rgba(28, 28, 30, 0.9);
+                    background: rgba(28, 28, 30, 0.95);
                     border: 1px solid rgba(255, 255, 255, 0.1);
                 }
             }
 
             .sidebar.open {
-                transform: translateX(0);
+                transform: translateX(0) translateZ(0);
+                -webkit-transform: translateX(0) translateZ(0);
             }
 
             .sidebar-header {
@@ -1344,15 +1349,18 @@
                 font-size: 15px;
                 font-weight: 600;
                 min-height: 48px;
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                transition: transform 0.2s ease, background 0.2s ease;
+                will-change: transform;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
             }
 
             .new-chat-btn:active, .clear-all-btn:active {
                 background: rgba(255, 255, 255, 0.3);
-                transform: scale(0.98);
+                transform: scale(0.98) translateZ(0);
+                -webkit-transform: scale(0.98) translateZ(0);
             }
 
             .conversation-list {
@@ -1366,9 +1374,7 @@
             }
 
             .conversation-item {
-                background: rgba(255, 255, 255, 0.8);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
+                background: rgba(255, 255, 255, 0.9);
                 margin: 0 0 10px 0;
                 border-radius: 16px;
                 padding: 14px;
@@ -1376,14 +1382,17 @@
                 min-height: 72px;
                 display: flex;
                 align-items: center;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+                will-change: transform;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
             }
 
             /* 深色模式下的对话项 */
             @media (prefers-color-scheme: dark) {
                 .conversation-item {
-                    background: rgba(44, 44, 46, 0.8);
+                    background: rgba(44, 44, 46, 0.9);
                     border: 1px solid rgba(255, 255, 255, 0.1);
                 }
             }
@@ -1400,11 +1409,12 @@
                 background: rgba(0, 122, 255, 0.15);
                 border: 2px solid var(--primary-color);
                 color: var(--text-primary);
-                box-shadow: 0 8px 24px rgba(0, 122, 255, 0.2);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
             }
 
             .conversation-item:active {
-                transform: scale(0.98);
+                transform: scale(0.98) translateZ(0);
+                -webkit-transform: scale(0.98) translateZ(0);
                 background: rgba(0, 122, 255, 0.1);
             }
 
@@ -1434,7 +1444,6 @@
                 padding: 3px 8px;
                 border-radius: 10px;
                 background: rgba(0, 122, 255, 0.15);
-                backdrop-filter: blur(10px);
             }
 
             .delete-btn {
@@ -1444,15 +1453,19 @@
                 border-radius: 18px;
                 font-size: 16px;
                 background: rgba(255, 59, 48, 0.15);
-                backdrop-filter: blur(10px);
                 border: 1px solid rgba(255, 59, 48, 0.2);
-                box-shadow: 0 4px 12px rgba(255, 59, 48, 0.1);
+                box-shadow: 0 2px 6px rgba(255, 59, 48, 0.1);
+                transition: transform 0.2s ease, background 0.2s ease;
+                will-change: transform;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
             }
 
             .delete-btn:active {
                 background: var(--danger-color);
                 color: white;
-                transform: scale(0.95);
+                transform: scale(0.95) translateZ(0);
+                -webkit-transform: scale(0.95) translateZ(0);
             }
 
             .header {
@@ -1534,7 +1547,6 @@
             /* 移动端气泡内复制按钮样式 */
             .message-bubble .copy-btn {
                 background: rgba(0, 0, 0, 0.08);
-                backdrop-filter: blur(10px);
                 color: inherit;
                 padding: 4px 8px;
                 font-size: 11px;
@@ -1547,12 +1559,16 @@
                 cursor: pointer;
                 -webkit-tap-highlight-color: transparent;
                 outline: none;
-                transition: all 0.2s ease;
+                transition: transform 0.2s ease, background 0.2s ease;
                 box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+                will-change: transform;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
             }
 
             .message-bubble .copy-btn:active {
-                transform: scale(0.95);
+                transform: scale(0.95) translateZ(0);
+                -webkit-transform: scale(0.95) translateZ(0);
                 background: rgba(0, 0, 0, 0.15);
             }
 
@@ -1758,7 +1774,7 @@
                 flex-shrink: 0;
             }
 
-            /* 移动端Toast - 优化显示和隐藏效果 */
+            /* 移动端Toast - 性能优化版本 */
             .toast {
                 position: fixed;
                 top: max(20px, env(safe-area-inset-top, 20px));
@@ -1767,19 +1783,21 @@
                 width: auto;
                 max-width: none;
                 min-width: auto;
-                transform: translateY(-150px);
+                transform: translateY(-150px) translateZ(0);
+                -webkit-transform: translateY(-150px) translateZ(0);
                 opacity: 0;
                 font-size: 16px;
                 padding: 18px 24px;
                 border-radius: 16px;
                 text-align: center;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
                 z-index: 9999;
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                background: rgba(255, 255, 255, 0.95);
+                background: var(--card-background);
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+                will-change: transform, opacity;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
             }
 
             /* 深色模式下的Toast */
@@ -1791,34 +1809,30 @@
             }
 
             .toast.show {
-                transform: translateY(0);
+                transform: translateY(0) translateZ(0);
+                -webkit-transform: translateY(0) translateZ(0);
                 opacity: 1;
             }
 
             /* Toast隐藏动画 - 向上消失 */
             .toast.hide {
-                transform: translateY(-150px) scale(0.9);
+                transform: translateY(-150px) scale(0.95) translateZ(0);
+                -webkit-transform: translateY(-150px) scale(0.95) translateZ(0);
                 opacity: 0;
-                transition: all 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53);
+                transition: transform 0.25s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.25s ease;
             }
 
             /* Toast类型样式调整 */
             .toast.success {
                 border-left: 4px solid var(--success-color);
-                background: rgba(52, 199, 89, 0.1);
-                backdrop-filter: blur(20px);
             }
 
             .toast.warning {
                 border-left: 4px solid var(--warning-color);
-                background: rgba(255, 149, 0, 0.1);
-                backdrop-filter: blur(20px);
             }
 
             .toast.error {
                 border-left: 4px solid var(--error-color);
-                background: rgba(255, 59, 48, 0.1);
-                backdrop-filter: blur(20px);
             }
 
             .empty-state {
@@ -1876,30 +1890,33 @@
                 opacity: 0.7;
             }
 
-            /* 移动端模型选择器 */
+            /* 移动端模型选择器 - 性能优化版本 */
             .mobile-model-picker {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 background: var(--card-background);
-                backdrop-filter: blur(40px);
-                -webkit-backdrop-filter: blur(40px);
                 border-top: 2px solid rgba(0, 122, 255, 0.2);
                 border-radius: 24px 24px 0 0;
                 padding: 16px 20px 20px;
                 padding-bottom: max(20px, env(safe-area-inset-bottom));
-                transform: translateY(100%);
-                transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                transform: translateY(100%) translateZ(0);
+                -webkit-transform: translateY(100%) translateZ(0);
+                transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
                 z-index: 2001;
                 max-height: 60vh;
                 display: flex;
                 flex-direction: column;
-                box-shadow: 0 -10px 40px rgba(0, 122, 255, 0.15);
+                box-shadow: 0 -4px 16px rgba(0, 122, 255, 0.15);
+                will-change: transform;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
             }
 
             .mobile-model-picker.show {
-                transform: translateY(0);
+                transform: translateY(0) translateZ(0);
+                -webkit-transform: translateY(0) translateZ(0);
             }
 
             .model-picker-header {
@@ -1949,19 +1966,21 @@
                 border: 2px solid var(--border-color);
                 border-radius: 16px;
                 margin-bottom: 12px;
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 248, 248, 0.9));
-                backdrop-filter: blur(10px);
+                background: var(--card-background);
                 color: var(--text-primary);
                 font-size: 16px;
                 font-weight: 600;
                 cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
                 position: relative;
                 overflow: hidden;
+                will-change: transform;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
             }
             
             /* 为每个选项添加AI模型图标 */
@@ -1982,11 +2001,12 @@
             }
 
             .model-option.selected {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                background: var(--primary-color);
                 color: white;
                 border-color: var(--primary-color);
-                box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
-                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+                transform: translateY(-1px) translateZ(0);
+                -webkit-transform: translateY(-1px) translateZ(0);
             }
             
             .model-option.selected::before {
@@ -1996,7 +2016,8 @@
             }
 
             .model-option:active {
-                transform: scale(0.98) translateY(0);
+                transform: scale(0.98) translateY(0) translateZ(0);
+                -webkit-transform: scale(0.98) translateY(0) translateZ(0);
             }
             
             .model-option.selected:active {

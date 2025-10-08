@@ -3367,34 +3367,33 @@
                 height: 52px;
                 font-size: 20px;
                 box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+                /* 移动端禁用平滑过渡，只保留点击反馈的transform */
+                transition: transform 0.1s ease !important;
             }
             
-            /* 移动端发送按钮入场动画 */
+            /* 移动端发送按钮入场动画 - 仅首次加载 */
             .initial-load .send-btn {
-                animation: mobileFadeInScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.65s backwards;
+                animation: mobileFadeInScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.65s both;
             }
             
             .initial-load .input-field {
                 animation: mobileFadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.55s backwards;
             }
 
-            /* 移动端点击反馈动效 */
+            /* 移动端点击反馈动效 - 优化响应速度 */
             .file-upload-btn:active {
                 transform: scale(0.9);
                 box-shadow: 0 2px 8px rgba(88, 86, 214, 0.2);
-                transition-duration: 0.1s;
             }
 
             .send-btn:active {
                 transform: scale(0.9);
                 box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
-                transition-duration: 0.1s;
             }
             
             .stop-btn:active {
                 transform: scale(0.9);
                 box-shadow: 0 2px 8px rgba(255, 59, 48, 0.2);
-                transition-duration: 0.1s;
             }
 
             /* 移动端模态框 */
@@ -4341,15 +4340,13 @@
                 chatContainer.style.webkitOverflowScrolling = 'touch';
             }
             
-            // PC端：入场动画完成后移除initial-load类，使后续交互立即响应
-            if (!isMobile()) {
-                setTimeout(function() {
-                    const appContainer = document.querySelector('.app-container');
-                    if (appContainer) {
-                        appContainer.classList.remove('initial-load');
-                    }
-                }, 1600); // 等待所有入场动画完成（最长动画约1.5秒）
-            }
+            // 入场动画完成后移除initial-load类，使后续交互立即响应
+            setTimeout(function() {
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer) {
+                    appContainer.classList.remove('initial-load');
+                }
+            }, 1600); // 等待所有入场动画完成
         });
 
         // 处理虚拟键盘（移动端）

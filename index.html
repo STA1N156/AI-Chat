@@ -2250,7 +2250,7 @@
                     </button>
                     <select class="model-select" id="modelSelect" aria-label="选择AI模型">
                         <option value="">选择模型</option>
-                        <option value="gpt-5-chat-latest">gpt-5-chat-latest</option>
+                        <option value="gpt-5-all">gpt-5-all</option>
                     </select>
                 </div>
                 <div class="header-actions">
@@ -2346,8 +2346,8 @@
             <div class="model-picker-title">选择AI模型</div>
         </div>
         <div class="model-options" id="mobileModelOptions">
-            <div class="model-option selected" data-model="gpt-5-chat-latest">
-                <span>gpt-5-chat-latest</span>
+            <div class="model-option selected" data-model="gpt-5-all">
+                <span>gpt-5-all</span>
                 <span class="model-check">✓</span>
             </div>
         </div>
@@ -2406,8 +2406,8 @@
 
     <script>
         // 全局变量
-        const API_BASE = 'https://love.qinyan.icu';
-        const API_KEY = 'sk-VhzFYRGJqD4IP6a26d2141C5E52049529f9a8eE4D575E60e';
+        const API_BASE = 'https://yunwu.zeabur.app';
+        const API_KEY = 'sk-BwFVpnQhMWOoxaP1skoWQI4IgNZRxncWHSptehxBt1Z1vJva';
         
         // 加载并验证对话数据
         function loadAndValidateConversations() {
@@ -2442,7 +2442,7 @@
         let isGenerating = false;
         let currentController = null;
         let settings = JSON.parse(localStorage.getItem('settings') || '{"temperature": 0.9, "maxTokens": 8196, "systemPrompt": "你是一个有用的AI助手。"}');
-        let selectedModel = 'gpt-5-chat-latest';
+        let selectedModel = 'gpt-5-all';
         let toastTimeout = null;
         let uploadedFiles = []; // 存储上传的文件信息
         
@@ -2604,11 +2604,11 @@
                     optionsContainer.innerHTML = '';
                     
                     // 添加默认模型
-                    const defaultOption = createMobileModelOption('gpt-5-chat-latest', selectedModel === 'gpt-5-chat-latest');
+                    const defaultOption = createMobileModelOption('gpt-5-all', selectedModel === 'gpt-5-all');
                     optionsContainer.appendChild(defaultOption);
                     
                     models.forEach(model => {
-                        if (model.id !== 'gpt-5-chat-latest') {
+                        if (model.id !== 'gpt-5-all') {
                             const option = createMobileModelOption(model.id, selectedModel === model.id);
                             optionsContainer.appendChild(option);
                         }
@@ -2620,12 +2620,12 @@
                     modelSelect.innerHTML = '<option value="">选择模型</option>';
                     
                     const defaultOption = document.createElement('option');
-                    defaultOption.value = 'gpt-5-chat-latest';
-                    defaultOption.textContent = 'gpt-5-chat-latest';
+                    defaultOption.value = 'gpt-5-all';
+                    defaultOption.textContent = 'gpt-5-all';
                     modelSelect.appendChild(defaultOption);
                     
                     models.forEach(model => {
-                        if (model.id !== 'gpt-5-chat-latest') {
+                        if (model.id !== 'gpt-5-all') {
                             const option = document.createElement('option');
                             option.value = model.id;
                             option.textContent = model.id;
@@ -2744,7 +2744,7 @@
             return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
         }
 
-        // 构建支持多模态的消息（包含图片的base64）
+        // 构建支持多模态的消息（包含图片的base64和文本文件内容）
         function buildMultimodalMessages(conversation) {
             const messages = [
                 { role: 'system', content: settings.systemPrompt }
@@ -2755,16 +2755,27 @@
                 if (msg.role === 'user' && msg.files && msg.files.length > 0) {
                     // 检查是否有图片文件
                     const hasImages = msg.files.some(file => file.preview && file.type && file.type.startsWith('image/'));
+                    // 检查是否有文本文件
+                    const textFiles = msg.files.filter(file => file.content && file.type === 'text/plain');
                     
                     if (hasImages) {
                         // 使用多模态格式
                         const content = [];
                         
-                        // 添加文本部分
-                        if (msg.content) {
+                        // 添加文本部分（包含原始消息和文本文件内容）
+                        let textContent = msg.content || '';
+                        
+                        // 将文本文件内容添加到消息中
+                        if (textFiles.length > 0) {
+                            textFiles.forEach(file => {
+                                textContent += `\n\n[文件: ${file.name}]\n${file.content}`;
+                            });
+                        }
+                        
+                        if (textContent) {
                             content.push({
                                 type: "text",
-                                text: msg.content
+                                text: textContent
                             });
                         }
                         
@@ -2784,8 +2795,20 @@
                             role: 'user',
                             content: content
                         });
+                    } else if (textFiles.length > 0) {
+                        // 没有图片但有文本文件，将文本文件内容添加到消息中
+                        let combinedContent = msg.content || '';
+                        
+                        textFiles.forEach(file => {
+                            combinedContent += `\n\n[文件: ${file.name}]\n${file.content}`;
+                        });
+                        
+                        messages.push({
+                            role: msg.role,
+                            content: combinedContent
+                        });
                     } else {
-                        // 没有图片，使用普通文本格式
+                        // 没有图片和文本文件，使用普通文本格式
                         messages.push({
                             role: msg.role,
                             content: msg.content

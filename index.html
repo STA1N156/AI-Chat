@@ -57,20 +57,6 @@
                 box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
             }
             
-            @keyframes typingDot {
-                0%, 80%, 100% { 
-                    transform: scale(0.6) translateY(0); 
-                    opacity: 0.5;
-                    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
-                }
-                40% { 
-                    transform: scale(1.1) translateY(-8px); 
-                    opacity: 1;
-                    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.7),
-                                0 0 20px rgba(88, 86, 214, 0.4);
-                }
-            }
-            
             .typing-indicator {
                 color: rgba(255, 255, 255, 0.7);
             }
@@ -108,73 +94,48 @@
             }
             
             .conversation-item {
-                background: linear-gradient(135deg, 
-                    rgba(44, 44, 46, 0.85) 0%, 
-                    rgba(38, 38, 40, 0.9) 100%);
+                background: linear-gradient(135deg, rgba(44, 44, 46, 0.85), rgba(38, 38, 40, 0.9));
                 border: 1px solid rgba(0, 122, 255, 0.2);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2),
-                            0 4px 16px rgba(0, 122, 255, 0.08),
-                            inset 0 1px 1px rgba(255, 255, 255, 0.08);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 122, 255, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.08);
             }
             
             .conversation-item:hover {
-                background: linear-gradient(135deg, 
-                    rgba(0, 122, 255, 0.2) 0%, 
-                    rgba(88, 86, 214, 0.18) 100%);
+                background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(88, 86, 214, 0.18));
                 border: 1px solid rgba(0, 122, 255, 0.6);
-                box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3),
-                            0 4px 12px rgba(0, 0, 0, 0.3),
-                            0 0 0 3px rgba(0, 122, 255, 0.15),
-                            inset 0 1px 2px rgba(255, 255, 255, 0.15);
+                box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(0, 122, 255, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.15);
             }
             
             .conversation-item.active {
                 border: 1px solid rgba(255, 255, 255, 0.4);
-                box-shadow: 0 8px 32px rgba(0, 122, 255, 0.4),
-                            0 4px 16px rgba(88, 86, 214, 0.3),
-                            0 0 0 4px rgba(0, 122, 255, 0.2),
-                            inset 0 1px 2px rgba(255, 255, 255, 0.2);
+                box-shadow: 0 8px 32px rgba(0, 122, 255, 0.4), 0 4px 16px rgba(88, 86, 214, 0.3), 0 0 0 4px rgba(0, 122, 255, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.2);
             }
             
             /* 输入框暗色模式优化 */
             .input-field {
-                background: linear-gradient(#1C1C1E, #1C1C1E) padding-box,
-                            linear-gradient(135deg, rgba(0, 122, 255, 0.3), rgba(88, 86, 214, 0.3)) border-box;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-                            inset 0 1px 2px rgba(255, 255, 255, 0.08);
+                background: linear-gradient(#1C1C1E, #1C1C1E) padding-box, linear-gradient(135deg, rgba(0, 122, 255, 0.3), rgba(88, 86, 214, 0.3)) border-box;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.08);
             }
             
             .input-field:focus {
-                background: linear-gradient(#1C1C1E, #1C1C1E) padding-box,
-                            linear-gradient(135deg, var(--primary-color), var(--secondary-color)) border-box;
-                box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4),
-                            0 0 0 4px rgba(0, 122, 255, 0.15),
-                            inset 0 1px 2px rgba(255, 255, 255, 0.12);
+                background: linear-gradient(#1C1C1E, #1C1C1E) padding-box, linear-gradient(135deg, var(--primary-color), var(--secondary-color)) border-box;
+                box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4), 0 0 0 4px rgba(0, 122, 255, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.12);
             }
             
             /* 滚动条暗色模式 */
             .conversation-list::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.4),
-                    rgba(88, 86, 214, 0.4));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.4), rgba(88, 86, 214, 0.4));
             }
             
             .conversation-list::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.6),
-                    rgba(88, 86, 214, 0.6));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.6), rgba(88, 86, 214, 0.6));
             }
             
             .chat-container::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.5),
-                    rgba(88, 86, 214, 0.5));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.5), rgba(88, 86, 214, 0.5));
             }
             
             .chat-container::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.7),
-                    rgba(88, 86, 214, 0.7));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.7), rgba(88, 86, 214, 0.7));
             }
             
             .model-select {
@@ -186,18 +147,10 @@
             
             .model-select:hover {
                 background-color: rgba(255, 255, 255, 0.08);
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-                background-position: right 4px center;
-                background-size: 16px 16px;
-                background-repeat: no-repeat;
             }
             
             .model-select:focus {
                 background-color: rgba(255, 255, 255, 0.12);
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-                background-position: right 4px center;
-                background-size: 16px 16px;
-                background-repeat: no-repeat;
             }
             
             .model-select option {
@@ -214,57 +167,18 @@
                 background: rgba(255, 255, 255, 0.1);
             }
             
-            /* PC端暗色模式下的模型选择器 - ChatGPT风格 */
-            @media (min-width: 769px) {
-                .model-select {
-                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-                    background-position: right 4px center;
-                    background-size: 16px 16px;
-                    background-repeat: no-repeat;
-                }
-                
-                .model-select:hover {
-                    background-color: rgba(255, 255, 255, 0.08);
-                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-                    background-position: right 4px center;
-                    background-size: 16px 16px;
-                    background-repeat: no-repeat;
-                }
-                
-                .model-select:focus {
-                    background-color: rgba(255, 255, 255, 0.12);
-                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-                    background-position: right 4px center;
-                    background-size: 16px 16px;
-                    background-repeat: no-repeat;
-                }
-                
-                .model-select option {
-                    background: #2C2C2E;
-                    color: #FFFFFF;
-                }
-                
-                .model-select option:checked {
-                    background: rgba(0, 122, 255, 0.15);
-                }
-                
-                .model-select option:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                }
-                
-                /* 暗色模式下的滚动条 */
-                .model-select::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.3);
-                }
-                
-                .model-select::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.4);
-                }
-                
-                /* Firefox 滚动条暗色模式 */
-                .model-select {
-                    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-                }
+            /* 暗色模式下的滚动条 */
+            .model-select::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3);
+            }
+            
+            .model-select::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.4);
+            }
+            
+            /* Firefox 滚动条暗色模式 */
+            .model-select {
+                scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
             }
         }
 
@@ -474,9 +388,7 @@
         }
         
         .conversation-list::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, 
-                rgba(0, 122, 255, 0.3),
-                rgba(88, 86, 214, 0.3));
+            background: linear-gradient(180deg, rgba(0, 122, 255, 0.3), rgba(88, 86, 214, 0.3));
             border-radius: 10px;
             border: 2px solid transparent;
             background-clip: padding-box;
@@ -484,21 +396,11 @@
         }
         
         .conversation-list::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, 
-                rgba(0, 122, 255, 0.5),
-                rgba(88, 86, 214, 0.5));
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
+            background: linear-gradient(180deg, rgba(0, 122, 255, 0.5), rgba(88, 86, 214, 0.5));
         }
         
         .conversation-list::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(180deg, 
-                rgba(0, 122, 255, 0.7),
-                rgba(88, 86, 214, 0.7));
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
+            background: linear-gradient(180deg, rgba(0, 122, 255, 0.7), rgba(88, 86, 214, 0.7));
         }
         
         /* Firefox 滚动条样式 */
@@ -508,9 +410,7 @@
         }
 
         .conversation-item {
-            background: linear-gradient(135deg, 
-                var(--conversation-bg) 0%, 
-                rgba(255, 255, 255, 0.9) 100%);
+            background: linear-gradient(135deg, var(--conversation-bg), rgba(255, 255, 255, 0.9));
             backdrop-filter: blur(15px) saturate(150%);
             -webkit-backdrop-filter: blur(15px) saturate(150%);
             padding: 16px;
@@ -521,34 +421,22 @@
             position: relative;
             overflow: hidden;
             border: 1px solid rgba(0, 122, 255, 0.12);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
-                        0 4px 16px rgba(0, 122, 255, 0.02),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 122, 255, 0.02), inset 0 1px 1px rgba(255, 255, 255, 0.5);
         }
 
         .conversation-item:hover {
-            background: linear-gradient(135deg, 
-                var(--conversation-hover) 0%, 
-                rgba(0, 122, 255, 0.12) 100%);
+            background: linear-gradient(135deg, var(--conversation-hover), rgba(0, 122, 255, 0.12));
             transform: translateY(-2px) scale(1.01);
             border: 1px solid var(--primary-color);
-            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.2),
-                        0 4px 12px rgba(0, 0, 0, 0.08),
-                        0 0 0 3px rgba(0, 122, 255, 0.1),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 3px rgba(0, 122, 255, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.6);
         }
 
         .conversation-item.active {
-            background: linear-gradient(135deg, 
-                var(--primary-color) 0%, 
-                var(--secondary-color) 100%);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             transform: translateY(-2px) scale(1.02);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 122, 255, 0.35),
-                        0 4px 16px rgba(88, 86, 214, 0.25),
-                        0 0 0 4px rgba(0, 122, 255, 0.15),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 122, 255, 0.35), 0 4px 16px rgba(88, 86, 214, 0.25), 0 0 0 4px rgba(0, 122, 255, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3);
         }
 
         .conversation-header {
@@ -752,19 +640,11 @@
         
         .model-select:hover {
             background-color: rgba(0, 0, 0, 0.05);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-position: right 4px center;
-            background-size: 16px 16px;
-            background-repeat: no-repeat;
         }
         
         .model-select:focus {
             outline: none;
             background-color: rgba(0, 0, 0, 0.08);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-position: right 4px center;
-            background-size: 16px 16px;
-            background-repeat: no-repeat;
         }
         
         .model-select option {
@@ -810,25 +690,18 @@
         }
         
         .chat-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, 
-                rgba(0, 122, 255, 0.4),
-                rgba(88, 86, 214, 0.4));
+            background: linear-gradient(180deg, rgba(0, 122, 255, 0.4), rgba(88, 86, 214, 0.4));
             border-radius: 10px;
             border: 2px solid var(--background-color);
             transition: all 0.3s;
         }
         
         .chat-container::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, 
-                rgba(0, 122, 255, 0.6),
-                rgba(88, 86, 214, 0.6));
-            border: 2px solid var(--background-color);
+            background: linear-gradient(180deg, rgba(0, 122, 255, 0.6), rgba(88, 86, 214, 0.6));
         }
         
         .chat-container::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(180deg, 
-                var(--primary-color),
-                var(--secondary-color));
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
         }
         
         /* Firefox 滚动条样式 */
@@ -988,6 +861,14 @@
             animation: bounce 0.6s ease-out;
         }
 
+        .progress-status.failed {
+            color: #ff3b30;
+        }
+
+        .progress-status.failed .progress-status-icon {
+            animation: shake 0.5s ease-out;
+        }
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.1); opacity: 0.8; }
@@ -996,6 +877,12 @@
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .progress-bar-wrapper {
@@ -1028,10 +915,24 @@
                         inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
+        .progress-status.failed ~ .progress-bar-wrapper .progress-bar {
+            background: linear-gradient(90deg, 
+                #ff3b30 0%, 
+                #ff6b66 100%);
+            box-shadow: 0 2px 10px rgba(255, 59, 48, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
         @media (prefers-color-scheme: dark) {
             .progress-bar {
                 box-shadow: 0 2px 12px rgba(0, 122, 255, 0.6),
                             0 0 20px rgba(0, 122, 255, 0.3),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+
+            .progress-status.failed ~ .progress-bar-wrapper .progress-bar {
+                box-shadow: 0 2px 12px rgba(255, 59, 48, 0.6),
+                            0 0 20px rgba(255, 59, 48, 0.3),
                             inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
         }
@@ -1048,6 +949,10 @@
                 rgba(255, 255, 255, 0.3) 50%, 
                 transparent 100%);
             animation: shimmer 2s infinite;
+        }
+
+        .progress-status.failed ~ .progress-bar-wrapper .progress-bar::before {
+            animation: none;
         }
 
         @keyframes shimmer {
@@ -1881,59 +1786,7 @@
                 padding: 20px 32px;
             }
 
-            /* 确保模型选择器在桌面端显示良好 - ChatGPT风格 */
-            .model-select {
-                padding: 10px 6px 10px 16px;
-                padding-right: 24px;
-                border-radius: 10px;
-                font-size: 16px;
-                font-weight: 600;
-                background-color: transparent;
-                border: none;
-                transition: background-color 0.15s ease;
-                width: fit-content;
-                max-width: fit-content;
-                background-position: right 4px center;
-            }
-            
-            .model-select:hover {
-                background-color: rgba(0, 0, 0, 0.06);
-                background-position: right 4px center;
-            }
-            
-            .model-select:focus {
-                outline: none;
-                background-color: rgba(0, 0, 0, 0.1);
-                background-position: right 4px center;
-            }
-            
-            /* PC端下拉选项样式 - ChatGPT风格 */
-            .model-select option {
-                padding: 12px 16px;
-                background: var(--card-background);
-                color: var(--text-primary);
-                font-weight: 500;
-                font-size: 15px;
-                line-height: 1.5;
-            }
-            
-            .model-select option:first-child {
-                color: var(--text-secondary);
-                font-style: normal;
-                font-weight: 400;
-            }
-            
-            .model-select option:checked {
-                background: rgba(0, 122, 255, 0.1);
-                color: var(--text-primary);
-                font-weight: 600;
-            }
-            
-            .model-select option:hover {
-                background: rgba(0, 0, 0, 0.05);
-            }
-            
-            /* PC端下拉列表滚动条样式 - 简洁风格 */
+            /* PC端下拉列表滚动条样式 */
             .model-select::-webkit-scrollbar {
                 width: 8px;
             }
@@ -1949,12 +1802,6 @@
             
             .model-select::-webkit-scrollbar-thumb:hover {
                 background: rgba(0, 0, 0, 0.3);
-            }
-            
-            /* Firefox 滚动条样式 */
-            .model-select {
-                scrollbar-width: thin;
-                scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
             }
 
             /* 优化桌面端头部 */
@@ -2086,9 +1933,7 @@
             }
 
             .conversation-list::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.4),
-                    rgba(88, 86, 214, 0.4));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.4), rgba(88, 86, 214, 0.4));
                 border-radius: 10px;
                 border: 2px solid transparent;
                 background-clip: padding-box;
@@ -2096,19 +1941,12 @@
             }
 
             .conversation-list::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.65),
-                    rgba(88, 86, 214, 0.65));
-                border-radius: 10px;
-                border: 2px solid transparent;
-                background-clip: padding-box;
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.65), rgba(88, 86, 214, 0.65));
                 transform: scaleX(1.2);
             }
             
             .conversation-list::-webkit-scrollbar-thumb:active {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.8),
-                    rgba(88, 86, 214, 0.8));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.8), rgba(88, 86, 214, 0.8));
             }
 
             /* 深色模式下的滚动条 */
@@ -2118,21 +1956,15 @@
                 }
                 
                 .conversation-list::-webkit-scrollbar-thumb {
-                    background: linear-gradient(180deg, 
-                        rgba(0, 122, 255, 0.5),
-                        rgba(88, 86, 214, 0.5));
+                    background: linear-gradient(180deg, rgba(0, 122, 255, 0.5), rgba(88, 86, 214, 0.5));
                 }
 
                 .conversation-list::-webkit-scrollbar-thumb:hover {
-                    background: linear-gradient(180deg, 
-                        rgba(0, 122, 255, 0.75),
-                        rgba(88, 86, 214, 0.75));
+                    background: linear-gradient(180deg, rgba(0, 122, 255, 0.75), rgba(88, 86, 214, 0.75));
                 }
                 
                 .conversation-list::-webkit-scrollbar-thumb:active {
-                    background: linear-gradient(180deg, 
-                        rgba(0, 122, 255, 0.9),
-                        rgba(88, 86, 214, 0.9));
+                    background: linear-gradient(180deg, rgba(0, 122, 255, 0.9), rgba(88, 86, 214, 0.9));
                 }
             }
             
@@ -2294,18 +2126,14 @@
             }
             
             .model-picker-list::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.3),
-                    rgba(88, 86, 214, 0.3));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.3), rgba(88, 86, 214, 0.3));
                 border-radius: 10px;
                 border: 2px solid transparent;
                 background-clip: padding-box;
             }
             
             .model-picker-list::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, 
-                    rgba(0, 122, 255, 0.5),
-                    rgba(88, 86, 214, 0.5));
+                background: linear-gradient(180deg, rgba(0, 122, 255, 0.5), rgba(88, 86, 214, 0.5));
             }
             
             /* 模型列表项 */
@@ -2323,17 +2151,13 @@
             }
             
             .model-list-item:hover {
-                background: linear-gradient(135deg, 
-                    rgba(0, 122, 255, 0.08) 0%, 
-                    rgba(88, 86, 214, 0.06) 100%);
+                background: linear-gradient(135deg, rgba(0, 122, 255, 0.08), rgba(88, 86, 214, 0.06));
                 border-color: rgba(0, 122, 255, 0.2);
                 transform: translateX(4px);
             }
             
             .model-list-item.selected {
-                background: linear-gradient(135deg, 
-                    rgba(0, 122, 255, 0.15) 0%, 
-                    rgba(88, 86, 214, 0.12) 100%);
+                background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(88, 86, 214, 0.12));
                 border-color: rgba(0, 122, 255, 0.3);
             }
             
@@ -2352,9 +2176,7 @@
             
             .model-item-badge {
                 padding: 2px 8px;
-                background: linear-gradient(135deg, 
-                    var(--primary-color), 
-                    var(--secondary-color));
+                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
                 color: white;
                 font-size: 11px;
                 font-weight: 600;
@@ -2405,14 +2227,11 @@
                 .pc-model-picker {
                     background: rgba(28, 28, 30, 0.98);
                     border-color: rgba(255, 255, 255, 0.1);
-                    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5),
-                                0 4px 12px rgba(0, 122, 255, 0.2);
+                    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 122, 255, 0.2);
                 }
                 
                 .model-picker-search {
-                    background: linear-gradient(180deg, 
-                        rgba(255, 255, 255, 0.02) 0%,
-                        rgba(255, 255, 255, 0) 100%);
+                    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
                     border-bottom-color: rgba(255, 255, 255, 0.1);
                 }
             }
@@ -4849,15 +4668,15 @@
             }
             
             // 检查是否是进度内容
-            let isGenerating = false;
+            let isGeneratingProgress = false;
             
             if (content) {
                 if (role === 'assistant') {
-                    isGenerating = convertProgressToHTML(content) !== null;
+                    isGeneratingProgress = convertProgressToHTML(content) !== null;
                     bubbleElement.innerHTML = (bubbleElement.innerHTML || '') + parseMarkdown(content);
                     
                     // 如果是生成状态，添加特殊样式
-                    if (isGenerating) {
+                    if (isGeneratingProgress) {
                         bubbleElement.classList.add('generating-bubble');
                         messageElement.classList.add('generating');
                     } else {
@@ -4871,7 +4690,7 @@
             }
 
             // 添加复制按钮（仅对AI消息且非生成状态）
-            if (role === 'assistant' && !isGenerating) {
+            if (role === 'assistant' && !isGeneratingProgress) {
                 // 气泡内的复制按钮（桌面端）
                 const actionsElement = document.createElement('div');
                 actionsElement.className = 'message-actions';
@@ -5156,9 +4975,10 @@
             const progressPattern = /🏃\s*进度[：:]\s*([\d.]+)%/g;
             const waitingPattern = /⌛️?\s*任务正在队列中[，,]?请耐心等待/;
             const completedPattern = /✅/;  // 更宽松的完成检测：只要有✅就认为是完成
+            const failedPattern = /❌|失败|错误|error|failed/i;  // 检测失败状态
             
             // 检查是否包含进度相关内容
-            if (!progressPattern.test(text) && !waitingPattern.test(text) && !completedPattern.test(text)) {
+            if (!progressPattern.test(text) && !waitingPattern.test(text) && !completedPattern.test(text) && !failedPattern.test(text)) {
                 return null; // 不包含进度信息，返回null
             }
             
@@ -5171,18 +4991,26 @@
                 ? parseFloat(progressMatches[progressMatches.length - 1][1]) 
                 : 0;
             
-            // 确定状态（优先级：完成 > 生成中）
+            // 确定状态（优先级：失败 > 完成 > 生成中）
             let status = 'running';
             let statusIcon = '<span class="spinner-icon"></span>';
             let statusText = '视频生成中';
             
-            // 检测完成状态（优先级最高）
+            // 检测完成状态
             if (completedPattern.test(text)) {
                 status = 'completed';
                 statusIcon = '<span class="check-icon"></span>';
                 statusText = '生成完毕';
                 // 完成时进度自动设为100%
                 latestProgress = 100;
+            }
+            
+            // 检测失败状态（优先级最高）
+            if (failedPattern.test(text)) {
+                status = 'failed';
+                statusIcon = '❌';
+                statusText = '因含有版权内容，生成失败';
+                // 失败时如果进度为0，保持为0；如果有进度则保持当前进度
             }
             
             // 提取链接（如果有）
@@ -5526,11 +5354,11 @@
                     bubbleElement.appendChild(textNode);
                 }
             } else if (role === 'assistant') {
-                const isGenerating = convertProgressToHTML(content) !== null;
+                const isGeneratingProgress = convertProgressToHTML(content) !== null;
                 bubbleElement.innerHTML = parseMarkdown(content);
                 
                 // 如果是生成状态，添加特殊样式
-                if (isGenerating) {
+                if (isGeneratingProgress) {
                     bubbleElement.classList.add('generating-bubble');
                     messageElement.classList.add('generating');
                 } else {
@@ -5947,26 +5775,75 @@
 
         // 存储管理
         function saveConversations() {
-            // 在保存前验证和清理数据
-            const cleanedConversations = conversations.map(conv => {
-                return {
-                    ...conv,
-                    messages: conv.messages.filter(msg => {
-                        // 只保存有效的消息
-                        if (msg.role !== 'user' && msg.role !== 'assistant') {
-                            console.warn('保存时发现无效role，已过滤:', msg);
-                            return false;
-                        }
-                        if (!msg.content || typeof msg.content !== 'string') {
-                            console.warn('保存时发现无效内容，已过滤:', msg);
-                            return false;
-                        }
-                        return true;
-                    })
-                };
-            });
-            
-            localStorage.setItem('conversations', JSON.stringify(cleanedConversations));
+            try {
+                // 在保存前验证和清理数据
+                const cleanedConversations = conversations.map(conv => {
+                    return {
+                        ...conv,
+                        messages: conv.messages.filter(msg => {
+                            // 只保存有效的消息
+                            if (msg.role !== 'user' && msg.role !== 'assistant') {
+                                console.warn('保存时发现无效role，已过滤:', msg);
+                                return false;
+                            }
+                            if (!msg.content || typeof msg.content !== 'string') {
+                                console.warn('保存时发现无效内容，已过滤:', msg);
+                                return false;
+                            }
+                            return true;
+                        }).map(msg => {
+                            // 移除文件数据（图片base64太大，不保存到localStorage）
+                            const { files, ...msgWithoutFiles } = msg;
+                            return msgWithoutFiles;
+                        })
+                    };
+                });
+                
+                // 只保留最近的20个对话，防止数据过大
+                const conversationsToSave = cleanedConversations.slice(-20);
+                
+                // 尝试保存到localStorage
+                const dataToSave = JSON.stringify(conversationsToSave);
+                
+                // 检查数据大小（localStorage通常限制5-10MB）
+                const sizeInMB = new Blob([dataToSave]).size / (1024 * 1024);
+                console.log(`💾 准备保存对话数据，大小: ${sizeInMB.toFixed(2)} MB`);
+                
+                if (sizeInMB > 4) {
+                    // 如果数据超过4MB，进一步限制保存数量
+                    console.warn('⚠️ 数据过大，只保留最近10个对话');
+                    const limitedConversations = cleanedConversations.slice(-10);
+                    localStorage.setItem('conversations', JSON.stringify(limitedConversations));
+                } else {
+                    localStorage.setItem('conversations', dataToSave);
+                }
+                
+                console.log(`✅ 成功保存 ${conversationsToSave.length} 个对话`);
+            } catch (error) {
+                if (error.name === 'QuotaExceededError') {
+                    console.error('❌ localStorage配额已满，尝试清理旧数据...');
+                    // 只保留最近5个对话
+                    try {
+                        const limitedConversations = conversations.slice(-5).map(conv => {
+                            return {
+                                ...conv,
+                                messages: conv.messages.map(msg => {
+                                    const { files, ...msgWithoutFiles } = msg;
+                                    return msgWithoutFiles;
+                                })
+                            };
+                        });
+                        localStorage.setItem('conversations', JSON.stringify(limitedConversations));
+                        showToast('存储空间已满，已自动清理旧对话', 'warning');
+                        console.log('✅ 清理后成功保存 5 个最近对话');
+                    } catch (e) {
+                        console.error('❌ 清理后仍然无法保存:', e);
+                        showToast('存储空间不足，对话历史可能无法保存', 'error');
+                    }
+                } else {
+                    console.error('❌ 保存对话失败:', error);
+                }
+            }
         }
 
         // 优化Toast显示函数 - 完成后消失而不是隐藏

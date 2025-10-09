@@ -4399,7 +4399,7 @@ document.addEventListener('DOMContentLoaded', function() {
  if (appContainer) {
  appContainer.classList.remove('initial-load');
  }
- }, 1600); // 等待所有入场动画完成
+ }, 2000); // 等待所有入场动画完成
  });
 
  // 处理虚拟键盘（移动端）
@@ -4993,14 +4993,20 @@ document.addEventListener('DOMContentLoaded', function() {
  }
 
  // 构建支持多模态的消息（包含图片的base64和文本文件内容）
- function buildMultimodalMessages(conversation) {
- const messages = [
- { role: 'system', content: settings.systemPrompt }
- ];
+function buildMultimodalMessages(conversation) {
+    const messages = [
+        { role: 'system', content: settings.systemPrompt }
+    ];
 
- // 遍历对话历史，构建多模态消息
- for (let msg of conversation.messages) {
- if (msg.role === 'user' && msg.files && msg.files.length > 0) {
+    // 遍历对话历史，构建多模态消息
+    for (let msg of conversation.messages) {
+        // ✅ 新增：跳过空消息
+        if (!msg.content || msg.content.trim() === '') {
+            continue;
+        }
+        
+        if (msg.role === 'user' && msg.files && msg.files.length > 0) {
+        
  // 检查是否有图片文件
  const hasImages = msg.files.some(file => file.preview && file.type && file.type.startsWith('image/'));
  // 检查是否有文本文件
@@ -5708,7 +5714,7 @@ function getProgressInfo(text) {
     // 检测是否包含进度信息
     const progressPattern = /🏃\s*进度[：:]\s*([\d.]+)%/g;
     const waitingPattern = /⌛️?\s*任务正在队列中[，,]?请耐心等待/;
-    const completedPattern = /✅.*?(完成|完毕|生成完毕)/; // 更严格的完成检测
+    const completedPattern = /✅.*?(视频生成成功)/; // 更严格的完成检测
     const failedPattern = /❌.*?(失败|错误|error|failed)/i; // 更严格：必须同时有❌和失败关键词
     
     // 检测违反政策的提示

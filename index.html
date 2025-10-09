@@ -5777,12 +5777,12 @@ function getProgressInfo(text) {
  if (urlMatch && urlMatch[1]) {
  // 找到了URL链接，清理可能的尾部标点符号
  let cleanUrl = urlMatch[1].replace(/[~)）]+$/, '');
- linkHTML = `<div class="progress-link"><a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">点击这里下载视频</a></div>`;
+ linkHTML = `<div class="progress-link"><a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">点击这里下载视频 ▶️</a></div>`;
  } else {
  // 没有找到URL，尝试查找包含"查看视频"的文本
  const viewPattern = /点击(这里|此处)\s*查看视频/;
  if (viewPattern.test(text)) {
- linkHTML = '<div class="progress-link"><a href="#" onclick="alert(\'请在原消息中查找视频链接\'); return false;">点击查看视频</a></div>';
+ linkHTML = '<div class="progress-link"><a href="#" onclick="alert(\'请在原消息中查找视频链接\'); return false;">点击查看视频 ▶️</a></div>';
  }
  }
  }
@@ -6863,4 +6863,4 @@ saveConversations();
  });
  </script>
 </body>
- </html>
+  </html>

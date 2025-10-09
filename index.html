@@ -5000,15 +5000,14 @@ function buildMultimodalMessages(conversation) {
 
     // 遍历对话历史，构建多模态消息
     for (let msg of conversation.messages) {
-        // ✅ 新增：跳过空消息
+        // ✅ 跳过空消息，避免干扰AI理解
         if (!msg.content || msg.content.trim() === '') {
             continue;
         }
         
         if (msg.role === 'user' && msg.files && msg.files.length > 0) {
-        
- // 检查是否有图片文件
- const hasImages = msg.files.some(file => file.preview && file.type && file.type.startsWith('image/'));
+            // 检查是否有图片文件
+            const hasImages = msg.files.some(file => file.preview && file.type && file.type.startsWith('image/'));
  // 检查是否有文本文件
  const textFiles = msg.files.filter(file => file.content && file.type === 'text/plain');
 

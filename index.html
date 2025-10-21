@@ -3223,7 +3223,7 @@ transform: rotate(360deg);
  }
 
  .message-bubble {
- max-width: 80%;
+ max-width: 90%; /* 移动端增宽消息气泡，从80%改为90% */
  padding: 16px 20px;
  font-size: 14px;
  line-height: 1.5;
@@ -3260,7 +3260,7 @@ transform: rotate(360deg);
 
  .message.assistant .message-bubble {
  border-bottom-left-radius: 6px;
- margin-right: 20%;
+ margin-right: 5%; /* 增宽AI消息气泡，从20%改为5% */
  }
 
  /* 移动端进度条适配 */
@@ -5430,9 +5430,18 @@ showToast('已取消生成', 'warning');
 
  chatContainer.appendChild(messageElement);
 
- // 滚动到底部
+ // 滚动到底部 - 移动端优化
  setTimeout(() => {
  chatContainer.scrollTop = chatContainer.scrollHeight;
+ // 移动端额外确保滚动到底部
+ if (window.innerWidth <= 768) {
+ requestAnimationFrame(() => {
+ chatContainer.scrollTo({
+ top: chatContainer.scrollHeight,
+ behavior: 'smooth'
+ });
+ });
+ }
  }, 100);
 
  // 更新对话记录（不自动更新，因为需要完整的文件内容）
@@ -5605,10 +5614,19 @@ const bubbleElement = messageElement.querySelector('.message-bubble');
  }
  }
 
- // 滚动到底部
+ // 滚动到底部 - 移动端优化
  const chatContainer = document.getElementById('chatContainer');
  setTimeout(() => {
  chatContainer.scrollTop = chatContainer.scrollHeight;
+ // 移动端额外确保滚动到底部
+ if (window.innerWidth <= 768) {
+ requestAnimationFrame(() => {
+ chatContainer.scrollTo({
+ top: chatContainer.scrollHeight,
+ behavior: 'smooth'
+ });
+ });
+ }
  }, 50);
  }
  }
@@ -5922,6 +5940,12 @@ stopBtn.style.display = 'none';
 
  // 创建新对话
  function createNewChat() {
+ // PC端限制最多8个对话
+ if (window.innerWidth > 768 && conversations.length >= 8) {
+ showToast('最多支持8个对话，请删除部分对话后再新建', 'warning');
+ return;
+ }
+ 
  const newConversation = {
  id: 'conv-' + Date.now(),
  title: '新对话',
@@ -6193,6 +6217,18 @@ function addMessageToUI(role, content, files = []) {
  }
 
 chatContainer.appendChild(messageElement);
+
+// 移动端自动滚动到底部
+if (window.innerWidth <= 768) {
+setTimeout(() => {
+requestAnimationFrame(() => {
+chatContainer.scrollTo({
+top: chatContainer.scrollHeight,
+behavior: 'smooth'
+});
+});
+}, 100);
+}
 }
 
 // 使用指定ID添加消息到UI（用于恢复流式输出状态）
@@ -6334,6 +6370,18 @@ messageElement.appendChild(bubbleElement);
 }
 
 chatContainer.appendChild(messageElement);
+
+// 移动端自动滚动到底部
+if (window.innerWidth <= 768) {
+setTimeout(() => {
+requestAnimationFrame(() => {
+chatContainer.scrollTo({
+top: chatContainer.scrollHeight,
+behavior: 'smooth'
+});
+});
+}, 100);
+}
 
 // 返回messageId，保持与addMessageToUI一致
 return messageId;

@@ -2357,23 +2357,64 @@ transform: rotate(360deg);
  animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
  }
 
- /* 对话列表项依次入场动画 - 仅首次加载 */
- .initial-load .conversation-item {
- animation: fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
- }
+/* 对话列表项依次入场动画 - 仅首次加载 */
+.initial-load .conversation-item {
+animation: fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
 
- /* 为对话列表项添加依次延迟的动画 - 仅首次加载 */
- .initial-load .conversation-item:nth-child(1) { animation-delay: 0.6s; }
- .initial-load .conversation-item:nth-child(2) { animation-delay: 0.65s; }
- .initial-load .conversation-item:nth-child(3) { animation-delay: 0.7s; }
- .initial-load .conversation-item:nth-child(4) { animation-delay: 0.75s; }
- .initial-load .conversation-item:nth-child(5) { animation-delay: 0.8s; }
- .initial-load .conversation-item:nth-child(6) { animation-delay: 0.85s; }
- .initial-load .conversation-item:nth-child(7) { animation-delay: 0.9s; }
- .initial-load .conversation-item:nth-child(8) { animation-delay: 0.95s; }
- .initial-load .conversation-item:nth-child(9) { animation-delay: 1s; }
- .initial-load .conversation-item:nth-child(10) { animation-delay: 1.05s; }
- .initial-load .conversation-item:nth-child(n+11) { animation-delay: 1.1s; }
+/* 为对话列表项添加依次延迟的动画 - 仅首次加载 */
+.initial-load .conversation-item:nth-child(1) { animation-delay: 0.6s; }
+.initial-load .conversation-item:nth-child(2) { animation-delay: 0.65s; }
+.initial-load .conversation-item:nth-child(3) { animation-delay: 0.7s; }
+.initial-load .conversation-item:nth-child(4) { animation-delay: 0.75s; }
+.initial-load .conversation-item:nth-child(5) { animation-delay: 0.8s; }
+.initial-load .conversation-item:nth-child(6) { animation-delay: 0.85s; }
+.initial-load .conversation-item:nth-child(7) { animation-delay: 0.9s; }
+.initial-load .conversation-item:nth-child(8) { animation-delay: 0.95s; }
+.initial-load .conversation-item:nth-child(9) { animation-delay: 1s; }
+.initial-load .conversation-item:nth-child(10) { animation-delay: 1.05s; }
+.initial-load .conversation-item:nth-child(n+11) { animation-delay: 1.1s; }
+
+/* 新建对话时的飞入动画 - 仅PC端 */
+@keyframes slideInFromLeftBounce {
+0% {
+opacity: 0;
+transform: translateX(-120%) scale(0.9);
+}
+60% {
+opacity: 1;
+transform: translateX(2%) scale(1.02);
+}
+80% {
+transform: translateX(-1%) scale(0.99);
+}
+100% {
+opacity: 1;
+transform: translateX(0) scale(1);
+}
+}
+
+/* 被挤压的对话项向下平移动画 */
+@keyframes slideDownSmooth {
+from {
+transform: translateY(-100%);
+opacity: 0.6;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+
+/* 新创建的对话项 - 从左侧飞入 */
+.conversation-item.new-item-entering {
+animation: slideInFromLeftBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* 被新对话挤压的现有对话项 - 向下平移 */
+.conversation-item.item-pushed-down {
+animation: slideDownSmooth 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
 
  .conversation-list::-webkit-scrollbar {
  width: 10px;
@@ -6038,23 +6079,24 @@ stopBtn.style.display = 'none';
 }
 }
 
- // 创建新对话
- function createNewChat() {
- // PC端限制最多8个对话
- if (window.innerWidth > 768 && conversations.length >= 8) {
- showToast('最多支持8个对话，请删除部分对话后再新建', 'warning');
- return;
- }
- 
- const newConversation = {
- id: 'conv-' + Date.now(),
- title: '新对话',
- messages: [],
- createdAt: new Date().toISOString()
- };
+// 创建新对话
+function createNewChat() {
+// PC端限制最多8个对话
+if (window.innerWidth > 768 && conversations.length >= 8) {
+showToast('最多支持8个对话，请删除部分对话后再新建', 'warning');
+return;
+}
 
- conversations.unshift(newConversation);
- currentConversationId = newConversation.id;
+const newConversation = {
+id: 'conv-' + Date.now(),
+title: '新对话',
+messages: [],
+createdAt: new Date().toISOString(),
+isNewlyCreated: true // 标记为新创建的对话，用于动画
+};
+
+conversations.unshift(newConversation);
+currentConversationId = newConversation.id;
 
  // 清空聊天区域
  const chatContainer = document.getElementById('chatContainer');
@@ -6515,28 +6557,45 @@ function deleteConversation(conversationId, event) {
  }
  }
 
- // 渲染对话列表
- function renderConversations() {
- const conversationList = document.getElementById('conversationList');
+// 渲染对话列表
+function renderConversations() {
+const conversationList = document.getElementById('conversationList');
+const isPCMode = window.innerWidth > 768;
 
- if (conversations.length === 0) {
- conversationList.innerHTML = `
- <div class="sidebar-empty">
- <div class="sidebar-empty-icon">💭</div>
- <h4>暂无对话</h4>
- <p>点击"新对话"开始聊天</p>
- </div>
- `;
- return;
- }
+if (conversations.length === 0) {
+conversationList.innerHTML = `
+<div class="sidebar-empty">
+<div class="sidebar-empty-icon">💭</div>
+<h4>暂无对话</h4>
+<p>点击"新对话"开始聊天</p>
+</div>
+`;
+return;
+}
 
-conversationList.innerHTML = conversations.map(conv => {
+// 检查是否有新创建的对话
+const hasNewlyCreated = conversations.some(c => c.isNewlyCreated);
+
+conversationList.innerHTML = conversations.map((conv, index) => {
 const messageCount = conv.messages.length;
 // 检查该对话是否正在生成中
 const isGenerating = streamingStates[conv.id]?.isGenerating || false;
 const generatingIndicator = isGenerating ? '<span class="generating-indicator" title="正在生成中...">✨</span>' : '';
+
+// PC端动画：新创建的对话从左侧飞入，其他对话向下平移
+let animationClass = '';
+if (isPCMode && hasNewlyCreated) {
+if (conv.isNewlyCreated && index === 0) {
+// 新创建的对话 - 从左侧飞入
+animationClass = 'new-item-entering';
+} else if (!conv.isNewlyCreated) {
+// 现有对话 - 向下平移
+animationClass = 'item-pushed-down';
+}
+}
+
 return `
-<div class="conversation-item ${currentConversationId === conv.id ? 'active' : ''} ${isGenerating ? 'generating' : ''}"
+<div class="conversation-item ${currentConversationId === conv.id ? 'active' : ''} ${isGenerating ? 'generating' : ''} ${animationClass}"
 onclick="switchConversation('${conv.id}')">
 <div class="conversation-header">
 <div class="conversation-info">
@@ -6558,7 +6617,18 @@ onclick="switchConversation('${conv.id}')">
 </div>
 `;
 }).join('');
- }
+
+// 动画完成后移除新创建标记
+if (isPCMode) {
+setTimeout(() => {
+conversations.forEach(conv => {
+if (conv.isNewlyCreated) {
+delete conv.isNewlyCreated;
+}
+});
+}, 700); // 等待动画完成
+}
+}
 
 // 更新对话消息
 function updateConversationMessage(role, content, files = []) {
@@ -6846,29 +6916,31 @@ saveConversations();
  document.getElementById('systemPrompt').value = settings.systemPrompt;
  }
 
- // 存储管理
- function saveConversations() {
- try {
- // 在保存前验证和清理数据
- const cleanedConversations = conversations.map(conv => {
- return {
- ...conv,
- messages: conv.messages.filter(msg => {
- // 只保存有效的消息
- if (msg.role !== 'user' && msg.role !== 'assistant') {
- return false;
- }
- if (!msg.content || typeof msg.content !== 'string') {
- return false;
- }
- return true;
- }).map(msg => {
- // 移除文件数据（图片base64太大，不保存到localStorage）
- const { files, ...msgWithoutFiles } = msg;
- return msgWithoutFiles;
- })
- };
- });
+// 存储管理
+function saveConversations() {
+try {
+// 在保存前验证和清理数据
+const cleanedConversations = conversations.map(conv => {
+// 移除临时标记（如动画标记）
+const { isNewlyCreated, ...convWithoutTemp } = conv;
+return {
+...convWithoutTemp,
+messages: conv.messages.filter(msg => {
+// 只保存有效的消息
+if (msg.role !== 'user' && msg.role !== 'assistant') {
+return false;
+}
+if (!msg.content || typeof msg.content !== 'string') {
+return false;
+}
+return true;
+}).map(msg => {
+// 移除文件数据（图片base64太大，不保存到localStorage）
+const { files, ...msgWithoutFiles } = msg;
+return msgWithoutFiles;
+})
+};
+});
 
  // 只保留最近的20个对话，防止数据过大
  const conversationsToSave = cleanedConversations.slice(-20);

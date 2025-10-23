@@ -3731,22 +3731,78 @@ transform: rotate(360deg);
  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
  }
 
- .model-picker-title {
- font-size: 20px;
- font-weight: 700;
- background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- background-clip: text;
- display: inline-block;
- }
+.model-picker-title {
+font-size: 20px;
+font-weight: 700;
+background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+display: inline-block;
+}
 
- @media (prefers-color-scheme: dark) {
- .mobile-model-picker {
- background: rgba(28, 28, 30, 0.95);
- box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
- }
- }
+.mobile-search-container {
+position: relative;
+margin: 0 0 16px 0;
+flex-shrink: 0;
+}
+
+.mobile-search-input {
+width: 100%;
+padding: 14px 48px 14px 20px;
+border: 2px solid var(--border-color);
+border-radius: 14px;
+background: var(--card-background);
+color: var(--text-primary);
+font-size: 16px;
+transition: all 0.3s ease;
+outline: none;
+-webkit-appearance: none;
+appearance: none;
+}
+
+.mobile-search-input:focus {
+border-color: var(--primary-color);
+box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+background: var(--card-background);
+}
+
+.mobile-search-icon {
+position: absolute;
+right: 16px;
+top: 50%;
+transform: translateY(-50%);
+width: 20px;
+height: 20px;
+stroke: var(--text-secondary);
+stroke-width: 2;
+fill: none;
+stroke-linecap: round;
+stroke-linejoin: round;
+pointer-events: none;
+transition: stroke 0.3s ease;
+}
+
+.mobile-search-input:focus + .mobile-search-icon {
+stroke: var(--primary-color);
+}
+
+@media (prefers-color-scheme: dark) {
+.mobile-model-picker {
+background: rgba(28, 28, 30, 0.95);
+box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-search-input {
+background: rgba(44, 44, 46, 0.9);
+border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-search-input:focus {
+background: rgba(44, 44, 46, 0.95);
+border-color: var(--primary-color);
+}
+}
 
  .model-options {
  flex: 1;
@@ -4196,19 +4252,33 @@ transform: rotate(360deg);
  </div>
  </div>
 
- <!-- 移动端模型选择器 -->
- <div class="mobile-model-picker" id="mobileModelPicker">
- <div class="model-picker-header">
- <div class="model-picker-handle"></div>
- <div class="model-picker-title">选择AI模型</div>
- </div>
- <div class="model-options" id="mobileModelOptions">
- <div class="model-option selected" data-model="claude-sonnet-4-5-20250929">
- <span>claude-sonnet-4-5-20250929</span>
- <span class="model-check">✓</span>
- </div>
- </div>
- </div>
+<!-- 移动端模型选择器 -->
+<div class="mobile-model-picker" id="mobileModelPicker">
+<div class="model-picker-header">
+<div class="model-picker-handle"></div>
+<div class="model-picker-title">选择AI模型</div>
+</div>
+<div class="mobile-search-container">
+<input 
+type="text" 
+class="mobile-search-input" 
+id="mobileModelSearchInput" 
+placeholder="搜索模型..." 
+oninput="filterMobileModels()"
+aria-label="搜索模型"
+/>
+<svg class="mobile-search-icon" viewBox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<path d="m21 21-4.35-4.35"></path>
+</svg>
+</div>
+<div class="model-options" id="mobileModelOptions">
+<div class="model-option selected" data-model="claude-sonnet-4-5-20250929">
+<span>claude-sonnet-4-5-20250929</span>
+<span class="model-check">✓</span>
+</div>
+</div>
+</div>
 
  <!-- 设置模态框 -->
  <div class="modal" id="settingsModal">
@@ -4425,31 +4495,61 @@ document.addEventListener('DOMContentLoaded', function() {
  }
  }
 
- // 移动端模型选择器切换
- function toggleModelPicker() {
- const picker = document.getElementById('mobileModelPicker');
- const overlay = document.getElementById('overlay');
- const isShowing = picker.classList.contains('show');
+// 移动端模型选择器切换
+function toggleModelPicker() {
+const picker = document.getElementById('mobileModelPicker');
+const overlay = document.getElementById('overlay');
+const isShowing = picker.classList.contains('show');
 
- if (isShowing) {
- picker.classList.remove('show');
- overlay.classList.remove('show');
- } else {
- picker.classList.add('show');
- overlay.classList.add('show');
- }
- }
+if (isShowing) {
+picker.classList.remove('show');
+overlay.classList.remove('show');
+// 关闭时清空搜索框
+const searchInput = document.getElementById('mobileModelSearchInput');
+if (searchInput) {
+searchInput.value = '';
+filterMobileModels();
+}
+} else {
+picker.classList.add('show');
+overlay.classList.add('show');
+// 不自动聚焦搜索框，让用户主动点击时才弹出输入法
+}
+}
 
- // 关闭侧边栏和选择器
- function closeSidebarAndPickers() {
- const sidebar = document.getElementById('sidebar');
- const picker = document.getElementById('mobileModelPicker');
- const overlay = document.getElementById('overlay');
+// 过滤移动端模型列表
+function filterMobileModels() {
+const searchInput = document.getElementById('mobileModelSearchInput');
+const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+const options = document.querySelectorAll('#mobileModelOptions .model-option');
 
- sidebar.classList.remove('open');
- picker.classList.remove('show');
- overlay.classList.remove('show');
- }
+options.forEach(option => {
+const modelName = option.dataset.model.toLowerCase();
+if (modelName.includes(searchTerm)) {
+option.style.display = 'flex';
+} else {
+option.style.display = 'none';
+}
+});
+}
+
+// 关闭侧边栏和选择器
+function closeSidebarAndPickers() {
+const sidebar = document.getElementById('sidebar');
+const picker = document.getElementById('mobileModelPicker');
+const overlay = document.getElementById('overlay');
+
+sidebar.classList.remove('open');
+picker.classList.remove('show');
+overlay.classList.remove('show');
+
+// 清空搜索框
+const searchInput = document.getElementById('mobileModelSearchInput');
+if (searchInput) {
+searchInput.value = '';
+filterMobileModels();
+}
+}
 
  // 移动端选择模型
  function selectMobileModel(model) {

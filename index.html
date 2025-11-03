@@ -10,14 +10,14 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
  <style>
- * {
- margin: 0;
- padding: 0;
- box-sizing: border-box;
- -webkit-tap-highlight-color: transparent;
- }
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
 
- :root {
+:root {
  --primary-color: #007AFF;
  --secondary-color: #5856D6;
  --background-color: #F2F2F7;
@@ -40,19 +40,19 @@
 }
 
 body {
- font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
- background-color: var(--background-color);
- color: var(--text-primary);
- -webkit-font-smoothing: antialiased;
- -moz-osx-font-smoothing: grayscale;
- }
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+background-color: var(--background-color);
+color: var(--text-primary);
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
 
- /* ============ 桌面端样式 ============ */
- .app-container {
- display: flex;
- height: 100vh;
- position: relative;
- }
+/* ============ 桌面端样式 ============ */
+.app-container {
+display: flex;
+height: 100vh;
+position: relative;
+}
 
  /* 侧边栏遮罩层 */
  .sidebar-overlay {
@@ -400,12 +400,15 @@ transform: rotate(360deg);
  opacity: 1;
  }
 
- .main-content {
- flex: 1;
- display: flex;
- flex-direction: column;
- position: relative;
- }
+.main-content {
+flex: 1;
+display: flex;
+flex-direction: column;
+position: relative;
+overflow-x: hidden; /* 防止横向滚动 */
+max-width: 100%;
+min-width: 0; /* 允许弹性收缩 */
+}
 
  /* 主内容区域左侧柔和过渡效果 */
  .main-content::before {
@@ -430,16 +433,16 @@ transform: rotate(360deg);
 }
 
 .header {
- background-color: var(--card-background);
- border-bottom: 1px solid var(--border-color);
- padding: 12px 20px;
- display: flex;
- justify-content: space-between;
- align-items: center;
- backdrop-filter: blur(10px);
- position: relative;
- z-index: 200;
- }
+background-color: var(--card-background);
+border-bottom: 1px solid var(--border-color);
+padding: 12px 20px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+backdrop-filter: blur(10px);
+position: relative;
+z-index: 200;
+}
 
  .header-left {
  display: flex;
@@ -547,13 +550,13 @@ transform: rotate(360deg);
  background: rgba(0, 0, 0, 0.05);
  }
 
- .chat-container {
- flex: 1;
- overflow-y: auto;
- padding: 20px;
- scroll-behavior: smooth;
- -webkit-overflow-scrolling: touch;
- }
+.chat-container {
+flex: 1;
+overflow-y: auto;
+padding: 20px;
+scroll-behavior: smooth;
+-webkit-overflow-scrolling: touch;
+}
 
  /* 自定义滚动条样式 - 聊天容器 */
  .chat-container::-webkit-scrollbar {
@@ -587,27 +590,29 @@ transform: rotate(360deg);
  scrollbar-color: rgba(0, 122, 255, 0.4) var(--background-color);
  }
 
- .message {
- display: flex;
- margin-bottom: 16px;
- animation: messageAppear 0.3s ease-out;
- }
+.message {
+display: flex;
+margin-bottom: 16px;
+animation: messageAppear 0.3s ease-out;
+min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
+}
 
  .message.user {
  justify-content: flex-end;
  }
 
- .message-bubble {
- max-width: 70%;
- padding: 12px 16px;
- border-radius: 18px;
- position: relative;
- box-shadow: var(--shadow);
- overflow: visible;
- overflow-wrap: break-word;
- word-wrap: break-word;
- word-break: break-word;
- }
+.message-bubble {
+max-width: min(70%, 1200px); /* 限制桌面端气泡最大宽度为1200px */
+padding: 12px 16px;
+border-radius: 18px;
+position: relative;
+box-shadow: var(--shadow);
+overflow: visible;
+overflow-wrap: break-word;
+word-wrap: break-word;
+word-break: break-word;
+min-width: 0; /* 允许弹性收缩，防止代码块撑开容器 */
+}
 
  .message-file-attachments {
  display: flex;
@@ -990,16 +995,16 @@ transform: rotate(360deg);
  }
  }
 
- .input-container {
- padding: 20px;
- background: linear-gradient(180deg,
- transparent 0%,
- rgba(0, 122, 255, 0.02) 50%,
- transparent 100%);
- border-top: none;
- backdrop-filter: blur(10px);
- -webkit-backdrop-filter: blur(10px);
- }
+.input-container {
+padding: 20px;
+background: linear-gradient(180deg,
+transparent 0%,
+rgba(0, 122, 255, 0.02) 50%,
+transparent 100%);
+border-top: none;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
 
  .file-preview-container {
  max-width: 1000px;
@@ -1516,35 +1521,58 @@ transform: rotate(360deg);
  opacity: 0.5;
  }
 
- /* 代码高亮 */
- .hljs {
- background: #282c34 !important;
- border-radius: 8px;
- padding: 16px;
- margin: 8px 0;
- overflow-x: auto;
- overflow-y: visible;
- max-width: 100%;
- }
+/* 代码高亮 */
+.hljs {
+background: #282c34 !important;
+border-radius: 8px;
+padding: 16px;
+margin: 8px 0;
+overflow-x: auto;
+overflow-y: visible;
+max-width: 100%;
+min-width: 0; /* 防止撑开父容器 */
+}
 
- pre {
- position: relative;
- overflow-x: auto;
- overflow-y: visible;
- max-width: 100%;
- }
+pre {
+position: relative;
+overflow-x: auto;
+overflow-y: visible;
+max-width: 100%;
+min-width: 0; /* 防止撑开父容器 */
+}
 
- /* 确保消息气泡内的内容不产生纵向滚动条 */
- .message-bubble * {
- max-width: 100%;
- }
+/* 确保消息气泡内的内容不产生纵向滚动条 */
+.message-bubble * {
+max-width: 100%;
+}
 
- .message-bubble p,
- .message-bubble div {
- overflow-wrap: break-word;
- word-wrap: break-word;
- word-break: break-word;
- }
+.message-bubble p,
+.message-bubble div {
+overflow-wrap: break-word;
+word-wrap: break-word;
+word-break: break-word;
+}
+
+/* 防止代码块撑开容器 */
+.message-bubble code {
+max-width: 100%;
+overflow-wrap: break-word;
+word-wrap: break-word;
+}
+
+.message-bubble pre {
+max-width: 100%;
+overflow-x: auto;
+overflow-y: hidden;
+}
+
+.message-bubble pre code {
+display: block;
+max-width: 100%;
+white-space: pre;
+overflow-wrap: normal;
+word-wrap: normal;
+}
 
  .copy-code-btn {
  position: absolute;
@@ -1722,10 +1750,10 @@ transform: rotate(360deg);
  animation: fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 1s backwards;
  }
 
- /* 优化消息气泡最大宽度 */
- .message-bubble {
- max-width: 65%;
- }
+/* 优化消息气泡最大宽度 */
+.message-bubble {
+max-width: min(65%, 1200px); /* 限制桌面端气泡最大宽度为1200px，避免单行内容过长 */
+}
 
  /* 优化输入容器 */
  .input-container {
@@ -2500,26 +2528,26 @@ animation: slideDownSmooth 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
  }
  }
 
- /* 确保body可以滚动 */
- body {
- font-size: 16px;
- background: var(--background-color);
- overflow: auto;
- height: 100%;
- }
+/* 确保body可以滚动 */
+body {
+font-size: 16px;
+background: var(--background-color);
+overflow: auto;
+height: 100%;
+}
 
- html {
- height: 100%;
- overflow: auto;
- }
+html {
+height: 100%;
+overflow: auto;
+}
 
- .app-container {
- position: relative;
- min-height: 100vh;
- min-height: 100dvh;
- display: flex;
- flex-direction: column;
- }
+.app-container {
+position: relative;
+min-height: 100vh;
+min-height: 100dvh;
+display: flex;
+flex-direction: column;
+}
 
  /* 移动端顶部导航栏 */
  .mobile-header {

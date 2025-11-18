@@ -4111,8 +4111,6 @@ let streamingStates = {}; // { conversationId: { messageId, controller, isGenera
  // 速率限制相关变量
  let lastRequestTime = 0;
  const MIN_REQUEST_INTERVAL = 2000; // 最小请求间隔（毫秒）
- const MAX_RETRIES = 3; // 最大重试次数
- const RETRY_DELAYS = [3000, 5000, 10000]; // 重试延迟（毫秒）：3秒, 5秒, 10秒
 
  // 延迟函数
  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -4906,10 +4904,6 @@ function buildMultimodalMessages(conversation) {
 
  // 请求 AI 响应
  async function requestAIResponse(conversationId, loadingId, currentModel) {
- let retryCount = 0;
- let success = false;
- let isAborted = false;
-
  // 保存当前对话的流式输出状态（支持多对话并发）
  streamingStates[conversationId] = {
  messageId: loadingId,
@@ -4920,8 +4914,6 @@ function buildMultimodalMessages(conversation) {
  // 更新当前对话的发送按钮状态
  updateSendButton();
 
- try {
- while (retryCount <= MAX_RETRIES && !success) {
  try {
  // 速率限制检查
  await checkRateLimit();
@@ -4937,11 +4929,6 @@ function buildMultimodalMessages(conversation) {
  // 获取当前对话历史，构建多模态消息
  const conversation = conversations.find(conv => conv.id === conversationId);
  const messages = buildMultimodalMessages(conversation);
-
- // 如果是重试，显示提示
- if (retryCount > 0) {
- updateMessage(loadingId, `正在重试 (${retryCount}/${MAX_RETRIES})...`);
- }
 
  const response = await fetch(`${API_BASE}/v1/chat/completions`, {
  method: 'POST',
@@ -4959,22 +4946,18 @@ function buildMultimodalMessages(conversation) {
  signal: controller.signal
  });
 
- // 处理 429 错误
- if (response.status === 429) {
- if (retryCount < MAX_RETRIES) {
- const retryDelay = RETRY_DELAYS[retryCount];
- updateMessage(loadingId, `请求过于频繁，${retryDelay/1000}秒后自动重试 (${retryCount + 1}/${MAX_RETRIES})...`);
- showToast(`请求过于频繁，${retryDelay/1000}秒后重试...`, 'warning');
- await delay(retryDelay);
- retryCount++;
- continue;
- } else {
- throw new Error('HTTP 429: 请求过于频繁，请稍后再试');
- }
- }
-
  if (!response.ok) {
- throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+ let errorDetails = response.statusText;
+ try {
+ const errorJson = await response.json();
+ if (errorJson) {
+  // 直接使用 JSON stringify 显示完整错误对象，方便调试
+  errorDetails = JSON.stringify(errorJson, null, 2);
+ }
+ } catch (e) {
+ // 忽略 JSON 解析错误，使用 statusText
+ }
+ throw new Error(errorDetails);
  }
 
  const reader = response.body.getReader();
@@ -5038,28 +5021,14 @@ function buildMultimodalMessages(conversation) {
 
  // 更新对话记录
  updateConversationMessage('assistant', fullResponse);
- success = true;
 
  } catch (error) {
  if (error.name === 'AbortError') {
- isAborted = true;
  updateMessage(loadingId, '已取消生成');
- break;
  } else {
- // 如果还有重试机会并且是网络错误，继续重试
- if (retryCount < MAX_RETRIES && (error.message.includes('429') || error.message.includes('网络'))) {
- retryCount++;
- const retryDelay = RETRY_DELAYS[Math.min(retryCount - 1, RETRY_DELAYS.length - 1)];
- updateMessage(loadingId, `发生错误，${retryDelay/1000}秒后自动重试 (${retryCount}/${MAX_RETRIES})...`);
- await delay(retryDelay);
- continue;
- }
-
- updateMessage(loadingId, '抱歉，发生了错误: ' + error.message);
- showToast('发送失败: ' + error.message, 'error');
- break;
- }
- }
+ // 直接输出错误信息，不添加任何格式化
+ updateMessage(loadingId, error.message);
+ showToast('发送失败', 'error');
  }
  } finally {
  // 清除该对话的流式输出状态

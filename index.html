@@ -3772,7 +3772,7 @@ stroke: var(--primary-color);
  <svg class="model-icon" viewBox="0 0 24 24" width="20" height="20">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
- <span class="model-name" id="currentModelName">gpt-5-all</span>
+ <span class="model-name" id="currentModelName">gpt-5.1-all</span>
  <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
  <polyline points="6 9 12 15 18 9"></polyline>
  </svg>
@@ -3787,9 +3787,9 @@ stroke: var(--primary-color);
  <input type="text" class="model-search-input" id="modelSearchInput" placeholder="搜索模型..." oninput="filterPCModels()" />
  </div>
  <div class="model-picker-list" id="pcModelList">
- <div class="model-list-item selected" data-model="gpt-5-all" onclick="selectPCModel('gpt-5-all')">
+ <div class="model-list-item selected" data-model="gpt-5.1-all" onclick="selectPCModel('gpt-5.1-all')">
  <div class="model-item-content">
- <span class="model-item-name">gpt-5-all</span>
+ <span class="model-item-name">gpt-5.1-all</span>
  <span class="model-item-badge">推荐</span>
  </div>
  <span class="model-check">✓</span>
@@ -3800,7 +3800,7 @@ stroke: var(--primary-color);
  <!-- 移动端保留原始select -->
  <select class="model-select mobile-only" id="modelSelect" aria-label="选择AI模型" style="display: none;">
  <option value="">选择模型</option>
- <option value="gpt-5-all">gpt-5-all</option>
+ <option value="gpt-5.1-all">gpt-5.1-all</option>
  </select>
  </div>
  <div class="header-actions">
@@ -3910,8 +3910,8 @@ aria-label="搜索模型"
 </svg>
 </div>
 <div class="model-options" id="mobileModelOptions">
-<div class="model-option selected" data-model="gpt-5-all">
-<span>gpt-5-all</span>
+<div class="model-option selected" data-model="gpt-5.1-all">
+<span>gpt-5.1-all</span>
 <span class="model-check">✓</span>
 </div>
 </div>
@@ -4007,7 +4007,7 @@ aria-label="搜索模型"
 let conversations = loadAndValidateConversations();
 let currentConversationId = null;
 let settings = JSON.parse(localStorage.getItem('settings') || '{"temperature": 0.9, "maxTokens": 8196, "systemPrompt": "你是一个有用的AI助手。"}');
-let selectedModel = 'gpt-5-all';
+let selectedModel = 'gpt-5.1-all';
 let toastTimeout = null;
 let uploadedFiles = []; // 存储上传的文件信息
 
@@ -4362,11 +4362,11 @@ filterMobileModels();
  optionsContainer.innerHTML = '';
 
  // 添加默认模型
- const defaultOption = createMobileModelOption('gpt-5-all', selectedModel === 'gpt-5-all');
+ const defaultOption = createMobileModelOption('gpt-5.1-all', selectedModel === 'gpt-5.1-all');
  optionsContainer.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'gpt-5-all') {
+ if (model.id !== 'gpt-5.1-all') {
  const option = createMobileModelOption(model.id, selectedModel === model.id);
  optionsContainer.appendChild(option);
  }
@@ -4378,12 +4378,12 @@ filterMobileModels();
  pcModelList.innerHTML = '';
 
  // 添加默认模型（带推荐标签）
- const defaultItem = createPCModelItem('gpt-5-all', true, selectedModel === 'gpt-5-all');
+ const defaultItem = createPCModelItem('gpt-5.1-all', true, selectedModel === 'gpt-5.1-all');
  pcModelList.appendChild(defaultItem);
 
  // 添加其他模型
  models.forEach(model => {
- if (model.id !== 'gpt-5-all') {
+ if (model.id !== 'gpt-5.1-all') {
  const item = createPCModelItem(model.id, false, selectedModel === model.id);
  pcModelList.appendChild(item);
  }
@@ -4397,12 +4397,12 @@ filterMobileModels();
  modelSelect.innerHTML = '<option value="">选择模型</option>';
 
  const defaultOption = document.createElement('option');
- defaultOption.value = 'gpt-5-all';
- defaultOption.textContent = 'gpt-5-all';
+ defaultOption.value = 'gpt-5.1-all';
+ defaultOption.textContent = 'gpt-5.1-all';
  modelSelect.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'gpt-5-all') {
+ if (model.id !== 'gpt-5.1-all') {
  const option = document.createElement('option');
  option.value = model.id;
  option.textContent = model.id;

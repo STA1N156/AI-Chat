@@ -5601,7 +5601,20 @@ const bubbleElement = messageElement.querySelector('.message-bubble');
  }
  if (!messageElement) return;
 
- let text = messageElement.textContent.replace('📋', '').replace('复制', '').trim();
+ // 克隆节点以进行处理，不影响界面显示
+ const clone = messageElement.cloneNode(true);
+
+ // 移除思考过程
+ clone.querySelectorAll('.thinking-box').forEach(el => el.remove());
+ 
+ // 移除操作按钮容器（桌面端在气泡内）
+ clone.querySelectorAll('.message-actions').forEach(el => el.remove());
+
+ // 移除可能存在的代码块复制按钮文本
+ clone.querySelectorAll('.copy-code-btn').forEach(el => el.remove());
+ 
+ // 获取纯文本
+ let text = clone.textContent.trim();
 
  // 使用现代复制API
  if (navigator.clipboard && window.isSecureContext) {

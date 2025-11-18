@@ -577,6 +577,79 @@ overflow-y: auto;
 padding: 20px;
 scroll-behavior: smooth;
 -webkit-overflow-scrolling: touch;
+position: relative;
+}
+
+/* 导航按钮样式 */
+.nav-buttons {
+position: absolute;
+bottom: 120px;
+right: 24px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+z-index: 90;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.3s ease;
+}
+
+.nav-buttons.show {
+opacity: 1;
+pointer-events: auto;
+}
+
+.nav-btn {
+width: 36px;
+height: 36px;
+border-radius: 50%;
+background: var(--card-background);
+border: 1px solid var(--border-color);
+color: var(--text-primary);
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+box-shadow: var(--shadow);
+transition: all 0.2s;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
+
+.nav-btn:hover {
+background: var(--background-color);
+transform: scale(1.1);
+color: var(--primary-color);
+border-color: var(--primary-color);
+}
+
+.nav-btn:active {
+transform: scale(0.95);
+}
+
+.nav-btn svg {
+width: 18px;
+height: 18px;
+stroke-width: 2;
+stroke-linecap: round;
+stroke-linejoin: round;
+fill: none;
+stroke: currentColor;
+}
+
+/* 移动端导航按钮调整 */
+@media (max-width: 768px) {
+.nav-buttons {
+bottom: 90px;
+right: 12px;
+gap: 12px; /* 增加间距防误触 */
+}
+.nav-btn {
+width: 40px;
+height: 40px;
+background: rgba(255, 255, 255, 0.9);
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
 }
 
  /* 自定义滚动条样式 - 聊天容器 */
@@ -3971,6 +4044,32 @@ stroke: var(--primary-color);
  </div>
  </div>
 
+ <!-- 导航按钮 -->
+ <div class="nav-buttons" id="navButtons">
+ <button class="nav-btn" onclick="scrollToMessage('first')" title="回到第一个AI回复">
+ <svg class="icon-svg" viewBox="0 0 24 24">
+ <polyline points="17 11 12 6 7 11"></polyline>
+ <polyline points="17 18 12 13 7 18"></polyline>
+ </svg>
+ </button>
+ <button class="nav-btn" onclick="scrollToMessage('prev')" title="上一个AI回复">
+ <svg class="icon-svg" viewBox="0 0 24 24">
+ <polyline points="18 15 12 9 6 15"></polyline>
+ </svg>
+ </button>
+ <button class="nav-btn" onclick="scrollToMessage('next')" title="下一个AI回复">
+ <svg class="icon-svg" viewBox="0 0 24 24">
+ <polyline points="6 9 12 15 18 9"></polyline>
+ </svg>
+ </button>
+ <button class="nav-btn" onclick="scrollToMessage('last')" title="跳到最新AI回复">
+ <svg class="icon-svg" viewBox="0 0 24 24">
+ <polyline points="7 13 12 18 17 13"></polyline>
+ <polyline points="7 6 12 11 17 6"></polyline>
+ </svg>
+ </button>
+ </div>
+
  <!-- 输入区域 -->
  <div class="input-container">
  <div class="file-preview-container" id="filePreviewContainer">
@@ -7026,6 +7125,101 @@ return msgWithoutFiles;
  breaks: true,
  gfm: true
  });
+
+ // 导航按钮逻辑
+ const navButtons = document.getElementById('navButtons');
+ const chatContainer = document.getElementById('chatContainer');
+ 
+ // 监听滚动事件，控制导航按钮显示/隐藏
+ chatContainer.addEventListener('scroll', () => {
+ if (chatContainer.scrollTop > 100) {
+ navButtons.classList.add('show');
+ } else {
+ navButtons.classList.remove('show');
+ }
+ });
+ 
+ // 滚动到指定消息
+ function scrollToMessage(target) {
+ const messages = Array.from(chatContainer.querySelectorAll('.message.assistant'));
+ if (messages.length === 0) return;
+ 
+ // 获取所有AI回复气泡的顶部位置
+ const positions = messages.map(msg => msg.offsetTop - 20); // 20px padding
+ const currentScroll = chatContainer.scrollTop;
+ const containerHeight = chatContainer.clientHeight;
+ 
+ let targetIndex = -1;
+ 
+ // 找到当前可见的消息索引
+ let currentIndex = -1;
+ for (let i = 0; i < positions.length; i++) {
+ if (positions[i] > currentScroll + 10) { // +10 容差
+ currentIndex = i;
+ break;
+ }
+ }
+ // 如果滚动到底部，currentIndex可能是-1，设为最后一个
+ if (currentIndex === -1 && positions.length > 0) {
+ // 检查是否在最后一条消息附近
+ if (currentScroll + containerHeight >= chatContainer.scrollHeight - 50) {
+ currentIndex = messages.length;
+ } else {
+ // 否则认为是最后一条
+ currentIndex = messages.length - 1;
+ }
+ } else if (currentIndex > 0) {
+ // 如果找到的是下一个将要显示的消息，那么当前是在前一个消息
+ currentIndex = currentIndex - 1;
+ }
+ 
+ switch(target) {
+ case 'first':
+ targetIndex = 0;
+ break;
+ case 'prev':
+ // 找到当前视口上方最近的一个消息
+ for (let i = positions.length - 1; i >= 0; i--) {
+ if (positions[i] < currentScroll - 10) {
+ targetIndex = i;
+ break;
+ }
+ }
+ if (targetIndex === -1) targetIndex = 0;
+ break;
+ case 'next':
+ // 找到当前视口下方最近的一个消息
+ for (let i = 0; i < positions.length; i++) {
+ if (positions[i] > currentScroll + 10) {
+ targetIndex = i;
+ break;
+ }
+ }
+ if (targetIndex === -1) targetIndex = positions.length - 1;
+ break;
+ case 'last':
+ targetIndex = messages.length - 1;
+ break;
+ }
+ 
+ if (targetIndex >= 0 && targetIndex < messages.length) {
+ const targetMsg = messages[targetIndex];
+ // 平滑滚动到目标位置
+ chatContainer.scrollTo({
+ top: targetMsg.offsetTop - 20, // 留出顶部间距
+ behavior: 'smooth'
+ });
+ 
+ // 高亮闪烁一下目标消息
+ targetMsg.style.transition = 'background-color 0.3s';
+ const originalBg = targetMsg.style.backgroundColor;
+ targetMsg.querySelector('.message-bubble').style.boxShadow = '0 0 0 4px rgba(0, 122, 255, 0.3)';
+ 
+ setTimeout(() => {
+ targetMsg.querySelector('.message-bubble').style.boxShadow = '';
+ }, 1000);
+ }
+ }
  </script>
 </body>
  </html>

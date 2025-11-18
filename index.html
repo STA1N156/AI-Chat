@@ -1546,17 +1546,50 @@ backdrop-filter: blur(10px);
  opacity: 0.5;
  }
 
+/* 代码块容器 */
+.code-block-wrapper {
+margin: 12px 0;
+border-radius: 12px;
+overflow: hidden;
+border: 1px solid var(--border-color);
+background: #282c34;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 代码块头部 */
+.code-block-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 8px 16px;
+background: rgba(255, 255, 255, 0.05);
+border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+color: #abb2bf;
+font-size: 12px;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+user-select: none;
+}
+
+.code-language {
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+opacity: 0.8;
+}
+
 /* 代码高亮 */
 .hljs {
-background: #282c34 !important;
-border-radius: 8px;
-padding: 16px;
-margin: 8px 0;
+background: transparent !important;
+padding: 16px !important;
+margin: 0 !important;
+border-radius: 0 !important;
 font-size: 13px;
+font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+line-height: 1.5;
 overflow-x: auto;
 overflow-y: visible;
 max-width: 100%;
-min-width: 0; /* 防止撑开父容器 */
+min-width: 0;
 }
 
 pre {
@@ -1564,7 +1597,8 @@ position: relative;
 overflow-x: auto;
 overflow-y: visible;
 max-width: 100%;
-min-width: 0; /* 防止撑开父容器 */
+min-width: 0;
+margin: 0;
 }
 
 /* 确保消息气泡内的内容不产生纵向滚动条 */
@@ -1600,33 +1634,32 @@ overflow-wrap: normal;
 word-wrap: normal;
 }
 
- .copy-code-btn {
- position: absolute;
- top: 8px;
- right: 8px;
- background: rgba(255, 255, 255, 0.1);
- border: none;
- color: #abb2bf;
- padding: 6px 10px;
- border-radius: 6px;
- cursor: pointer;
- font-size: 12px;
- opacity: 0;
- transition: all .2s;
- display: flex;
- align-items: center;
- justify-content: center;
- gap: 4px;
- }
+/* 代码块复制按钮 */
+.code-block-header .copy-code-btn {
+background: transparent;
+border: none;
+color: #abb2bf;
+cursor: pointer;
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 4px 8px;
+border-radius: 4px;
+font-size: 12px;
+opacity: 0.7;
+transition: all 0.2s ease;
+}
 
- .copy-code-btn:hover {
- background: rgba(255, 255, 255, 0.2);
- transform: scale(1.05);
- }
+.code-block-header .copy-code-btn:hover {
+opacity: 1;
+background: rgba(255, 255, 255, 0.1);
+color: white;
+}
 
- pre:hover .copy-code-btn {
- opacity: 1;
- }
+.code-block-header .copy-code-btn svg {
+width: 14px;
+height: 14px;
+}
 
  /* ============ PC端入场动画关键帧 ============ */
  @keyframes slideInFromLeft {
@@ -3582,7 +3615,7 @@ stroke: var(--primary-color);
 
  /* 移动端消息气泡内容优化 */
  .message-bubble pre {
- margin: 8px 0;
+ margin: 0;
  max-width: 100%;
  }
 
@@ -3595,20 +3628,19 @@ stroke: var(--primary-color);
  white-space: pre;
  }
 
- .copy-code-btn {
- opacity: 1;
- padding: 8px 12px;
- font-size: 14px;
+ /* 移动端代码块样式调整 */
+ .code-block-wrapper {
+ margin: 8px -4px; /* 微调移动端边距 */
  border-radius: 8px;
- background: rgba(255, 255, 255, 0.2);
- color: #fff;
- cursor: pointer;
- -webkit-tap-highlight-color: transparent;
  }
 
- .copy-code-btn:active {
- background: rgba(255, 255, 255, 0.3);
- transform: scale(0.95);
+ .code-block-header {
+ padding: 8px 12px;
+ }
+
+ .hljs {
+ padding: 12px !important;
+ font-size: 12px;
  }
  }
 
@@ -5796,18 +5828,46 @@ function getProgressInfo(text) {
  tempDiv.innerHTML = html;
 
  tempDiv.querySelectorAll('pre code').forEach((block) => {
+ // 获取语言标识
+ const langClass = Array.from(block.classList).find(cls => cls.startsWith('language-'));
+ const lang = langClass ? langClass.replace('language-', '') : 'text';
+
  // 进行语法高亮
  hljs.highlightElement(block);
 
- // 设置父元素样式
- block.parentElement.style.position = 'relative';
-
- // 添加复制按钮的HTML（不绑定事件）
+ // 获取 pre 元素（代码块父容器）
+ const pre = block.parentElement;
+ 
+ // 创建代码块包装容器
+ const wrapper = document.createElement('div');
+ wrapper.className = 'code-block-wrapper';
+ 
+ // 创建头部 UI
+ const header = document.createElement('div');
+ header.className = 'code-block-header';
+ 
+ // 语言标识
+ const langSpan = document.createElement('span');
+ langSpan.className = 'code-language';
+ langSpan.textContent = lang;
+ 
+ // 复制按钮
  const copyBtn = document.createElement('button');
  copyBtn.className = 'copy-code-btn';
  copyBtn.setAttribute('data-code-content', block.textContent);
- copyBtn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
- block.parentElement.appendChild(copyBtn);
+ copyBtn.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+ <span>复制</span>
+ `;
+ 
+ // 组装头部
+ header.appendChild(langSpan);
+ header.appendChild(copyBtn);
+ 
+ // 替换原有结构： pre -> wrapper(header + pre)
+ pre.parentNode.insertBefore(wrapper, pre);
+ wrapper.appendChild(header);
+ wrapper.appendChild(pre);
  });
 
  return tempDiv.innerHTML;
@@ -5825,18 +5885,38 @@ function getProgressInfo(text) {
  e.preventDefault();
  e.stopPropagation();
 
- // 获取代码内容
- const codeBlock = this.parentElement.querySelector('code');
- const codeText = codeBlock ? codeBlock.textContent : this.getAttribute('data-code-content');
+ // 获取代码内容 (从按钮属性或关联的 pre code 获取)
+ let codeText = this.getAttribute('data-code-content');
+ 
+ if (!codeText) {
+ // 尝试从 DOM 结构查找
+ const wrapper = this.closest('.code-block-wrapper');
+ if (wrapper) {
+ const codeBlock = wrapper.querySelector('code');
+ if (codeBlock) {
+ codeText = codeBlock.textContent;
+ }
+ }
+ }
+ 
+ // 如果还是没有，尝试旧的方式
+ if (!codeText) {
+ const pre = this.closest('pre'); // 旧结构兼容
+ if (pre) {
+ codeText = pre.querySelector('code')?.textContent;
+ }
+ }
+
+ if (!codeText) return; // 无法获取内容，直接返回
 
  if (navigator.clipboard && window.isSecureContext) {
  navigator.clipboard.writeText(codeText).then(() => {
  const originalHTML = this.innerHTML;
- this.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+ this.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg><span>已复制</span>`;
  showToast('代码已复制', 'success');
  setTimeout(() => {
  this.innerHTML = originalHTML;
- }, 1000);
+ }, 2000);
  }).catch(() => {
  fallbackCopy(codeText, this);
  });

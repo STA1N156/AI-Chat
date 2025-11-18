@@ -2428,15 +2428,6 @@ animation: slideDownSmooth 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
  color: var(--text-primary);
  }
 
- .model-item-badge {
- padding: 2px 8px;
- background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
- color: white;
- font-size: 11px;
- font-weight: 600;
- border-radius: 6px;
- text-transform: uppercase;
- }
 
  .model-check {
  color: var(--primary-color);
@@ -3894,7 +3885,6 @@ stroke: var(--primary-color);
  <div class="model-list-item selected" data-model="claude-sonnet-4-5-20250929-thinking" onclick="selectPCModel('claude-sonnet-4-5-20250929-thinking')">
  <div class="model-item-content">
  <span class="model-item-name">claude-sonnet-4-5-20250929-thinking</span>
- <span class="model-item-badge">推荐</span>
  </div>
  <span class="model-check">✓</span>
  </div>
@@ -4413,12 +4403,6 @@ filterMobileModels();
  name.textContent = modelId;
  content.appendChild(name);
 
- if (isDefault) {
- const badge = document.createElement('span');
- badge.className = 'model-item-badge';
- badge.textContent = '推荐';
- content.appendChild(badge);
- }
 
  item.appendChild(content);
 

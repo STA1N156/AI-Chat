@@ -2428,16 +2428,6 @@ animation: slideDownSmooth 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
  color: var(--text-primary);
  }
 
- .model-item-badge {
- padding: 2px 8px;
- background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
- color: white;
- font-size: 11px;
- font-weight: 600;
- border-radius: 6px;
- text-transform: uppercase;
- }
-
  .model-check {
  color: var(--primary-color);
  font-size: 16px;
@@ -3894,7 +3884,6 @@ stroke: var(--primary-color);
  <div class="model-list-item selected" data-model="claude-sonnet-4-5-20250929-thinking" onclick="selectPCModel('claude-sonnet-4-5-20250929-thinking')">
  <div class="model-item-content">
  <span class="model-item-name">claude-sonnet-4-5-20250929-thinking</span>
- <span class="model-item-badge">推荐</span>
  </div>
  <span class="model-check">✓</span>
  </div>
@@ -4121,8 +4110,6 @@ let streamingStates = {}; // { conversationId: { messageId, controller, isGenera
  // 速率限制相关变量
  let lastRequestTime = 0;
  const MIN_REQUEST_INTERVAL = 2000; // 最小请求间隔（毫秒）
- const MAX_RETRIES = 3; // 最大重试次数
- const RETRY_DELAYS = [3000, 5000, 10000]; // 重试延迟（毫秒）：3秒, 5秒, 10秒
 
  // 延迟函数
  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -4399,7 +4386,7 @@ filterMobileModels();
  }
 
  // 创建PC端模型列表项
- function createPCModelItem(modelId, isDefault = false, isSelected = false) {
+ function createPCModelItem(modelId, isSelected = false) {
  const item = document.createElement('div');
  item.className = `model-list-item ${isSelected ? 'selected' : ''}`;
  item.dataset.model = modelId;
@@ -4412,13 +4399,6 @@ filterMobileModels();
  name.className = 'model-item-name';
  name.textContent = modelId;
  content.appendChild(name);
-
- if (isDefault) {
- const badge = document.createElement('span');
- badge.className = 'model-item-badge';
- badge.textContent = '推荐';
- content.appendChild(badge);
- }
 
  item.appendChild(content);
 
@@ -4481,14 +4461,14 @@ filterMobileModels();
  if (pcModelList) {
  pcModelList.innerHTML = '';
 
- // 添加默认模型（带推荐标签）
- const defaultItem = createPCModelItem('claude-sonnet-4-5-20250929-thinking', true, selectedModel === 'claude-sonnet-4-5-20250929-thinking');
+ // 添加默认模型
+ const defaultItem = createPCModelItem('claude-sonnet-4-5-20250929-thinking', selectedModel === 'claude-sonnet-4-5-20250929-thinking');
  pcModelList.appendChild(defaultItem);
 
  // 添加其他模型
  models.forEach(model => {
  if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
- const item = createPCModelItem(model.id, false, selectedModel === model.id);
+ const item = createPCModelItem(model.id, selectedModel === model.id);
  pcModelList.appendChild(item);
  }
  });
@@ -4922,8 +4902,6 @@ function buildMultimodalMessages(conversation) {
 
  // 请求 AI 响应
  async function requestAIResponse(conversationId, loadingId, currentModel) {
- let retryCount = 0;
- let success = false;
  let isAborted = false;
 
  // 保存当前对话的流式输出状态（支持多对话并发）
@@ -4936,8 +4914,6 @@ function buildMultimodalMessages(conversation) {
  // 更新当前对话的发送按钮状态
  updateSendButton();
 
- try {
- while (retryCount <= MAX_RETRIES && !success) {
  try {
  // 速率限制检查
  await checkRateLimit();
@@ -4953,11 +4929,6 @@ function buildMultimodalMessages(conversation) {
  // 获取当前对话历史，构建多模态消息
  const conversation = conversations.find(conv => conv.id === conversationId);
  const messages = buildMultimodalMessages(conversation);
-
- // 如果是重试，显示提示
- if (retryCount > 0) {
- updateMessage(loadingId, `正在重试 (${retryCount}/${MAX_RETRIES})...`);
- }
 
  const response = await fetch(`${API_BASE}/v1/chat/completions`, {
  method: 'POST',
@@ -4975,22 +4946,24 @@ function buildMultimodalMessages(conversation) {
  signal: controller.signal
  });
 
- // 处理 429 错误
- if (response.status === 429) {
- if (retryCount < MAX_RETRIES) {
- const retryDelay = RETRY_DELAYS[retryCount];
- updateMessage(loadingId, `请求过于频繁，${retryDelay/1000}秒后自动重试 (${retryCount + 1}/${MAX_RETRIES})...`);
- showToast(`请求过于频繁，${retryDelay/1000}秒后重试...`, 'warning');
- await delay(retryDelay);
- retryCount++;
- continue;
- } else {
- throw new Error('HTTP 429: 请求过于频繁，请稍后再试');
- }
- }
-
  if (!response.ok) {
- throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+ let errorDetails = `HTTP ${response.status}: ${response.statusText}`;
+ try {
+ const errorData = await response.json();
+ if (errorData && errorData.error && errorData.error.message) {
+ errorDetails += `\n详情: ${errorData.error.message}`;
+ } else {
+ // 尝试转为字符串
+ errorDetails += `\nResponse: ${JSON.stringify(errorData)}`;
+ }
+ } catch (e) {
+ // 忽略解析错误，尝试获取文本
+ try {
+ const text = await response.text();
+ if (text) errorDetails += `\nResponse: ${text.substring(0, 200)}`;
+ } catch (e2) {}
+ }
+ throw new Error(errorDetails);
  }
 
  const reader = response.body.getReader();
@@ -5030,28 +5003,17 @@ function buildMultimodalMessages(conversation) {
 
  // 更新对话记录
  updateConversationMessage('assistant', fullResponse);
- success = true;
 
  } catch (error) {
  if (error.name === 'AbortError') {
  isAborted = true;
  updateMessage(loadingId, '已取消生成');
- break;
  } else {
- // 如果还有重试机会并且是网络错误，继续重试
- if (retryCount < MAX_RETRIES && (error.message.includes('429') || error.message.includes('网络'))) {
- retryCount++;
- const retryDelay = RETRY_DELAYS[Math.min(retryCount - 1, RETRY_DELAYS.length - 1)];
- updateMessage(loadingId, `发生错误，${retryDelay/1000}秒后自动重试 (${retryCount}/${MAX_RETRIES})...`);
- await delay(retryDelay);
- continue;
- }
-
- updateMessage(loadingId, '抱歉，发生了错误: ' + error.message);
- showToast('发送失败: ' + error.message, 'error');
- break;
- }
- }
+ console.error('AI请求错误:', error);
+ // 显示详细错误信息
+ const errorMessage = `**请求失败**\n\n${error.message}\n\n请检查网络连接或API配置。`;
+ updateMessage(loadingId, errorMessage);
+ showToast('请求失败，请查看详细信息', 'error');
  }
  } finally {
  // 清除该对话的流式输出状态

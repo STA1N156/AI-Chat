@@ -692,6 +692,8 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  opacity: 0;
  transition: opacity 0.2s;
  z-index: 10;
+ display: flex;
+ gap: 4px;
  }
 
  .message-bubble:hover .message-actions {
@@ -703,7 +705,7 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  display: none;
  }
 
- .copy-btn {
+ .copy-btn, .regenerate-btn {
  background: rgba(0, 0, 0, 0.1);
  border: none;
  color: inherit;
@@ -717,7 +719,7 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  justify-content: center;
  }
 
- .copy-btn:hover {
+ .copy-btn:hover, .regenerate-btn:hover {
  background: rgba(0, 0, 0, 0.2);
  transform: scale(1.1);
  }
@@ -3002,7 +3004,8 @@ flex-direction: column;
  }
 
  /* 移动端气泡内复制按钮样式 */
- .message-bubble .copy-btn {
+ .message-bubble .copy-btn,
+ .message-bubble .regenerate-btn {
  background: rgba(0, 0, 0, 0.08);
  color: inherit;
  padding: 4px 8px;
@@ -3023,16 +3026,18 @@ flex-direction: column;
  -webkit-transform: translateZ(0);
  }
 
- .message-bubble .copy-btn:active {
+ .message-bubble .copy-btn:active,
+ .message-bubble .regenerate-btn:active {
  transform: scale(0.95) translateZ(0);
  -webkit-transform: scale(0.95) translateZ(0);
  background: rgba(0, 0, 0, 0.15);
  }
 
- .message-bubble .copy-btn svg {
+ .message-bubble .copy-btn svg,
+ .message-bubble .regenerate-btn svg {
  width: 11px;
  height: 11px;
-}
+ }
 
 .input-container {
  background: transparent;
@@ -3062,7 +3067,7 @@ flex-direction: column;
 
  .input-field {
  font-size: 16px;
- padding: 16px 20px;
+ padding: 14px 20px;
  min-height: 52px;
  border-radius: 26px;
  border: 2px solid var(--border-color);
@@ -3260,7 +3265,7 @@ flex-direction: column;
  border-radius: 16px;
  text-align: center;
  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
- z-index: 9999;
+ z-index: 1900;
  background: var(--card-background);
  border: 1px solid rgba(255, 255, 255, 0.2);
  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
@@ -3739,6 +3744,7 @@ stroke: var(--primary-color);
  }
 
  .copy-btn .icon-svg,
+ .regenerate-btn .icon-svg,
  .copy-code-btn .icon-svg {
  width: 14px;
  height: 14px;
@@ -4914,90 +4920,38 @@ function buildMultimodalMessages(conversation) {
  return messages;
  }
 
- // 发送消息（带重试机制）
- async function sendMessage() {
- const input = document.getElementById('messageInput');
- let message = input.value.trim();
- const currentModel = getCurrentModel();
+ // 请求 AI 响应
+ async function requestAIResponse(conversationId, loadingId, currentModel) {
+ let retryCount = 0;
+ let success = false;
+ let isAborted = false;
 
- // 如果有文件或消息，才能发送
- if (!message && uploadedFiles.length === 0) return;
+ // 保存当前对话的流式输出状态（支持多对话并发）
+ streamingStates[conversationId] = {
+ messageId: loadingId,
+ controller: null,
+ isGenerating: true
+ };
 
-if (!currentModel) {
-showToast('请先选择模型', 'warning');
-return;
-}
-
-// 检查当前对话是否正在生成（支持多对话并发）
-if (currentConversationId && streamingStates[currentConversationId]?.isGenerating) {
-showToast('当前对话正在生成中，请稍候', 'warning');
-return;
-}
-
- // 如果没有当前对话，创建新对话
- if (!currentConversationId) {
- createNewChat();
- }
-
- // 保存当前上传的文件信息（用于显示和发送）
- const currentFiles = [...uploadedFiles];
-
- // 添加用户消息（显示文件图标而不是完整内容）
- // 如果只有文件没有文字，则不显示额外文字
- const displayMessage = (message || (currentFiles.length > 0 ? '请分析这些图片/文件' : ''));
- addMessage('user', displayMessage, currentFiles);
-
- // 手动更新对话记录（保存文件信息以便后续构建多模态消息）
- if (currentConversationId) {
- updateConversationMessage('user', displayMessage, currentFiles);
- }
-
- input.value = '';
- autoResize(input);
-
- // 清空文件列表
- uploadedFiles = [];
- updateFilePreview();
-
-// 显示加载状态
-const loadingId = addMessage('assistant', '');
-showTypingIndicator(loadingId);
-
-// 立即将空的assistant消息保存到对话记录，以便切换时能恢复
-updateConversationMessage('assistant', '');
-
-// 重试逻辑
-let retryCount = 0;
-let success = false;
-let isAborted = false;
-
-// 保存当前对话的流式输出状态（支持多对话并发）
-streamingStates[currentConversationId] = {
-messageId: loadingId,
-controller: null,
-isGenerating: true
-};
-
-// 更新当前对话的发送按钮状态
-updateSendButton();
+ // 更新当前对话的发送按钮状态
+ updateSendButton();
 
  try {
  while (retryCount <= MAX_RETRIES && !success) {
  try {
+ // 速率限制检查
+ await checkRateLimit();
 
-// 速率限制检查
-await checkRateLimit();
+ // 为当前对话创建独立的 AbortController
+ const controller = new AbortController();
 
-// 为当前对话创建独立的 AbortController
-const controller = new AbortController();
-
-// 更新流式输出状态的 controller
-if (streamingStates[currentConversationId]) {
-streamingStates[currentConversationId].controller = controller;
-}
+ // 更新流式输出状态的 controller
+ if (streamingStates[conversationId]) {
+ streamingStates[conversationId].controller = controller;
+ }
 
  // 获取当前对话历史，构建多模态消息
- const conversation = conversations.find(conv => conv.id === currentConversationId);
+ const conversation = conversations.find(conv => conv.id === conversationId);
  const messages = buildMultimodalMessages(conversation);
 
  // 如果是重试，显示提示
@@ -5011,15 +4965,15 @@ streamingStates[currentConversationId].controller = controller;
  'Authorization': `Bearer ${API_KEY}`,
  'Content-Type': 'application/json'
  },
-body: JSON.stringify({
-model: currentModel,
-messages: messages,
-temperature: parseFloat(settings.temperature),
-max_tokens: parseInt(settings.maxTokens),
-stream: true
-}),
-signal: controller.signal
-});
+ body: JSON.stringify({
+ model: currentModel,
+ messages: messages,
+ temperature: parseFloat(settings.temperature),
+ max_tokens: parseInt(settings.maxTokens),
+ stream: true
+ }),
+ signal: controller.signal
+ });
 
  // 处理 429 错误
  if (response.status === 429) {
@@ -5084,7 +5038,6 @@ signal: controller.signal
  updateMessage(loadingId, '已取消生成');
  break;
  } else {
-
  // 如果还有重试机会并且是网络错误，继续重试
  if (retryCount < MAX_RETRIES && (error.message.includes('429') || error.message.includes('网络'))) {
  retryCount++;
@@ -5100,23 +5053,116 @@ signal: controller.signal
  }
  }
  }
-} finally {
-// 清除该对话的流式输出状态
-if (streamingStates[currentConversationId]) {
-delete streamingStates[currentConversationId];
-}
+ } finally {
+ // 清除该对话的流式输出状态
+ if (streamingStates[conversationId]) {
+ delete streamingStates[conversationId];
+ }
 
-// 自动折叠思考过程
-const messageElement = document.getElementById(loadingId);
-if (messageElement) {
-    const thinkingDetails = messageElement.querySelectorAll('details.thinking-box');
-    thinkingDetails.forEach(details => details.removeAttribute('open'));
-}
+ // 更新当前对话的按钮状态
+ updateSendButton();
+ hideTypingIndicator(loadingId);
+ }
+ }
 
-// 更新当前对话的按钮状态
-updateSendButton();
-hideTypingIndicator(loadingId);
-}
+ // 重新生成
+ async function handleRegenerate(messageId) {
+ const currentModel = getCurrentModel();
+ if (!currentModel) {
+ showToast('请先选择模型', 'warning');
+ return;
+ }
+
+ // 检查当前对话是否正在生成（支持多对话并发）
+ if (currentConversationId && streamingStates[currentConversationId]?.isGenerating) {
+ showToast('当前对话正在生成中，请稍候', 'warning');
+ return;
+ }
+
+ const messageElement = document.getElementById(messageId);
+ if (!messageElement) return;
+
+ // 找到该消息在对话历史中的索引
+ const conversation = conversations.find(conv => conv.id === currentConversationId);
+ if (!conversation) return;
+
+ // 从界面上找到这是第几条AI消息，反推在数组中的位置
+ // 注意：这可能不准确，如果中间有删除的消息。更准确的是通过内容匹配或给每条消息加ID
+ // 简单起见，我们假设最后一条是AI消息，我们要重新生成它
+ // 或者，如果用户点击的是中间的某条消息，我们需要删除它之后的所有消息
+
+ // 简单实现：只允许重新生成最后一条AI回复
+ const lastMessage = conversation.messages[conversation.messages.length - 1];
+ if (lastMessage.role === 'assistant') {
+ // 清空最后一条消息的内容
+ lastMessage.content = '';
+ saveConversations();
+ 
+ // 清空UI上的消息内容
+ updateMessage(messageId, '');
+ showTypingIndicator(messageId);
+ 
+ // 重新请求
+ await requestAIResponse(currentConversationId, messageId, currentModel);
+ } else {
+ showToast('只能重新生成最后一条AI回复', 'warning');
+ }
+ }
+
+ // 发送消息（带重试机制）
+ async function sendMessage() {
+ const input = document.getElementById('messageInput');
+ let message = input.value.trim();
+ const currentModel = getCurrentModel();
+
+ // 如果有文件或消息，才能发送
+ if (!message && uploadedFiles.length === 0) return;
+
+ if (!currentModel) {
+ showToast('请先选择模型', 'warning');
+ return;
+ }
+
+ // 检查当前对话是否正在生成（支持多对话并发）
+ if (currentConversationId && streamingStates[currentConversationId]?.isGenerating) {
+ showToast('当前对话正在生成中，请稍候', 'warning');
+ return;
+ }
+
+ // 如果没有当前对话，创建新对话
+ if (!currentConversationId) {
+ createNewChat();
+ }
+
+ // 保存当前上传的文件信息（用于显示和发送）
+ const currentFiles = [...uploadedFiles];
+
+ // 添加用户消息（显示文件图标而不是完整内容）
+ // 如果只有文件没有文字，则不显示额外文字
+ const displayMessage = (message || (currentFiles.length > 0 ? '请分析这些图片/文件' : ''));
+ addMessage('user', displayMessage, currentFiles);
+
+ // 手动更新对话记录（保存文件信息以便后续构建多模态消息）
+ if (currentConversationId) {
+ updateConversationMessage('user', displayMessage, currentFiles);
+ }
+
+ input.value = '';
+ autoResize(input);
+
+ // 清空文件列表
+ uploadedFiles = [];
+ updateFilePreview();
+
+ // 显示加载状态
+ const loadingId = addMessage('assistant', '');
+ showTypingIndicator(loadingId);
+
+ // 立即将空的assistant消息保存到对话记录，以便切换时能恢复
+ updateConversationMessage('assistant', '');
+
+ // 请求AI响应
+ await requestAIResponse(currentConversationId, loadingId, currentModel);
  }
 
 // 停止生成（停止当前对话的生成）
@@ -5221,14 +5267,28 @@ showToast('已取消生成', 'warning');
  }
  }
 
- // 添加复制按钮（仅对AI消息且非生成状态）
+ // 添加复制按钮和重新生成按钮（仅对AI消息且非生成状态）
  if (role === 'assistant' && !isGeneratingProgress) {
- // 气泡内的复制按钮（桌面端）
+ // 气泡内的操作按钮（桌面端）
  const actionsElement = document.createElement('div');
  actionsElement.className = 'message-actions';
+ 
+ // 重新生成按钮
+ const regenerateBtnInside = document.createElement('button');
+ regenerateBtnInside.className = 'regenerate-btn';
+ regenerateBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`;
+ regenerateBtnInside.title = '重新生成';
+ regenerateBtnInside.onclick = (e) => {
+ e.stopPropagation();
+ handleRegenerate(messageId);
+ };
+ actionsElement.appendChild(regenerateBtnInside);
+
+ // 复制按钮
  const copyBtnInside = document.createElement('button');
  copyBtnInside.className = 'copy-btn';
  copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+ copyBtnInside.title = '复制内容';
  copyBtnInside.setAttribute('data-message-id', messageId);
  copyBtnInside.addEventListener('click', function(e) {
  e.preventDefault();
@@ -5243,9 +5303,24 @@ showToast('已取消生成', 'warning');
  actionsElement.appendChild(copyBtnInside);
  bubbleElement.appendChild(actionsElement);
 
- // 气泡外的复制按钮（移动端）
+ // 气泡外的操作按钮（移动端）
  const actionsWrapper = document.createElement('div');
  actionsWrapper.className = 'message-actions-wrapper';
+ 
+ // 移动端重新生成按钮
+ const regenerateBtnOutside = document.createElement('button');
+ regenerateBtnOutside.className = 'copy-btn'; // 复用样式
+ regenerateBtnOutside.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+ <span>重试</span>
+ `;
+ regenerateBtnOutside.onclick = (e) => {
+ e.stopPropagation();
+ handleRegenerate(messageId);
+ };
+ actionsWrapper.appendChild(regenerateBtnOutside);
+
+ // 移动端复制按钮
  const copyBtnOutside = document.createElement('button');
  copyBtnOutside.className = 'copy-btn';
  copyBtnOutside.innerHTML = `
@@ -5388,12 +5463,12 @@ const bubbleElement = messageElement.querySelector('.message-bubble');
  bubbleElement.innerHTML = parseMarkdown(content, true);
  }
 
- // 如果是生成状态，添加特殊样式类，不添加复制按钮
+ // 如果是生成状态，添加特殊样式类，不添加操作按钮
  if (isGenerating) {
  bubbleElement.classList.add('generating-bubble');
  messageElement.classList.add('generating');
 
- // 移除已存在的复制按钮
+ // 移除已存在的操作按钮
  const existingActions = bubbleElement.querySelector('.message-actions');
  if (existingActions) {
  existingActions.remove();
@@ -5411,11 +5486,27 @@ const bubbleElement = messageElement.querySelector('.message-bubble');
  bindCodeCopyButtons(bubbleElement);
 
  // 重新创建气泡内的操作按钮（桌面端）
- const actionsElement = document.createElement('div');
+ let actionsElement = bubbleElement.querySelector('.message-actions');
+ if (!actionsElement) {
+ actionsElement = document.createElement('div');
  actionsElement.className = 'message-actions';
+ 
+ // 重新生成按钮
+ const regenerateBtnInside = document.createElement('button');
+ regenerateBtnInside.className = 'regenerate-btn';
+ regenerateBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`;
+ regenerateBtnInside.title = '重新生成';
+ regenerateBtnInside.onclick = (e) => {
+ e.stopPropagation();
+ handleRegenerate(messageId);
+ };
+ actionsElement.appendChild(regenerateBtnInside);
+
+ // 复制按钮
  const copyBtnInside = document.createElement('button');
  copyBtnInside.className = 'copy-btn';
  copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+ copyBtnInside.title = '复制内容';
  copyBtnInside.setAttribute('data-message-id', messageId);
  copyBtnInside.addEventListener('click', function(e) {
  e.preventDefault();
@@ -5429,12 +5520,28 @@ const bubbleElement = messageElement.querySelector('.message-bubble');
  });
  actionsElement.appendChild(copyBtnInside);
  bubbleElement.appendChild(actionsElement);
+ }
 
- // 更新外部的复制按钮（移动端）
+ // 更新外部的操作按钮（移动端）
  let actionsWrapper = messageElement.querySelector('.message-actions-wrapper');
  if (!actionsWrapper) {
  actionsWrapper = document.createElement('div');
  actionsWrapper.className = 'message-actions-wrapper';
+ 
+ // 移动端重新生成按钮
+ const regenerateBtnOutside = document.createElement('button');
+ regenerateBtnOutside.className = 'copy-btn'; // 复用样式
+ regenerateBtnOutside.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+ <span>重试</span>
+ `;
+ regenerateBtnOutside.onclick = (e) => {
+ e.stopPropagation();
+ handleRegenerate(messageId);
+ };
+ actionsWrapper.appendChild(regenerateBtnOutside);
+
+ // 移动端复制按钮
  const copyBtnOutside = document.createElement('button');
  copyBtnOutside.className = 'copy-btn';
  copyBtnOutside.innerHTML = `
@@ -5769,7 +5876,8 @@ function getProgressInfo(text) {
  // 自动调整输入框高度
  function autoResize(textarea) {
  textarea.style.height = 'auto';
- textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+ // 加上4px边框高度(上下各2px)，防止因为box-sizing: border-box导致的高度塌缩
+ textarea.style.height = Math.min(textarea.scrollHeight + 4, 120) + 'px';
  }
 
  // 处理键盘事件
@@ -6050,12 +6158,26 @@ function addMessageToUI(role, content, files = []) {
  const isGeneratingUI = role === 'assistant' && convertProgressToHTML(content) !== null;
 
  if (role === 'assistant' && !isGeneratingUI) {
- // 气泡内的复制按钮（桌面端）
+ // 气泡内的操作按钮（桌面端）
  const actionsElement = document.createElement('div');
  actionsElement.className = 'message-actions';
+ 
+ // 重新生成按钮
+ const regenerateBtnInside = document.createElement('button');
+ regenerateBtnInside.className = 'regenerate-btn';
+ regenerateBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`;
+ regenerateBtnInside.title = '重新生成';
+ regenerateBtnInside.onclick = (e) => {
+ e.stopPropagation();
+ handleRegenerate(messageId);
+ };
+ actionsElement.appendChild(regenerateBtnInside);
+
+ // 复制按钮
  const copyBtnInside = document.createElement('button');
  copyBtnInside.className = 'copy-btn';
  copyBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+ copyBtnInside.title = '复制内容';
  copyBtnInside.setAttribute('data-message-id', messageId);
  copyBtnInside.addEventListener('click', function(e) {
  e.preventDefault();
@@ -6070,9 +6192,24 @@ function addMessageToUI(role, content, files = []) {
  actionsElement.appendChild(copyBtnInside);
  bubbleElement.appendChild(actionsElement);
 
- // 气泡外的复制按钮（移动端）
+ // 气泡外的操作按钮（移动端）
  const actionsWrapper = document.createElement('div');
  actionsWrapper.className = 'message-actions-wrapper';
+ 
+ // 移动端重新生成按钮
+ const regenerateBtnOutside = document.createElement('button');
+ regenerateBtnOutside.className = 'copy-btn'; // 复用样式
+ regenerateBtnOutside.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+ <span>重试</span>
+ `;
+ regenerateBtnOutside.onclick = (e) => {
+ e.stopPropagation();
+ handleRegenerate(messageId);
+ };
+ actionsWrapper.appendChild(regenerateBtnOutside);
+
+ // 移动端复制按钮
  const copyBtnOutside = document.createElement('button');
  copyBtnOutside.className = 'copy-btn';
  copyBtnOutside.innerHTML = `

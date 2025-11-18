@@ -20,22 +20,22 @@ box-sizing: border-box;
 :root {
  --primary-color: #007AFF;
  --secondary-color: #5856D6;
- --background-color: #F2F2F7;
- --card-background: #FFF;
- --text-primary: #000;
- --text-secondary: #8E8E93;
- --border-color: #C6C6C8;
- --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
- --shadow-hover: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
- --radius: 12px;
+ --background-color: #F5F5F7;
+ --card-background: #FFFFFF;
+ --text-primary: #1D1D1F;
+ --text-secondary: #86868B;
+ --border-color: #E5E5EA;
+ --shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+ --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.08);
+ --radius: 16px;
  --sidebar-width: 320px;
  --success-color: #34C759;
  --warning-color: #FF9500;
  --error-color: #FF3B30;
- --danger-color: #FF3B30;
- --sidebar-bg: rgba(248, 248, 248, 0.95);
- --conversation-bg: rgba(255, 255, 255, 0.8);
- --conversation-hover: rgba(0, 122, 255, 0.08);
+ --danger-color: #FF453A;
+ --sidebar-bg: rgba(252, 252, 254, 0.85);
+ --conversation-bg: rgba(255, 255, 255, 0.6);
+ --conversation-hover: rgba(0, 0, 0, 0.04);
  --conversation-active: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 }
 
@@ -373,9 +373,13 @@ transform: rotate(360deg);
  color: white;
  }
 
- .delete-btn {
- background: rgba(255, 59, 48, 0.1);
- color: var(--danger-color);
+ .conversation-actions {
+ display: flex;
+ align-items: center;
+ gap: 4px;
+ }
+
+ .rename-btn, .delete-btn {
  border: none;
  width: 28px;
  height: 28px;
@@ -390,12 +394,29 @@ transform: rotate(360deg);
  flex-shrink: 0;
  }
 
+ .rename-btn {
+ background: rgba(0, 122, 255, 0.1);
+ color: var(--primary-color);
+ }
+
+ .delete-btn {
+ background: rgba(255, 59, 48, 0.1);
+ color: var(--danger-color);
+ }
+
+ .rename-btn:hover {
+ background: var(--primary-color);
+ color: white;
+ transform: scale(1.1);
+ }
+
  .delete-btn:hover {
  background: var(--danger-color);
  color: white;
  transform: scale(1.1);
  }
 
+ .conversation-item:hover .rename-btn,
  .conversation-item:hover .delete-btn {
  opacity: 1;
  }
@@ -602,17 +623,19 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  }
 
 .message-bubble {
-max-width: min(70%, 1200px); /* 限制桌面端气泡最大宽度为1200px */
-padding: 12px 16px;
-border-radius: 18px;
-position: relative;
-box-shadow: var(--shadow);
-overflow: visible;
-overflow-wrap: break-word;
-word-wrap: break-word;
-word-break: break-word;
-min-width: 0; /* 允许弹性收缩，防止代码块撑开容器 */
-}
+ max-width: min(75%, 1000px);
+ padding: 14px 18px;
+ border-radius: 18px;
+ position: relative;
+ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+ overflow: visible;
+ overflow-wrap: break-word;
+ word-wrap: break-word;
+ word-break: break-word;
+ min-width: 0;
+ font-size: 15px;
+ line-height: 1.6;
+ }
 
  .message-file-attachments {
  display: flex;
@@ -1527,6 +1550,7 @@ background: #282c34 !important;
 border-radius: 8px;
 padding: 16px;
 margin: 8px 0;
+font-size: 13px;
 overflow-x: auto;
 overflow-y: visible;
 max-width: 100%;
@@ -2912,15 +2936,16 @@ flex-direction: column;
  }
 
  .message-bubble {
- max-width: 90%; /* 移动端增宽消息气泡，从80%改为90% */
- padding: 16px 20px;
- font-size: 14px;
- line-height: 1.5;
- border-radius: 20px;
+ max-width: 94%;
+ padding: 12px 16px;
+ font-size: 15px;
+ line-height: 1.6;
+ border-radius: 18px;
  position: relative;
  overflow-wrap: break-word;
  word-wrap: break-word;
  word-break: break-word;
+ box-shadow: 0 1px 2px rgba(0,0,0,0.05);
  }
 
  .message-file-attachments {
@@ -2943,13 +2968,17 @@ flex-direction: column;
  }
 
  .message.user .message-bubble {
- border-bottom-right-radius: 6px;
- margin-left: 20%;
+ border-bottom-right-radius: 4px;
+ margin-left: 6%;
+ background: var(--primary-color);
+ color: white;
  }
 
  .message.assistant .message-bubble {
- border-bottom-left-radius: 6px;
- margin-right: 5%; /* 增宽AI消息气泡，从20%改为5% */
+ border-bottom-left-radius: 4px;
+ margin-right: 6%;
+ background: var(--card-background);
+ border: 1px solid var(--border-color);
  }
 
  /* 移动端进度条适配 */
@@ -3548,7 +3577,7 @@ stroke: var(--primary-color);
 
  .hljs {
  border-radius: 12px;
- font-size: 13px;
+ font-size: 12px;
  padding: 12px;
  overflow-x: auto;
  overflow-y: visible;
@@ -3602,6 +3631,75 @@ stroke: var(--primary-color);
 
  body {
  overflow: hidden;
+ }
+ }
+
+ /* 思维链折叠样式 */
+ details.thinking-box {
+ margin-bottom: 1rem;
+ border-radius: 12px;
+ background-color: rgba(0, 0, 0, 0.03);
+ border: 1px solid var(--border-color);
+ overflow: hidden;
+ transition: all 0.3s ease;
+ }
+
+ details.thinking-box[open] {
+ background-color: rgba(0, 0, 0, 0.05);
+ }
+
+ summary.thinking-summary {
+ padding: 10px 14px;
+ cursor: pointer;
+ font-weight: 600;
+ font-size: 13px;
+ color: var(--text-secondary);
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ user-select: none;
+ transition: color 0.2s;
+ outline: none;
+ }
+
+ summary.thinking-summary:hover {
+ color: var(--primary-color);
+ }
+
+ summary.thinking-summary::marker,
+ summary.thinking-summary::-webkit-details-marker {
+ display: none;
+ }
+
+ summary.thinking-summary .thinking-icon {
+ width: 16px;
+ height: 16px;
+ transition: transform 0.3s ease;
+ }
+
+ details.thinking-box[open] summary.thinking-summary .thinking-icon {
+ transform: rotate(90deg);
+ }
+
+ .thinking-content {
+ padding: 12px 14px;
+ border-top: 1px solid var(--border-color);
+ font-size: 14px;
+ color: var(--text-secondary);
+ line-height: 1.6;
+ background-color: rgba(255, 255, 255, 0.3);
+ }
+
+ /* 暗色模式适配 */
+ @media (prefers-color-scheme: dark) {
+ details.thinking-box {
+ background-color: rgba(255, 255, 255, 0.05);
+ }
+ details.thinking-box[open] {
+ background-color: rgba(255, 255, 255, 0.08);
+ }
+ .thinking-content {
+ background-color: rgba(0, 0, 0, 0.2);
  }
  }
 
@@ -3772,7 +3870,7 @@ stroke: var(--primary-color);
  <svg class="model-icon" viewBox="0 0 24 24" width="20" height="20">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
- <span class="model-name" id="currentModelName">gpt-5.1-all</span>
+ <span class="model-name" id="currentModelName">claude-sonnet-4-5-20250929-thinking</span>
  <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
  <polyline points="6 9 12 15 18 9"></polyline>
  </svg>
@@ -3787,9 +3885,9 @@ stroke: var(--primary-color);
  <input type="text" class="model-search-input" id="modelSearchInput" placeholder="搜索模型..." oninput="filterPCModels()" />
  </div>
  <div class="model-picker-list" id="pcModelList">
- <div class="model-list-item selected" data-model="gpt-5.1-all" onclick="selectPCModel('gpt-5.1-all')">
+ <div class="model-list-item selected" data-model="claude-sonnet-4-5-20250929-thinking" onclick="selectPCModel('claude-sonnet-4-5-20250929-thinking')">
  <div class="model-item-content">
- <span class="model-item-name">gpt-5.1-all</span>
+ <span class="model-item-name">claude-sonnet-4-5-20250929-thinking</span>
  <span class="model-item-badge">推荐</span>
  </div>
  <span class="model-check">✓</span>
@@ -3800,7 +3898,7 @@ stroke: var(--primary-color);
  <!-- 移动端保留原始select -->
  <select class="model-select mobile-only" id="modelSelect" aria-label="选择AI模型" style="display: none;">
  <option value="">选择模型</option>
- <option value="gpt-5.1-all">gpt-5.1-all</option>
+ <option value="claude-sonnet-4-5-20250929-thinking">claude-sonnet-4-5-20250929-thinking</option>
  </select>
  </div>
  <div class="header-actions">
@@ -3910,8 +4008,8 @@ aria-label="搜索模型"
 </svg>
 </div>
 <div class="model-options" id="mobileModelOptions">
-<div class="model-option selected" data-model="gpt-5.1-all">
-<span>gpt-5.1-all</span>
+<div class="model-option selected" data-model="claude-sonnet-4-5-20250929-thinking">
+<span>claude-sonnet-4-5-20250929-thinking</span>
 <span class="model-check">✓</span>
 </div>
 </div>
@@ -4007,7 +4105,7 @@ aria-label="搜索模型"
 let conversations = loadAndValidateConversations();
 let currentConversationId = null;
 let settings = JSON.parse(localStorage.getItem('settings') || '{"temperature": 0.9, "maxTokens": 8196, "systemPrompt": "你是一个有用的AI助手。"}');
-let selectedModel = 'gpt-5.1-all';
+let selectedModel = 'claude-sonnet-4-5-20250929-thinking';
 let toastTimeout = null;
 let uploadedFiles = []; // 存储上传的文件信息
 
@@ -4362,11 +4460,11 @@ filterMobileModels();
  optionsContainer.innerHTML = '';
 
  // 添加默认模型
- const defaultOption = createMobileModelOption('gpt-5.1-all', selectedModel === 'gpt-5.1-all');
+ const defaultOption = createMobileModelOption('claude-sonnet-4-5-20250929-thinking', selectedModel === 'claude-sonnet-4-5-20250929-thinking');
  optionsContainer.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'gpt-5.1-all') {
+ if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
  const option = createMobileModelOption(model.id, selectedModel === model.id);
  optionsContainer.appendChild(option);
  }
@@ -4378,12 +4476,12 @@ filterMobileModels();
  pcModelList.innerHTML = '';
 
  // 添加默认模型（带推荐标签）
- const defaultItem = createPCModelItem('gpt-5.1-all', true, selectedModel === 'gpt-5.1-all');
+ const defaultItem = createPCModelItem('claude-sonnet-4-5-20250929-thinking', true, selectedModel === 'claude-sonnet-4-5-20250929-thinking');
  pcModelList.appendChild(defaultItem);
 
  // 添加其他模型
  models.forEach(model => {
- if (model.id !== 'gpt-5.1-all') {
+ if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
  const item = createPCModelItem(model.id, false, selectedModel === model.id);
  pcModelList.appendChild(item);
  }
@@ -4397,12 +4495,12 @@ filterMobileModels();
  modelSelect.innerHTML = '<option value="">选择模型</option>';
 
  const defaultOption = document.createElement('option');
- defaultOption.value = 'gpt-5.1-all';
- defaultOption.textContent = 'gpt-5.1-all';
+ defaultOption.value = 'claude-sonnet-4-5-20250929-thinking';
+ defaultOption.textContent = 'claude-sonnet-4-5-20250929-thinking';
  modelSelect.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'gpt-5.1-all') {
+ if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
  const option = document.createElement('option');
  option.value = model.id;
  option.textContent = model.id;
@@ -5008,6 +5106,13 @@ if (streamingStates[currentConversationId]) {
 delete streamingStates[currentConversationId];
 }
 
+// 自动折叠思考过程
+const messageElement = document.getElementById(loadingId);
+if (messageElement) {
+    const thinkingDetails = messageElement.querySelectorAll('details.thinking-box');
+    thinkingDetails.forEach(details => details.removeAttribute('open'));
+}
+
 // 更新当前对话的按钮状态
 updateSendButton();
 hideTypingIndicator(loadingId);
@@ -5279,7 +5384,8 @@ const bubbleElement = messageElement.querySelector('.message-bubble');
  }
  } else {
  // 首次创建或非进度内容，重新生成HTML
- bubbleElement.innerHTML = parseMarkdown(content);
+ // 流式输出时保持展开状态
+ bubbleElement.innerHTML = parseMarkdown(content, true);
  }
 
  // 如果是生成状态，添加特殊样式类，不添加复制按钮
@@ -5576,14 +5682,30 @@ function getProgressInfo(text) {
  }
 
  // 解析Markdown - 只处理高亮，不绑定事件
- function parseMarkdown(text) {
+ function parseMarkdown(text, isStreaming = false) {
  // 首先检查是否包含进度信息
  const progressHTML = convertProgressToHTML(text);
  if (progressHTML) {
  return progressHTML;
  }
 
- const html = marked.parse(text);
+ // 处理 <think> 标签
+ let processedText = text;
+ const openAttr = isStreaming ? ' open' : '';
+ const thinkStart = `\n\n<details class="thinking-box"${openAttr}><summary class="thinking-summary"><svg class="thinking-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg> 思考过程</summary><div class="thinking-content">\n\n`;
+ const thinkEnd = '\n\n</div></details>\n\n';
+
+ // 处理闭合的 <think>...</think>
+ processedText = processedText.replace(/<think>([\s\S]*?)<\/think>/gi, (match, content) => {
+ return thinkStart + content + thinkEnd;
+ });
+
+ // 处理流式输出中可能未闭合的 <think>
+ if (processedText.includes('<think>') && !processedText.includes('</think>')) {
+ processedText = processedText.replace(/<think>/i, thinkStart) + thinkEnd;
+ }
+
+ const html = marked.parse(processedText);
 
  // 处理代码高亮
  const tempDiv = document.createElement('div');
@@ -5683,9 +5805,30 @@ showToast('最多支持8个对话，请删除部分对话后再新建', 'warning
 return;
 }
 
+// 计算新对话的默认标题（新对话 1, 新对话 2...）
+let nextNum = 1;
+const newChatPattern = /^新对话\s*(\d+)?$/;
+const existingNums = conversations
+.map(c => {
+const match = c.title.match(newChatPattern);
+return match ? (match[1] ? parseInt(match[1]) : 1) : 0;
+})
+.filter(n => n > 0)
+.sort((a, b) => a - b);
+
+// 找到第一个空缺的数字，或者使用最大数字+1
+for (let i = 0; i < existingNums.length; i++) {
+if (existingNums[i] !== i + 1) {
+nextNum = i + 1;
+break;
+}
+nextNum = existingNums.length + 1;
+}
+// 如果完全没有"新对话"开头的，nextNum初始为1
+
 const newConversation = {
 id: 'conv-' + Date.now(),
-title: '新对话',
+title: `新对话 ${nextNum}`,
 messages: [],
 createdAt: new Date().toISOString(),
 isNewlyCreated: true // 标记为新创建的对话，用于动画

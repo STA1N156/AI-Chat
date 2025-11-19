@@ -807,240 +807,6 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  animation: fadeInUp 0.5s ease-out;
  }
 
- /* 进度条样式 */
- .progress-container {
- margin: 16px 0;
- padding: 24px;
- background: linear-gradient(135deg, rgba(0, 122, 255, 0.05), rgba(88, 86, 214, 0.05));
- border-radius: 20px;
- border: 1px solid rgba(0, 122, 255, 0.2);
- box-shadow: 0 4px 16px rgba(0, 122, 255, 0.12);
- min-width: 400px;
- width: 100%;
- box-sizing: border-box;
- }
-
- .progress-status {
- display: flex;
- align-items: center;
- gap: 14px;
- margin-bottom: 16px;
- font-size: 16px;
- color: var(--text-primary);
- font-weight: 600;
- letter-spacing: 0.3px;
- }
-
- .progress-status-icon {
- font-size: 22px;
- animation: pulse 2s ease-in-out infinite;
- flex-shrink: 0;
- }
-
- .progress-status.completed .progress-status-icon {
- animation: bounce 0.6s ease-out;
- }
-
-.progress-status.failed {
-    color: #ff3b30;
-}
-
-/* 已取消震动效果 */
-/* .progress-status.failed .progress-status-icon {
-    animation: shake 0.5s ease-out;
-} */
-
-@keyframes pulse {
- 0%, 100% { transform: scale(1); opacity: 1; }
- 50% { transform: scale(1.1); opacity: 0.8; }
- }
-
- @keyframes bounce {
- 0%, 100% { transform: translateY(0); }
- 50% { transform: translateY(-5px); }
- }
-
- @keyframes shake {
- 0%, 100% { transform: translateX(0); }
- 25% { transform: translateX(-5px); }
- 75% { transform: translateX(5px); }
- }
-
- .progress-bar-wrapper {
- position: relative;
- width: 100%;
- height: 32px;
- background: rgba(0, 0, 0, 0.08);
- border-radius: 16px;
- overflow: hidden;
- box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-.progress-bar {
- height: 100%;
- background: linear-gradient(90deg,
- var(--primary-color) 0%,
- var(--secondary-color) 100%);
- border-radius: 16px;
- transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
- position: relative;
- overflow: hidden;
- box-shadow: 0 2px 10px rgba(0, 122, 255, 0.5),
- inset 0 1px 0 rgba(255, 255, 255, 0.3);
- }
-
- .progress-status.failed ~ .progress-bar-wrapper .progress-bar {
- background: linear-gradient(90deg,
- #ff3b30 0%,
- #ff6b66 100%);
- box-shadow: 0 2px 10px rgba(255, 59, 48, 0.5),
- inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.progress-bar::before {
- content: '';
- position: absolute;
- top: 0;
- left: 0;
- right: 0;
- bottom: 0;
- background: linear-gradient(90deg,
- transparent 0%,
- rgba(255, 255, 255, 0.3) 50%,
- transparent 100%);
- animation: shimmer 2s infinite;
- }
-
- .progress-status.failed ~ .progress-bar-wrapper .progress-bar::before {
- animation: none;
- }
-
- @keyframes shimmer {
- 0% { transform: translateX(-100%); }
- 100% { transform: translateX(100%); }
- }
-
- .progress-text {
- position: absolute;
- top: 50%;
- left: 50%;
- transform: translate(-50%, -50%);
- font-size: 14px;
- font-weight: 700;
- font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
- color: var(--text-primary);
- text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
- z-index: 1;
- letter-spacing: 0.5px;
-}
-
-.progress-link {
- margin-top: 12px;
- display: inline-block;
- }
-
- .progress-link a {
- color: var(--primary-color);
- text-decoration: none;
- font-weight: 600;
- font-size: 15px;
- padding: 10px 20px;
- background: rgba(0, 122, 255, 0.1);
- border-radius: 10px;
- transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
- display: inline-flex;
- align-items: center;
- gap: 6px;
- font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
- letter-spacing: 0.3px;
- }
-
- .progress-link a:hover {
- background: rgba(0, 122, 255, 0.2);
- transform: translateY(-2px);
- box-shadow: 0 6px 16px rgba(0, 122, 255, 0.25);
- }
-
- .progress-link a:active {
- transform: translateY(0);
- box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
- }
-
- /* 旋转加载图标 - 进行中状态 */
- .spinner-icon {
- width: 24px;
- height: 24px;
- position: relative;
- display: inline-block;
- flex-shrink: 0;
- }
-
- .spinner-icon::before {
- content: '';
- box-sizing: border-box;
- position: absolute;
- top: 50%;
- left: 50%;
- width: 20px;
- height: 20px;
- margin-top: -10px;
- margin-left: -10px;
- border-radius: 50%;
- border: 2.5px solid transparent;
- border-top-color: var(--primary-color);
- border-right-color: var(--primary-color);
- animation: spinner 0.8s linear infinite;
- }
-
- @keyframes spinner {
- 0% { transform: rotate(0deg); }
- 100% { transform: rotate(360deg); }
-}
-
-/* 完成图标 - 简约圆形打勾 */
- .check-icon {
- width: 24px;
- height: 24px;
- position: relative;
- display: inline-block;
- flex-shrink: 0;
- background: linear-gradient(135deg, var(--success-color), #2ecc71);
- border-radius: 50%;
- box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);
- }
-
- .check-icon::after {
- content: '';
- position: absolute;
- left: 8px;
- top: 4px;
- width: 5px;
- height: 10px;
- border: solid white;
- border-width: 0 2.5px 2.5px 0;
- transform: rotate(45deg);
-}
-
-/* 生成气泡专属样式 */
- .generating-bubble {
- background: var(--card-background) !important;
- border: 1px solid var(--border-color) !important;
- padding: 0 !important;
- }
-
- .generating-bubble .progress-container {
- margin: 0;
- border: none;
- border-radius: 0;
- box-shadow: none;
- background: transparent;
- }
-
- /* 隐藏生成气泡的复制按钮 */
- .message.assistant.generating .message-actions,
- .message.assistant.generating .message-actions-wrapper {
- display: none !important;
- }
 
  .typing-dots {
  display: flex;
@@ -3080,12 +2846,6 @@ flex-direction: column;
  border: 1px solid var(--border-color);
  }
 
- /* 移动端进度条适配 */
- .progress-container {
- min-width: 280px;
- padding: 16px;
- }
-
  /* 移动端复制按钮优化 - 放在气泡内部右下角 */
  .message-actions {
  position: absolute;
@@ -3858,6 +3618,28 @@ stroke: var(--primary-color);
  height: 20px;
  }
  }
+
+ /* 思考中转圈动画 */
+ @keyframes thinking-spin {
+ from { transform: rotate(0deg); }
+ to { transform: rotate(360deg); }
+ }
+
+ .thinking-spinner {
+ width: 14px;
+ height: 14px;
+ border: 2px solid var(--text-secondary);
+ border-top-color: transparent;
+ border-radius: 50%;
+ animation: thinking-spin 1s linear infinite;
+ display: inline-block;
+ margin-right: 4px;
+ }
+
+ .thinking-status-text {
+ font-size: 13px;
+ font-weight: 500;
+ }
  </style>
 <!-- 引入 mammoth.js 用于解析 docx 文件 -->
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" 
@@ -3972,7 +3754,7 @@ stroke: var(--primary-color);
  <svg class="model-icon" viewBox="0 0 24 24" width="20" height="20">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
- <span class="model-name" id="currentModelName">claude-sonnet-4-5-20250929-thinking</span>
+ <span class="model-name" id="currentModelName">gemini-3-pro-preview-thinking</span>
  <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
  <polyline points="6 9 12 15 18 9"></polyline>
  </svg>
@@ -3987,9 +3769,9 @@ stroke: var(--primary-color);
  <input type="text" class="model-search-input" id="modelSearchInput" placeholder="搜索模型..." oninput="filterPCModels()" />
  </div>
  <div class="model-picker-list" id="pcModelList">
- <div class="model-list-item selected" data-model="claude-sonnet-4-5-20250929-thinking" onclick="selectPCModel('claude-sonnet-4-5-20250929-thinking')">
+ <div class="model-list-item selected" data-model="gemini-3-pro-preview-thinking" onclick="selectPCModel('gemini-3-pro-preview-thinking')">
  <div class="model-item-content">
- <span class="model-item-name">claude-sonnet-4-5-20250929-thinking</span>
+ <span class="model-item-name">gemini-3-pro-preview-thinking</span>
  </div>
  <span class="model-check">✓</span>
  </div>
@@ -3999,7 +3781,7 @@ stroke: var(--primary-color);
  <!-- 移动端保留原始select -->
  <select class="model-select mobile-only" id="modelSelect" aria-label="选择AI模型" style="display: none;">
  <option value="">选择模型</option>
- <option value="claude-sonnet-4-5-20250929-thinking">claude-sonnet-4-5-20250929-thinking</option>
+ <option value="gemini-3-pro-preview-thinking">gemini-3-pro-preview-thinking</option>
  </select>
  </div>
  <div class="header-actions">
@@ -4135,8 +3917,8 @@ aria-label="搜索模型"
 </svg>
 </div>
 <div class="model-options" id="mobileModelOptions">
-<div class="model-option selected" data-model="claude-sonnet-4-5-20250929-thinking">
-<span>claude-sonnet-4-5-20250929-thinking</span>
+<div class="model-option selected" data-model="gemini-3-pro-preview-thinking">
+<span>gemini-3-pro-preview-thinking</span>
 <span class="model-check">✓</span>
 </div>
 </div>
@@ -4160,16 +3942,16 @@ aria-label="搜索模型"
  <div class="setting-group">
  <label class="setting-label">Temperature (创造性)</label>
  <div class="slider-container">
- <input type="range" class="slider" id="temperatureSlider" min="0" max="1" step="0.1" value="0.9" oninput="updateSliderValue('temperature', this.value)" aria-label="Temperature设置">
- <span class="slider-value" id="temperatureValue">0.9</span>
+ <input type="range" class="slider" id="temperatureSlider" min="0" max="1" step="0.1" value="1.0" oninput="updateSliderValue('temperature', this.value)" aria-label="Temperature设置">
+ <span class="slider-value" id="temperatureValue">1.0</span>
  </div>
  </div>
 
  <div class="setting-group">
  <label class="setting-label">最大 Tokens</label>
  <div class="slider-container">
- <input type="range" class="slider" id="tokensSlider" min="1000" max="64000" step="1000" value="8196" oninput="updateSliderValue('tokens', this.value)" aria-label="最大Tokens设置">
- <span class="slider-value" id="tokensValue">8196</span>
+ <input type="range" class="slider" id="tokensSlider" min="1000" max="64000" step="1000" value="30000" oninput="updateSliderValue('tokens', this.value)" aria-label="最大Tokens设置">
+ <span class="slider-value" id="tokensValue">30000</span>
  </div>
  </div>
 
@@ -4231,8 +4013,12 @@ aria-label="搜索模型"
 
 let conversations = loadAndValidateConversations();
 let currentConversationId = null;
-let settings = JSON.parse(localStorage.getItem('settings') || '{"temperature": 0.9, "maxTokens": 8196, "systemPrompt": "你是一个有用的AI助手。"}');
-let selectedModel = 'claude-sonnet-4-5-20250929-thinking';
+let settings = JSON.parse(localStorage.getItem('settings') || '{"systemPrompt": "你是一个有用的AI助手。"}');
+// 强制固定默认值，确保每次刷新都是这些值
+settings.temperature = 1.0;
+settings.maxTokens = 30000;
+if (!settings.systemPrompt) settings.systemPrompt = "你是一个有用的AI助手。";
+let selectedModel = 'gemini-3-pro-preview-thinking';
 let toastTimeout = null;
 let uploadedFiles = []; // 存储上传的文件信息
 
@@ -4579,11 +4365,11 @@ filterMobileModels();
  optionsContainer.innerHTML = '';
 
  // 添加默认模型
- const defaultOption = createMobileModelOption('claude-sonnet-4-5-20250929-thinking', selectedModel === 'claude-sonnet-4-5-20250929-thinking');
+ const defaultOption = createMobileModelOption('gemini-3-pro-preview-thinking', selectedModel === 'gemini-3-pro-preview-thinking');
  optionsContainer.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
+ if (model.id !== 'gemini-3-pro-preview-thinking') {
  const option = createMobileModelOption(model.id, selectedModel === model.id);
  optionsContainer.appendChild(option);
  }
@@ -4595,12 +4381,12 @@ filterMobileModels();
  pcModelList.innerHTML = '';
 
  // 添加默认模型（带推荐标签）
- const defaultItem = createPCModelItem('claude-sonnet-4-5-20250929-thinking', true, selectedModel === 'claude-sonnet-4-5-20250929-thinking');
+ const defaultItem = createPCModelItem('gemini-3-pro-preview-thinking', true, selectedModel === 'gemini-3-pro-preview-thinking');
  pcModelList.appendChild(defaultItem);
 
  // 添加其他模型
  models.forEach(model => {
- if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
+ if (model.id !== 'gemini-3-pro-preview-thinking') {
  const item = createPCModelItem(model.id, false, selectedModel === model.id);
  pcModelList.appendChild(item);
  }
@@ -4614,12 +4400,12 @@ filterMobileModels();
  modelSelect.innerHTML = '<option value="">选择模型</option>';
 
  const defaultOption = document.createElement('option');
- defaultOption.value = 'claude-sonnet-4-5-20250929-thinking';
- defaultOption.textContent = 'claude-sonnet-4-5-20250929-thinking';
+ defaultOption.value = 'gemini-3-pro-preview-thinking';
+ defaultOption.textContent = 'gemini-3-pro-preview-thinking';
  modelSelect.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'claude-sonnet-4-5-20250929-thinking') {
+ if (model.id !== 'gemini-3-pro-preview-thinking') {
  const option = document.createElement('option');
  option.value = model.id;
  option.textContent = model.id;
@@ -5504,74 +5290,78 @@ const messageElement = document.getElementById(messageId);
 if (messageElement) {
 const bubbleElement = messageElement.querySelector('.message-bubble');
 
- // 检查是否是进度内容
- const progressInfo = getProgressInfo(content);
- const isGenerating = progressInfo !== null;
+// 检查是否是进度内容
+const progressInfo = getProgressInfo(content);
+const isGenerating = progressInfo !== null;
 
- // 如果是进度更新且已存在进度条，只更新进度值
- const existingProgressBar = bubbleElement.querySelector('.progress-bar');
- const existingProgressText = bubbleElement.querySelector('.progress-text');
+// 如果是进度更新且已存在进度条，只更新进度值
+const existingProgressBar = bubbleElement.querySelector('.progress-bar');
+const existingProgressText = bubbleElement.querySelector('.progress-text');
 
- if (isGenerating && existingProgressBar && existingProgressText) {
- // 获取当前进度值
- const currentWidth = existingProgressBar.style.width;
- const currentProgress = currentWidth ? parseFloat(currentWidth) : 0;
+if (isGenerating && existingProgressBar && existingProgressText) {
+// 获取当前进度值
+const currentWidth = existingProgressBar.style.width;
+const currentProgress = currentWidth ? parseFloat(currentWidth) : 0;
 
- // 确保进度只能前进，不能后退（除非是完成或失败状态）
- let newProgress;
- if (progressInfo.status === 'completed') {
- newProgress = 100;
- } else if (progressInfo.status === 'failed') {
- // 失败时保持当前进度
- newProgress = currentProgress;
- } else {
- newProgress = Math.max(currentProgress, progressInfo.progress);
- }
+// 确保进度只能前进，不能后退（除非是完成或失败状态）
+let newProgress;
+if (progressInfo.status === 'completed') {
+newProgress = 100;
+} else if (progressInfo.status === 'failed') {
+// 失败时保持当前进度
+newProgress = currentProgress;
+} else {
+newProgress = Math.max(currentProgress, progressInfo.progress);
+}
 
- // 只更新进度值，保留现有元素以启用transition动画
- existingProgressBar.style.width = newProgress + '%';
- existingProgressText.textContent = newProgress.toFixed(1) + '%';
+// 只更新进度值，保留现有元素以启用transition动画
+existingProgressBar.style.width = newProgress + '%';
+existingProgressText.textContent = newProgress.toFixed(1) + '%';
 
- // 更新状态
- const progressStatus = bubbleElement.querySelector('.progress-status');
- if (progressStatus) {
- progressStatus.className = 'progress-status ' + progressInfo.status;
- // 直接重新生成状态内容，确保更新生效
- progressStatus.innerHTML = `
- <span class="progress-status-icon">${progressInfo.statusIcon}</span>
- <span>${progressInfo.statusText}</span>
- `;
- // 强制重绘
- void progressStatus.offsetHeight;
- }
+// 更新状态
+const progressStatus = bubbleElement.querySelector('.progress-status');
+if (progressStatus) {
+progressStatus.className = 'progress-status ' + progressInfo.status;
+// 直接重新生成状态内容，确保更新生效
+progressStatus.innerHTML = `
+<span class="progress-status-icon">${progressInfo.statusIcon}</span>
+<span>${progressInfo.statusText}</span>
+`;
+// 强制重绘
+void progressStatus.offsetHeight;
+}
 
- // 如果完成了，添加链接
- if (progressInfo.status === 'completed' && progressInfo.linkHTML) {
- let linkContainer = bubbleElement.querySelector('.progress-link');
- if (!linkContainer) {
- const progressContainer = bubbleElement.querySelector('.progress-container');
- if (progressContainer) {
- const tempDiv = document.createElement('div');
- tempDiv.innerHTML = progressInfo.linkHTML;
- progressContainer.appendChild(tempDiv.firstElementChild);
- }
- }
- }
+// 如果完成了，添加链接
+if (progressInfo.status === 'completed' && progressInfo.linkHTML) {
+let linkContainer = bubbleElement.querySelector('.progress-link');
+if (!linkContainer) {
+const progressContainer = bubbleElement.querySelector('.progress-container');
+if (progressContainer) {
+const tempDiv = document.createElement('div');
+tempDiv.innerHTML = progressInfo.linkHTML;
+progressContainer.appendChild(tempDiv.firstElementChild);
+}
+}
+}
 
- // 如果失败了，确保移除可能存在的链接
- if (progressInfo.status === 'failed') {
- let linkContainer = bubbleElement.querySelector('.progress-link');
- if (linkContainer) {
- linkContainer.remove();
- }
- }
- } else {
- // 首次创建或非进度内容，重新生成HTML
- // 流式输出时保持展开状态
- bubbleElement.innerHTML = parseMarkdown(content, true);
- }
+// 如果失败了，确保移除可能存在的链接
+if (progressInfo.status === 'failed') {
+let linkContainer = bubbleElement.querySelector('.progress-link');
+if (linkContainer) {
+linkContainer.remove();
+}
+}
+} else {
+// 首次创建或非进度内容，重新生成HTML
 
- // 如果是生成状态，添加特殊样式类，不添加操作按钮
+// 捕获当前思考框的展开状态，防止重绘时丢失
+const existingThinkingBox = bubbleElement.querySelector('.thinking-box');
+const isThinkingOpen = existingThinkingBox ? existingThinkingBox.hasAttribute('open') : false;
+
+bubbleElement.innerHTML = parseMarkdown(content, isThinkingOpen);
+}
+
+// 如果是生成状态，添加特殊样式类，不添加操作按钮
  if (isGenerating) {
  bubbleElement.classList.add('generating-bubble');
  messageElement.classList.add('generating');
@@ -5910,7 +5700,7 @@ function getProgressInfo(text) {
  }
 
  // 解析Markdown - 只处理高亮，不绑定事件
- function parseMarkdown(text, isStreaming = false) {
+ function parseMarkdown(text, forceOpenThinking = false) {
  // 首先检查是否包含进度信息
  const progressHTML = convertProgressToHTML(text);
  if (progressHTML) {
@@ -5919,18 +5709,34 @@ function getProgressInfo(text) {
 
  // 处理 <think> 标签
  let processedText = text;
- const openAttr = isStreaming ? ' open' : '';
- const thinkStart = `\n\n<details class="thinking-box"${openAttr}><summary class="thinking-summary"><svg class="thinking-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg> 思考过程</summary><div class="thinking-content">\n\n`;
- const thinkEnd = '\n\n</div></details>\n\n';
+ 
+ // 生成思考框HTML的辅助函数
+ const createThinkingHTML = (innerContent, isThinking) => {
+ const openAttr = forceOpenThinking ? ' open' : '';
+ const statusText = isThinking ? '思考中' : '已深度思考';
+ const spinnerHTML = isThinking ? '<div class="thinking-spinner"></div>' : '';
+ const arrowIcon = `<svg class="thinking-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`;
+ 
+ return `\n\n<details class="thinking-box"${openAttr}>
+ <summary class="thinking-summary">
+ ${arrowIcon}
+ ${spinnerHTML}
+ <span class="thinking-status-text">${statusText}</span>
+ </summary>
+ <div class="thinking-content">\n\n${innerContent}\n\n</div>
+ </details>\n\n`;
+ };
 
- // 处理闭合的 <think>...</think>
+ // 处理闭合的 <think>...</think> (思考完成)
  processedText = processedText.replace(/<think>([\s\S]*?)<\/think>/gi, (match, content) => {
- return thinkStart + content + thinkEnd;
+ return createThinkingHTML(content, false);
  });
 
- // 处理流式输出中可能未闭合的 <think>
+ // 处理流式输出中可能未闭合的 <think> (思考中)
  if (processedText.includes('<think>') && !processedText.includes('</think>')) {
- processedText = processedText.replace(/<think>/i, thinkStart) + thinkEnd;
+ processedText = processedText.replace(/<think>([\s\S]*)/i, (match, content) => {
+ return createThinkingHTML(content, true);
+ });
  }
 
  const html = marked.parse(processedText);
@@ -7211,13 +7017,19 @@ return msgWithoutFiles;
  });
  
  // 高亮闪烁一下目标消息
- targetMsg.style.transition = 'background-color 0.3s';
- const originalBg = targetMsg.style.backgroundColor;
- targetMsg.querySelector('.message-bubble').style.boxShadow = '0 0 0 4px rgba(0, 122, 255, 0.3)';
+ const bubble = targetMsg.querySelector('.message-bubble');
+ if (bubble) {
+ bubble.style.transition = 'box-shadow 0.5s ease-out';
+ bubble.style.boxShadow = '0 0 0 4px rgba(0, 122, 255, 0.5)';
  
  setTimeout(() => {
- targetMsg.querySelector('.message-bubble').style.boxShadow = '';
+ bubble.style.boxShadow = '';
+ // 等待过渡动画完成后清除 transition 属性
+ setTimeout(() => {
+ bubble.style.transition = '';
+ }, 500);
  }, 1000);
+ }
  }
  }
  </script>

@@ -5447,13 +5447,60 @@ const existingThinkingBox = bubbleElement.querySelector('.thinking-box');
 let isThinkingOpen;
 
 if (existingThinkingBox) {
-isThinkingOpen = existingThinkingBox.hasAttribute('open');
+    isThinkingOpen = existingThinkingBox.hasAttribute('open');
 } else {
-// 首次渲染，使用用户设置 (如果设置了默认折叠，则不展开)
-isThinkingOpen = !settings.thinkingCollapsed;
+    // 首次渲染，使用用户设置 (如果设置了默认折叠，则不展开)
+    isThinkingOpen = !settings.thinkingCollapsed;
 }
 
-bubbleElement.innerHTML = parseMarkdown(content, isThinkingOpen);
+const newHTML = parseMarkdown(content, isThinkingOpen);
+
+// 尝试智能更新以保留动画状态
+let updated = false;
+
+// 检查是否正在思考（旧的有 spinner）
+const oldSpinner = existingThinkingBox ? existingThinkingBox.querySelector('.thinking-spinner') : null;
+
+if (oldSpinner) {
+    // 创建临时容器解析新 HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = newHTML;
+    const newThinkingBox = tempDiv.querySelector('.thinking-box');
+    const newSpinner = newThinkingBox ? newThinkingBox.querySelector('.thinking-spinner') : null;
+    
+    // 如果新旧都在思考中，尝试局部更新
+    if (newThinkingBox && newSpinner) {
+        // 1. 更新思考内容
+        const newContent = newThinkingBox.querySelector('.thinking-content').innerHTML;
+        const oldContentDiv = existingThinkingBox.querySelector('.thinking-content');
+        if (oldContentDiv && oldContentDiv.innerHTML !== newContent) {
+            oldContentDiv.innerHTML = newContent;
+        }
+        
+        // 2. 更新思考框之后的内容（正文）
+        // 移除 tempDiv 中的 thinking-box，剩下的就是正文
+        newThinkingBox.remove();
+        
+        // 清空 existingThinkingBox 后面的所有节点（包括旧的正文和操作按钮）
+        let nextNode = existingThinkingBox.nextSibling;
+        while (nextNode) {
+            const toRemove = nextNode;
+            nextNode = nextNode.nextSibling;
+            toRemove.remove();
+        }
+        
+        // 将 tempDiv 的内容（新的正文）移动到 bubbleElement
+        while (tempDiv.firstChild) {
+            bubbleElement.appendChild(tempDiv.firstChild);
+        }
+        
+        updated = true;
+    }
+}
+
+if (!updated) {
+    bubbleElement.innerHTML = newHTML;
+}
 }
 
 // 如果是生成状态，添加特殊样式类，不添加操作按钮

@@ -616,15 +616,21 @@ backdrop-filter: blur(10px);
 -webkit-backdrop-filter: blur(10px);
 }
 
+/* 只在支持 hover 的设备上应用 hover 效果，避免移动端粘滞 */
+@media (hover: hover) and (pointer: fine) {
 .nav-btn:hover {
 background: var(--background-color);
 transform: scale(1.1);
 color: var(--primary-color);
 border-color: var(--primary-color);
 }
+}
 
 .nav-btn:active {
 transform: scale(0.95);
+background: var(--background-color);
+color: var(--primary-color);
+border-color: var(--primary-color);
 }
 
 .nav-btn svg {

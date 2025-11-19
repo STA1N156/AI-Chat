@@ -3068,6 +3068,10 @@ flex-direction: column;
  color: var(--text-primary);
  }
 
+ .switch-label {
+ font-weight: 600;
+ }
+
  .slider {
  height: 8px;
  border-radius: 4px;
@@ -3503,6 +3507,7 @@ stroke: var(--primary-color);
  border: 1px solid var(--border-color);
  overflow: hidden;
  transition: all 0.3s ease;
+ min-width: 160px;
  }
 
  details.thinking-box[open] {
@@ -3882,7 +3887,7 @@ stroke: var(--primary-color);
  <div class="empty-state">
  <div class="empty-state-icon">💬</div>
  <h3>开始新的对话</h3>
- <p>点击左上角菜单选择或创建对话，然后选择AI模型开始聊天</p>
+ <p>选择或创建对话，然后选择AI模型开始聊天</p>
  </div>
  </div>
 
@@ -4016,11 +4021,6 @@ aria-label="搜索模型"
  </div>
 
  <div class="setting-group">
- <label class="setting-label">系统提示词</label>
- <textarea class="textarea" id="systemPrompt" placeholder="输入系统提示词..." aria-label="系统提示词">你是一个有用的AI助手。</textarea>
- </div>
-
- <div class="setting-group">
  <div class="switch-container">
  <span class="switch-label">思维链默认折叠</span>
  <label class="switch">
@@ -4029,6 +4029,11 @@ aria-label="搜索模型"
  </label>
  </div>
  <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">开启后，AI的思考过程将默认折叠</div>
+ </div>
+
+ <div class="setting-group">
+ <label class="setting-label">系统提示词</label>
+ <textarea class="textarea" id="systemPrompt" placeholder="输入系统提示词..." aria-label="系统提示词">你是一个有用的AI助手。</textarea>
  </div>
  </div>
 
@@ -6808,6 +6813,8 @@ saveConversations();
 
  // 设置相关
  function openSettings() {
+ // 每次打开设置时重新加载配置，确保未保存的修改被重置
+ loadSettings();
  const modal = document.getElementById('settingsModal');
  const overlay = document.getElementById('overlay');
  modal.classList.add('show');

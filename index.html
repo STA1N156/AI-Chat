@@ -3640,6 +3640,66 @@ stroke: var(--primary-color);
  font-size: 13px;
  font-weight: 500;
  }
+
+ /* 开关样式 */
+ .switch-container {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ margin-bottom: 8px;
+ }
+
+ .switch-label {
+ font-weight: 500;
+ color: var(--text-primary);
+ font-size: 16px;
+ }
+
+ .switch {
+ position: relative;
+ display: inline-block;
+ width: 50px;
+ height: 28px;
+ }
+
+ .switch input {
+ opacity: 0;
+ width: 0;
+ height: 0;
+ }
+
+ .slider-switch {
+ position: absolute;
+ cursor: pointer;
+ top: 0;
+ left: 0;
+ right: 0;
+ bottom: 0;
+ background-color: var(--border-color);
+ transition: .4s;
+ border-radius: 34px;
+ }
+
+ .slider-switch:before {
+ position: absolute;
+ content: "";
+ height: 22px;
+ width: 22px;
+ left: 3px;
+ bottom: 3px;
+ background-color: white;
+ transition: .4s;
+ border-radius: 50%;
+ box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+ }
+
+ input:checked + .slider-switch {
+ background-color: var(--primary-color);
+ }
+
+ input:checked + .slider-switch:before {
+ transform: translateX(22px);
+ }
  </style>
 <!-- 引入 mammoth.js 用于解析 docx 文件 -->
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" 
@@ -3959,6 +4019,17 @@ aria-label="搜索模型"
  <label class="setting-label">系统提示词</label>
  <textarea class="textarea" id="systemPrompt" placeholder="输入系统提示词..." aria-label="系统提示词">你是一个有用的AI助手。</textarea>
  </div>
+
+ <div class="setting-group">
+ <div class="switch-container">
+ <span class="switch-label">思维链默认折叠</span>
+ <label class="switch">
+ <input type="checkbox" id="thinkingCollapsedSwitch" aria-label="思维链默认折叠开关">
+ <span class="slider-switch"></span>
+ </label>
+ </div>
+ <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">开启后，AI的思考过程将默认折叠</div>
+ </div>
  </div>
 
  <button class="save-settings-btn" onclick="saveSettings()">
@@ -4018,6 +4089,9 @@ let settings = JSON.parse(localStorage.getItem('settings') || '{"systemPrompt": 
 settings.temperature = 1.0;
 settings.maxTokens = 30000;
 if (!settings.systemPrompt) settings.systemPrompt = "你是一个有用的AI助手。";
+// 默认思维链折叠状态
+if (settings.thinkingCollapsed === undefined) settings.thinkingCollapsed = true;
+
 let selectedModel = 'gemini-3-pro-preview-thinking';
 let toastTimeout = null;
 let uploadedFiles = []; // 存储上传的文件信息
@@ -5356,7 +5430,14 @@ linkContainer.remove();
 
 // 捕获当前思考框的展开状态，防止重绘时丢失
 const existingThinkingBox = bubbleElement.querySelector('.thinking-box');
-const isThinkingOpen = existingThinkingBox ? existingThinkingBox.hasAttribute('open') : false;
+let isThinkingOpen;
+
+if (existingThinkingBox) {
+isThinkingOpen = existingThinkingBox.hasAttribute('open');
+} else {
+// 首次渲染，使用用户设置 (如果设置了默认折叠，则不展开)
+isThinkingOpen = !settings.thinkingCollapsed;
+}
 
 bubbleElement.innerHTML = parseMarkdown(content, isThinkingOpen);
 }
@@ -5700,7 +5781,7 @@ function getProgressInfo(text) {
  }
 
  // 解析Markdown - 只处理高亮，不绑定事件
- function parseMarkdown(text, forceOpenThinking = false) {
+ function parseMarkdown(text, forceOpenThinking = !settings.thinkingCollapsed) {
  // 首先检查是否包含进度信息
  const progressHTML = convertProgressToHTML(text);
  if (progressHTML) {
@@ -5964,7 +6045,7 @@ function clearAllConversations() {
  <div class="empty-state">
  <div class="empty-state-icon">💬</div>
  <h3>开始新的对话</h3>
- <p>${isMobile() ? '点击右上角机器人图标选择模型' : '选择一个模型开始聊天，或者点击"获取模型"来加载可用模型'}</p>
+ <p>${isMobile() ? '点击右上角图标选择模型' : '选择一个模型开始聊天，或者点击"获取模型"来加载可用模型'}</p>
  </div>
  `;
 
@@ -6396,7 +6477,7 @@ function deleteConversation(conversationId, event) {
  <div class="empty-state">
  <div class="empty-state-icon">💬</div>
  <h3>开始新的对话</h3>
- <p>${isMobile() ? '点击右上角机器人图标选择模型' : '选择一个模型开始聊天，或者点击"获取模型"来加载可用模型'}</p>
+ <p>${isMobile() ? '点击右上角图标选择模型' : '选择一个模型开始聊天，或者点击"获取模型"来加载可用模型'}</p>
  </div>
  `;
  }
@@ -6753,6 +6834,7 @@ saveConversations();
  settings.temperature = document.getElementById('temperatureSlider').value;
  settings.maxTokens = document.getElementById('tokensSlider').value;
  settings.systemPrompt = document.getElementById('systemPrompt').value;
+ settings.thinkingCollapsed = document.getElementById('thinkingCollapsedSwitch').checked;
 
  localStorage.setItem('settings', JSON.stringify(settings));
  closeSettings();
@@ -6765,6 +6847,7 @@ saveConversations();
  document.getElementById('tokensSlider').value = settings.maxTokens;
  document.getElementById('tokensValue').textContent = settings.maxTokens;
  document.getElementById('systemPrompt').value = settings.systemPrompt;
+ document.getElementById('thinkingCollapsedSwitch').checked = settings.thinkingCollapsed;
  }
 
 // 存储管理

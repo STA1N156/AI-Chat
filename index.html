@@ -3596,10 +3596,13 @@ stroke: var(--primary-color);
  user-select: none;
  transition: color 0.2s;
  outline: none;
+ -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
  }
 
+ @media (hover: hover) {
  summary.thinking-summary:hover {
  color: var(--primary-color);
+ }
  }
 
  summary.thinking-summary::marker,

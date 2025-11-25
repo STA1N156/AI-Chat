@@ -4071,37 +4071,127 @@ aria-label="搜索模型"
  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
  }
 
+ // IndexedDB 管理类
+ const DBConfig = {
+    name: 'AIChatDB',
+    version: 1,
+    storeName: 'conversations'
+ };
+
+ const dbManager = {
+    db: null,
+
+    async init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DBConfig.name, DBConfig.version);
+
+            request.onerror = (event) => {
+                console.error("IndexedDB error:", event.target.error);
+                reject(event.target.error);
+            };
+
+            request.onsuccess = (event) => {
+                this.db = event.target.result;
+                resolve(this.db);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(DBConfig.storeName)) {
+                    db.createObjectStore(DBConfig.storeName, { keyPath: 'id' });
+                }
+            };
+        });
+    },
+
+    async getAll() {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject(new Error("Database not initialized"));
+                return;
+            }
+            const transaction = this.db.transaction([DBConfig.storeName], 'readonly');
+            const store = transaction.objectStore(DBConfig.storeName);
+            const request = store.getAll();
+
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = () => reject(request.error);
+        });
+    },
+
+    async save(conversation) {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject(new Error("Database not initialized"));
+                return;
+            }
+            const transaction = this.db.transaction([DBConfig.storeName], 'readwrite');
+            const store = transaction.objectStore(DBConfig.storeName);
+            // 确保使用 put (insert or update)
+            const request = store.put(conversation);
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    },
+
+    async delete(id) {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject(new Error("Database not initialized"));
+                return;
+            }
+            const transaction = this.db.transaction([DBConfig.storeName], 'readwrite');
+            const store = transaction.objectStore(DBConfig.storeName);
+            const request = store.delete(id);
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    },
+
+    async clear() {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject(new Error("Database not initialized"));
+                return;
+            }
+            const transaction = this.db.transaction([DBConfig.storeName], 'readwrite');
+            const store = transaction.objectStore(DBConfig.storeName);
+            const request = store.clear();
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+ };
+
  // 全局变量
  const API_BASE = 'https://yunwu.zeabur.app';
  const API_KEY = 'sk-BwFVpnQhMWOoxaP1skoWQI4IgNZRxncWHSptehxBt1Z1vJva';
 
- // 加载并验证对话数据
- function loadAndValidateConversations() {
- try {
- const rawData = JSON.parse(localStorage.getItem('conversations') || '[]');
-
- return rawData.map(conv => {
- if (!conv.messages || !Array.isArray(conv.messages)) {
- conv.messages = [];
+ // 迁移旧数据
+ async function migrateFromLocalStorage() {
+    try {
+        const rawData = localStorage.getItem('conversations');
+        if (rawData) {
+            const oldConversations = JSON.parse(rawData);
+            if (Array.isArray(oldConversations) && oldConversations.length > 0) {
+                console.log(`Migrating ${oldConversations.length} conversations from LocalStorage to IndexedDB...`);
+                for (const conv of oldConversations) {
+                    await dbManager.save(conv);
+                }
+                // 迁移完成后清除 LocalStorage 中的旧数据，释放空间
+                localStorage.removeItem('conversations');
+                console.log('Migration complete.');
+            }
+        }
+    } catch (e) {
+        console.error('Migration failed:', e);
+    }
  }
 
- conv.messages = conv.messages.filter(msg => {
- if (!msg.role || (msg.role !== 'user' && msg.role !== 'assistant')) {
- return false;
- }
- if (!msg.content) {
- return false;
- }
- return true;
- });
- return conv;
- });
- } catch (e) {
- return [];
- }
- }
-
-let conversations = loadAndValidateConversations();
+let conversations = [];
 let currentConversationId = null;
 let settings = JSON.parse(localStorage.getItem('settings') || '{"systemPrompt": "你是一个有用的AI助手。"}');
 // 强制固定默认值，确保每次刷新都是这些值
@@ -4164,52 +4254,79 @@ function checkLibraries() {
 const isMobile = () => window.innerWidth <= 768;
 
 // 初始化
-document.addEventListener('DOMContentLoaded', function() {
-    // 检查必要的库是否加载
-    checkLibraries();
-    
-    loadSettings();
-    renderConversations();
-    updateMobileTitle();
+document.addEventListener('DOMContentLoaded', async function() {
+   // 检查必要的库是否加载
+   checkLibraries();
+   
+   loadSettings();
 
-    // 设置默认模型
-    if (!isMobile()) {
-        const modelSelect = document.getElementById('modelSelect');
-        modelSelect.value = selectedModel;
+   // 初始化 IndexedDB 并加载数据
+   try {
+       await dbManager.init();
+       await migrateFromLocalStorage();
+       const loadedConversations = await dbManager.getAll();
+       
+       // 按创建时间倒序排序
+       conversations = loadedConversations.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+       
+       // 验证数据完整性
+       conversations = conversations.map(conv => {
+            if (!conv.messages || !Array.isArray(conv.messages)) {
+                conv.messages = [];
+            }
+            return conv;
+       });
 
-        // 添加change事件监听，选择后自动失去焦点
-        modelSelect.addEventListener('change', function() {
-            this.blur();
-        });
+   } catch (error) {
+       console.error("Failed to initialize database or load conversations:", error);
+       showToast('加载历史记录失败', 'error');
+   }
 
-        // 添加blur事件监听，移除内联样式让CSS接管
-        modelSelect.addEventListener('blur', function() {
-            this.style.backgroundColor = '';
-        });
-    }
+   renderConversations();
+   updateMobileTitle();
 
-    // 自动获取模型
-    setTimeout(getModels, 500);
+   // 设置默认模型
+   if (!isMobile()) {
+       const modelSelect = document.getElementById('modelSelect');
+       if (modelSelect) {
+           modelSelect.value = selectedModel;
 
- // 移动端特殊处理
- if (isMobile()) {
- // 处理虚拟键盘
- window.addEventListener('resize', handleVirtualKeyboard);
+           // 添加change事件监听，选择后自动失去焦点
+           modelSelect.addEventListener('change', function() {
+               this.blur();
+           });
 
- // 确保聊天容器可以滚动
- const chatContainer = document.getElementById('chatContainer');
- chatContainer.style.overflowY = 'scroll';
- chatContainer.style.webkitOverflowScrolling = 'touch';
- }
+           // 添加blur事件监听，移除内联样式让CSS接管
+           modelSelect.addEventListener('blur', function() {
+               this.style.backgroundColor = '';
+           });
+       }
+   }
 
- // 入场动画完成后移除initial-load类，使后续交互立即响应
- setTimeout(function() {
- const appContainer = document.querySelector('.app-container');
- if (appContainer) {
- appContainer.classList.remove('initial-load');
- }
- }, 2000); // 等待所有入场动画完成
- });
+   // 自动获取模型
+   setTimeout(getModels, 500);
+
+// 移动端特殊处理
+if (isMobile()) {
+// 处理虚拟键盘
+window.addEventListener('resize', handleVirtualKeyboard);
+
+// 确保聊天容器可以滚动
+const chatContainer = document.getElementById('chatContainer');
+if (chatContainer) {
+   chatContainer.style.overflowY = 'scroll';
+   chatContainer.style.webkitOverflowScrolling = 'touch';
+}
+}
+
+// 入场动画完成后移除initial-load类，使后续交互立即响应
+setTimeout(function() {
+const appContainer = document.querySelector('.app-container');
+if (appContainer) {
+appContainer.classList.remove('initial-load');
+}
+}, 2000); // 等待所有入场动画完成
+});
 
  // 处理虚拟键盘（移动端）
  function handleVirtualKeyboard() {
@@ -4826,90 +4943,129 @@ filterMobileModels();
  }
 
  // 构建支持多模态的消息（包含图片的base64和文本文件内容）
-function buildMultimodalMessages(conversation) {
+ function buildMultimodalMessages(conversation) {
     const messages = [
         { role: 'system', content: settings.systemPrompt }
     ];
 
+    // 暂存 Assistant 生成的 Base64 图片，以便附加到下一条 User 消息中
+    let pendingAssistantImages = [];
+
     // 遍历对话历史，构建多模态消息
     for (let msg of conversation.messages) {
         // ✅ 跳过空消息，避免干扰AI理解
-        if (!msg.content || msg.content.trim() === '') {
+        if (!msg.content || (typeof msg.content === 'string' && msg.content.trim() === '')) {
             continue;
         }
-        
-        if (msg.role === 'user' && msg.files && msg.files.length > 0) {
-            // 检查是否有图片文件
-            const hasImages = msg.files.some(file => file.preview && file.type && file.type.startsWith('image/'));
- // 检查是否有文本文件
- const textFiles = msg.files.filter(file => file.content && file.type === 'text/plain');
 
- if (hasImages) {
- // 使用多模态格式
- const content = [];
+        if (msg.role === 'assistant') {
+            // 处理 Assistant 消息
+            let content = msg.content || '';
+            
+            // 检查是否包含 Base64 图片 (Markdown 格式)
+            // 匹配 ![...](data:image/...)
+            const imageRegex = /!\[(.*?)\]\((data:image\/[^;]+;base64,[^)]+)\)/g;
+            let match;
+            let hasBase64Image = false;
+            
+            // 提取所有 Base64 图片
+            while ((match = imageRegex.exec(content)) !== null) {
+                hasBase64Image = true;
+                pendingAssistantImages.push(match[2]); // 保存 Base64 URL
+            }
 
- // 添加文本部分（包含原始消息和文本文件内容）
- let textContent = msg.content || '';
+            if (hasBase64Image) {
+                // 将消息中的 Base64 图片替换为简短占位符，大幅减少 Token
+                // 注意：这里我们修改的是发送给 API 的副本，不影响 UI 显示
+                content = content.replace(imageRegex, '\n[图片已生成，参考下文图片上下文]\n');
+            }
 
- // 将文本文件内容添加到消息中
- if (textFiles.length > 0) {
- textFiles.forEach(file => {
- textContent += `\n\n[文件: ${file.name}]\n${file.content}`;
- });
- }
+            messages.push({
+                role: 'assistant',
+                content: content
+            });
 
- if (textContent) {
- content.push({
- type: "text",
- text: textContent
- });
- }
+        } else if (msg.role === 'user') {
+            // 处理 User 消息
+            let contentParts = [];
+            
+            // 1. 首先添加之前 Assistant 生成的图片（作为 Vision 上下文）
+            // 这样模型就能“看见”自己刚才生成的图片
+            if (pendingAssistantImages.length > 0) {
+                pendingAssistantImages.forEach(imgUrl => {
+                    contentParts.push({
+                        type: "image_url",
+                        image_url: { url: imgUrl }
+                    });
+                });
+                // 清空已处理的图片
+                pendingAssistantImages = [];
+            }
 
- // 添加图片部分
- for (let file of msg.files) {
- if (file.preview && file.type && file.type.startsWith('image/')) {
- content.push({
- type: "image_url",
- image_url: {
- url: file.preview // base64格式的图片
- }
- });
- }
- }
+            // 2. 添加用户上传的图片
+            if (msg.files && msg.files.length > 0) {
+                 msg.files.forEach(file => {
+                    if (file.preview && file.type && file.type.startsWith('image/')) {
+                        contentParts.push({
+                            type: "image_url",
+                            image_url: { url: file.preview }
+                        });
+                    }
+                });
+            }
 
- messages.push({
- role: 'user',
- content: content
- });
- } else if (textFiles.length > 0) {
- // 没有图片但有文本文件，将文本文件内容添加到消息中
- let combinedContent = msg.content || '';
+            // 3. 构建文本部分（包含用户文本 + 文本文件内容）
+            let textContent = msg.content || '';
+            
+            // 添加文本文件内容
+            if (msg.files && msg.files.length > 0) {
+                const textFiles = msg.files.filter(file => file.content && file.type === 'text/plain');
+                if (textFiles.length > 0) {
+                    textFiles.forEach(file => {
+                        textContent += `\n\n[文件: ${file.name}]\n${file.content}`;
+                    });
+                }
+            }
 
- textFiles.forEach(file => {
- combinedContent += `\n\n[文件: ${file.name}]\n${file.content}`;
- });
+            // 如果有文本内容，添加文本部分
+            if (textContent) {
+                contentParts.push({
+                    type: "text",
+                    text: textContent
+                });
+            } else if (contentParts.length === 0) {
+                // 如果既没文本也没图片（理论上前面有空消息检查，这里防守一下），加个空文本防止报错
+                contentParts.push({
+                    type: "text",
+                    text: " "
+                });
+            }
 
- messages.push({
- role: msg.role,
- content: combinedContent
- });
- } else {
- // 没有图片和文本文件，使用普通文本格式
- messages.push({
- role: msg.role,
- content: msg.content
- });
- }
- } else {
- // 普通消息（助手回复或不含文件的用户消息）
- messages.push({
- role: msg.role,
- content: msg.content
- });
- }
- }
+            // 如果 contentParts 有图片（Assistant生成的或用户上传的），必须使用数组格式
+            const hasImages = contentParts.some(p => p.type === 'image_url');
+            
+            if (hasImages) {
+                 messages.push({
+                    role: 'user',
+                    content: contentParts
+                });
+            } else {
+                 // 纯文本消息可以使用字符串格式，也可以用数组格式。保持简单用字符串。
+                 messages.push({
+                    role: 'user',
+                    content: textContent || " "
+                });
+            }
+        } else {
+             // 其他角色（如 system）直接添加
+             messages.push({
+                 role: msg.role,
+                 content: msg.content
+             });
+        }
+    }
 
- return messages;
+    return messages;
  }
 
  // 请求 AI 响应
@@ -5053,48 +5209,48 @@ function buildMultimodalMessages(conversation) {
  }
 
  // 重新生成
- async function handleRegenerate(messageId) {
- const currentModel = getCurrentModel();
- if (!currentModel) {
- showToast('请先选择模型', 'warning');
- return;
- }
-
- // 检查当前对话是否正在生成（支持多对话并发）
- if (currentConversationId && streamingStates[currentConversationId]?.isGenerating) {
- showToast('当前对话正在生成中，请稍候', 'warning');
- return;
- }
-
- const messageElement = document.getElementById(messageId);
- if (!messageElement) return;
-
- // 找到该消息在对话历史中的索引
- const conversation = conversations.find(conv => conv.id === currentConversationId);
- if (!conversation) return;
-
- // 从界面上找到这是第几条AI消息，反推在数组中的位置
- // 注意：这可能不准确，如果中间有删除的消息。更准确的是通过内容匹配或给每条消息加ID
- // 简单起见，我们假设最后一条是AI消息，我们要重新生成它
- // 或者，如果用户点击的是中间的某条消息，我们需要删除它之后的所有消息
-
- // 简单实现：只允许重新生成最后一条AI回复
- const lastMessage = conversation.messages[conversation.messages.length - 1];
- if (lastMessage.role === 'assistant') {
- // 清空最后一条消息的内容
- lastMessage.content = '';
- saveConversations();
+  async function handleRegenerate(messageId) {
+  const currentModel = getCurrentModel();
+  if (!currentModel) {
+  showToast('请先选择模型', 'warning');
+  return;
+  }
  
- // 清空UI上的消息内容
- updateMessage(messageId, '');
- showTypingIndicator(messageId);
+  // 检查当前对话是否正在生成（支持多对话并发）
+  if (currentConversationId && streamingStates[currentConversationId]?.isGenerating) {
+  showToast('当前对话正在生成中，请稍候', 'warning');
+  return;
+  }
  
- // 重新请求
- await requestAIResponse(currentConversationId, messageId, currentModel);
- } else {
- showToast('只能重新生成最后一条AI回复', 'warning');
- }
- }
+  const messageElement = document.getElementById(messageId);
+  if (!messageElement) return;
+ 
+  // 找到该消息在对话历史中的索引
+  const conversation = conversations.find(conv => conv.id === currentConversationId);
+  if (!conversation) return;
+ 
+  // 从界面上找到这是第几条AI消息，反推在数组中的位置
+  // 注意：这可能不准确，如果中间有删除的消息。更准确的是通过内容匹配或给每条消息加ID
+  // 简单起见，我们假设最后一条是AI消息，我们要重新生成它
+  // 或者，如果用户点击的是中间的某条消息，我们需要删除它之后的所有消息
+ 
+  // 简单实现：只允许重新生成最后一条AI回复
+  const lastMessage = conversation.messages[conversation.messages.length - 1];
+  if (lastMessage.role === 'assistant') {
+  // 清空最后一条消息的内容
+  lastMessage.content = '';
+  await saveConversations(currentConversationId); // 保存更改
+  
+  // 清空UI上的消息内容
+  updateMessage(messageId, '');
+  showTypingIndicator(messageId);
+  
+  // 重新请求
+  await requestAIResponse(currentConversationId, messageId, currentModel);
+  } else {
+  showToast('只能重新生成最后一条AI回复', 'warning');
+  }
+  }
 
  // 发送消息（带重试机制）
  async function sendMessage() {
@@ -5132,6 +5288,7 @@ function buildMultimodalMessages(conversation) {
  // 手动更新对话记录（保存文件信息以便后续构建多模态消息）
  if (currentConversationId) {
  updateConversationMessage('user', displayMessage, currentFiles);
+ // updateConversationMessage 内部会调用 saveConversations
  }
 
  input.value = '';
@@ -5374,7 +5531,7 @@ if (conversation && conversation.messages.length > 0) {
 const lastMessage = conversation.messages[conversation.messages.length - 1];
 if (lastMessage.role === 'assistant') {
 lastMessage.content = content;
-saveConversations();
+saveConversationsDebounced(targetConversationId); // 使用防抖保存
 }
 }
 }
@@ -6079,7 +6236,7 @@ currentConversationId = newConversation.id;
  </div>
  `;
 
-saveConversations();
+saveConversations(newConversation.id); // 立即保存新对话
 renderConversations();
 updateMobileTitle();
 
@@ -6093,7 +6250,7 @@ toggleSidebar();
 }
 
 // 清空全部对话
-function clearAllConversations() {
+async function clearAllConversations() {
  if (conversations.length === 0) {
  showToast('没有对话需要清除', 'warning');
  return;
@@ -6117,7 +6274,9 @@ function clearAllConversations() {
  </div>
  `;
 
- saveConversations();
+ await dbManager.clear();
+ // saveConversations(); // 不需要全量保存
+ 
  renderConversations();
  updateMobileTitle();
  showToast('所有对话已清除', 'success');
@@ -6530,7 +6689,7 @@ return messageId;
 }
 
 // 删除对话
-function deleteConversation(conversationId, event) {
+async function deleteConversation(conversationId, event) {
  event.stopPropagation();
 
  const confirmText = isMobile() ? '删除这个对话？' : '确定要删除这个对话吗？';
@@ -6550,7 +6709,10 @@ function deleteConversation(conversationId, event) {
  `;
  }
 
- saveConversations();
+ // 从DB删除
+ await dbManager.delete(conversationId);
+ // 不需要调用 saveConversations() 全量保存了
+ 
  renderConversations();
  updateMobileTitle();
  showToast('对话已删除', 'success');
@@ -6682,7 +6844,7 @@ if (role === 'assistant' && conversation.title === '新对话' && conversation.m
 generateConversationTitle(conversation.id);
 }
 
-saveConversations();
+saveConversations(conversation.id);
 }
 
  // AI自动生成对话标题
@@ -6751,7 +6913,7 @@ saveConversations();
  // 更新标题
  if (generatedTitle && generatedTitle.length > 0) {
  conversation.title = generatedTitle;
- saveConversations();
+ saveConversations(conversation.id);
  renderConversations();
  updateMobileTitle();
  }
@@ -6762,7 +6924,7 @@ saveConversations();
  }
 
  // 清空当前对话
- function clearChat() {
+ async function clearChat() {
  if (!currentConversationId) {
  showToast('没有可清空的对话', 'warning');
  return;
@@ -6786,7 +6948,7 @@ saveConversations();
  </div>
  `;
 
- saveConversations();
+ await saveConversations(currentConversationId);
  renderConversations();
  updateMobileTitle();
  showToast('对话已清空', 'success');
@@ -6921,70 +7083,47 @@ saveConversations();
  }
 
 // 存储管理
-function saveConversations() {
-try {
-// 在保存前验证和清理数据
-const cleanedConversations = conversations.map(conv => {
-// 移除临时标记（如动画标记）
-const { isNewlyCreated, ...convWithoutTemp } = conv;
-return {
-...convWithoutTemp,
-messages: conv.messages.filter(msg => {
-// 只保存有效的消息
-if (msg.role !== 'user' && msg.role !== 'assistant') {
-return false;
+async function saveConversations(specificConversationId = null) {
+    try {
+        if (specificConversationId) {
+            // 如果指定了ID，只保存该对话
+            const conv = conversations.find(c => c.id === specificConversationId);
+            if (conv) {
+                // 深拷贝以处理数据清理，但不移除文件
+                const convToSave = JSON.parse(JSON.stringify(conv));
+                delete convToSave.isNewlyCreated; // 移除临时标记
+                
+                // IndexedDB 可以存储较大文件，不再强制移除 files
+                // 但为了性能，如果文件特别大，可能仍需考虑优化，目前先保留
+                await dbManager.save(convToSave);
+            }
+        } else {
+            // 如果没指定，保存所有（主要用于批量操作，如清理后的同步）
+            // 注意：这可能比较耗时，尽量使用指定ID的方式
+            for (const conv of conversations) {
+                const convToSave = JSON.parse(JSON.stringify(conv));
+                delete convToSave.isNewlyCreated;
+                await dbManager.save(convToSave);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to save conversations:', error);
+        showToast('保存对话失败', 'error');
+    }
 }
-if (!msg.content || typeof msg.content !== 'string') {
-return false;
-}
-return true;
-}).map(msg => {
-// 移除文件数据（图片base64太大，不保存到localStorage）
-const { files, ...msgWithoutFiles } = msg;
-return msgWithoutFiles;
-})
-};
-});
 
- // 只保留最近的20个对话，防止数据过大
- const conversationsToSave = cleanedConversations.slice(-20);
-
- // 尝试保存到localStorage
- const dataToSave = JSON.stringify(conversationsToSave);
-
- // 检查数据大小（localStorage通常限制5-10MB）
- const sizeInMB = new Blob([dataToSave]).size / (1024 * 1024);
-
- if (sizeInMB > 4) {
- // 如果数据超过4MB，进一步限制保存数量
- const limitedConversations = cleanedConversations.slice(-10);
- localStorage.setItem('conversations', JSON.stringify(limitedConversations));
- } else {
- localStorage.setItem('conversations', dataToSave);
+ // 防抖函数
+ function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
  }
 
- } catch (error) {
- if (error.name === 'QuotaExceededError') {
- // 只保留最近5个对话
- try {
- const limitedConversations = conversations.slice(-5).map(conv => {
- return {
- ...conv,
- messages: conv.messages.map(msg => {
- const { files, ...msgWithoutFiles } = msg;
- return msgWithoutFiles;
- })
- };
- });
- localStorage.setItem('conversations', JSON.stringify(limitedConversations));
- showToast('存储空间已满，已自动清理旧对话', 'warning');
- } catch (e) {
- showToast('存储空间不足，对话历史可能无法保存', 'error');
- }
- } else {
- }
- }
- }
+ // 防抖保存函数，避免流式输出时频繁写入DB
+ const saveConversationsDebounced = debounce((id) => saveConversations(id), 2000);
 
  // 优化Toast显示函数 - 完成后消失而不是隐藏
  function showToast(message, type = 'success') {

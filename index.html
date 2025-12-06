@@ -1462,18 +1462,19 @@ backdrop-filter: blur(10px);
  opacity: 0.5;
  }
 
-/* 代码块容器 */
-.code-block-wrapper {
+/* 代码块容器 - 修改为 details 以支持折叠 */
+details.code-block-wrapper {
 margin: 12px 0;
 border-radius: 12px;
 overflow: hidden;
 border: 1px solid var(--border-color);
 background: #282c34;
 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+transition: all 0.3s ease;
 }
 
-/* 代码块头部 */
-.code-block-header {
+/* 移除默认的 summary marker */
+summary.code-block-header {
 display: flex;
 justify-content: space-between;
 align-items: center;
@@ -1484,6 +1485,43 @@ color: #abb2bf;
 font-size: 12px;
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 user-select: none;
+cursor: pointer;
+list-style: none; /* Firefox */
+}
+
+summary.code-block-header::-webkit-details-marker {
+display: none; /* Chrome/Safari */
+}
+
+summary.code-block-header:focus {
+outline: none;
+}
+
+/* 折叠时的样式调整 */
+details.code-block-wrapper:not([open]) {
+padding-bottom: 0;
+}
+
+details.code-block-wrapper:not([open]) summary.code-block-header {
+border-bottom: none;
+}
+
+.code-block-title {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+/* 箭头图标 */
+.code-collapse-icon {
+width: 14px;
+height: 14px;
+transition: transform 0.2s;
+opacity: 0.7;
+}
+
+details.code-block-wrapper[open] .code-collapse-icon {
+transform: rotate(90deg);
 }
 
 .code-language {
@@ -1491,6 +1529,29 @@ font-weight: 600;
 text-transform: uppercase;
 letter-spacing: 0.5px;
 opacity: 0.8;
+}
+
+.code-block-actions {
+display: flex;
+gap: 8px;
+}
+
+/* 代码块生成中动画 - 优化版 */
+.code-generating-icon {
+display: inline-block;
+width: 14px;
+height: 14px;
+margin-left: 8px;
+border: 1.5px solid rgba(255, 255, 255, 0.2);
+border-top-color: rgba(255, 255, 255, 0.8);
+border-radius: 50%;
+animation: code-spin 1s linear infinite;
+vertical-align: middle;
+flex-shrink: 0;
+}
+
+@keyframes code-spin {
+to { transform: rotate(360deg); }
 }
 
 /* 代码高亮 */
@@ -1613,8 +1674,9 @@ background-color: rgba(255, 255, 255, 0.02);
 margin-bottom: 0;
 }
 
-/* 代码块复制按钮 */
-.code-block-header .copy-code-btn {
+/* 代码块操作按钮（复制/下载） */
+.code-block-header .copy-code-btn,
+.code-block-header .download-code-btn {
 background: transparent;
 border: none;
 color: #abb2bf;
@@ -1629,13 +1691,15 @@ opacity: 0.7;
 transition: all 0.2s ease;
 }
 
-.code-block-header .copy-code-btn:hover {
+.code-block-header .copy-code-btn:hover,
+.code-block-header .download-code-btn:hover {
 opacity: 1;
 background: rgba(255, 255, 255, 0.1);
 color: white;
 }
 
-.code-block-header .copy-code-btn svg {
+.code-block-header .copy-code-btn svg,
+.code-block-header .download-code-btn svg {
 width: 14px;
 height: 14px;
 }
@@ -2839,10 +2903,10 @@ box-shadow: none; /* 移除强烈阴影 */
  .conversation-item {
  /* 未选中项使用透明背景，减少白色块堆积感 */
  background: transparent;
- margin: 0 0 4px 0; /* 减小间距 */
+ margin: 0 0 12px 0; /* 增加间距 */
  border-radius: 12px;
  padding: 14px;
- border: 1px solid transparent; /* 默认无边框 */
+ border: 1px solid rgba(0, 122, 255, 0.12); /* 添加PC端那样的边框 */
  min-height: 72px;
  display: flex;
  align-items: center;
@@ -5160,6 +5224,48 @@ filterMobileModels();
  }
  }
 
+ // 语言到扩展名的映射
+ const LANGUAGE_EXT_MAP = {
+    'javascript': 'js', 'js': 'js', 'jsx': 'jsx',
+    'typescript': 'ts', 'ts': 'ts', 'tsx': 'tsx',
+    'python': 'py', 'py': 'py',
+    'html': 'html', 'xml': 'xml', 'svg': 'svg',
+    'css': 'css', 'scss': 'scss', 'sass': 'sass', 'less': 'less',
+    'java': 'java',
+    'c': 'c',
+    'cpp': 'cpp', 'c++': 'cpp',
+    'csharp': 'cs', 'c#': 'cs',
+    'go': 'go',
+    'rust': 'rs',
+    'php': 'php',
+    'ruby': 'rb',
+    'swift': 'swift',
+    'kotlin': 'kt',
+    'json': 'json',
+    'sql': 'sql',
+    'shell': 'sh', 'bash': 'sh', 'sh': 'sh', 'zsh': 'sh',
+    'yaml': 'yaml', 'yml': 'yaml',
+    'toml': 'toml', 'ini': 'ini',
+    'markdown': 'md', 'md': 'md',
+    'plaintext': 'txt', 'text': 'txt'
+ };
+
+ function getExtensionForLanguage(lang) {
+    return LANGUAGE_EXT_MAP[lang.toLowerCase()] || 'txt';
+ }
+
+ function downloadStringAsFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+ }
+
  // 格式化 JSON 内容
  function formatJSON(text) {
  try {
@@ -5632,7 +5738,7 @@ filterMobileModels();
   fullResponse += '<think>\n';
   }
   fullResponse += reasoning;
-  updateMessage(loadingId, fullResponse);
+  updateMessage(loadingId, fullResponse, true);
  }
  // 处理普通内容
  else if (content) {
@@ -5641,7 +5747,7 @@ filterMobileModels();
   fullResponse += '\n</think>\n';
   }
   fullResponse += content;
-  updateMessage(loadingId, fullResponse);
+  updateMessage(loadingId, fullResponse, true);
  }
  } catch (e) {
  }
@@ -5652,8 +5758,12 @@ filterMobileModels();
  // 确保最后如果还在思考中，要闭合标签
  if (isThinking) {
  fullResponse += '\n</think>\n';
- updateMessage(loadingId, fullResponse);
+ updateMessage(loadingId, fullResponse, true);
  }
+
+ // 生成结束，移除生成状态动画（isStreaming = false）
+ // 必须确保这行代码在 finally 之前执行，立即更新 UI
+ updateMessage(loadingId, fullResponse, false);
 
  // 更新对话记录
  updateConversationMessage('assistant', fullResponse);
@@ -5872,8 +5982,8 @@ showToast('已取消生成', 'warning');
  bubbleElement.classList.add('generating-bubble');
  messageElement.classList.add('generating');
  } else {
- // 绑定代码复制按钮事件
- bindCodeCopyButtons(bubbleElement);
+ // 绑定代码块事件
+ bindCodeBlockEvents(bubbleElement);
  }
  } else {
  const textNode = document.createTextNode(content);
@@ -6039,10 +6149,59 @@ function updateDOM(container, newHTML) {
 
         // 内容不同：更新
         if (oldNode.innerHTML !== newNode.innerHTML) {
+            // 特殊处理代码块包装器，避免头部重新渲染导致动画重置
+            if (oldNode.classList.contains('code-block-wrapper')) {
+                const oldHeader = oldNode.querySelector('.code-block-header');
+                const newHeader = newNode.querySelector('.code-block-header');
+                const oldContent = oldNode.querySelector('pre');
+                const newContent = newNode.querySelector('pre');
+
+                // 精细化更新头部：分别检查标题、操作按钮和生成状态图标
+                if (oldHeader && newHeader) {
+                    // 1. 更新标题文字（语言）
+                    const oldLang = oldHeader.querySelector('.code-language');
+                    const newLang = newHeader.querySelector('.code-language');
+                    if (oldLang && newLang && oldLang.textContent !== newLang.textContent) {
+                        oldLang.textContent = newLang.textContent;
+                    }
+
+                    // 2. 检查并更新生成状态图标
+                    // 策略：如果新节点有图标而旧节点没有，添加；如果有而旧节点也有，不动（保持动画）；如果新节点没有而旧节点有，移除
+                    const oldIcon = oldHeader.querySelector('.code-generating-icon');
+                    const newIcon = newHeader.querySelector('.code-generating-icon');
+                    
+                    if (newIcon && !oldIcon) {
+                        // 新增图标：找到标题部分插入
+                        const titleDiv = oldHeader.querySelector('.code-block-title');
+                        if (titleDiv) {
+                            titleDiv.insertAdjacentHTML('beforeend', '<span class="code-generating-icon" title="代码生成中..."></span>');
+                        }
+                    } else if (!newIcon && oldIcon) {
+                        // 移除图标
+                        oldIcon.remove();
+                    }
+                    // 如果都有图标，什么都不做，让动画继续播放，不要替换 DOM 节点
+
+                    // 3. 更新操作按钮（如果按钮HTML变了）
+                    const oldActions = oldHeader.querySelector('.code-block-actions');
+                    const newActions = newHeader.querySelector('.code-block-actions');
+                    if (oldActions && newActions && oldActions.innerHTML !== newActions.innerHTML) {
+                        oldActions.innerHTML = newActions.innerHTML;
+                        // 重新绑定事件
+                        bindCodeBlockEvents(oldNode);
+                    }
+                }
+
+                // 更新代码内容
+                if (oldContent && newContent && oldContent.innerHTML !== newContent.innerHTML) {
+                    oldContent.innerHTML = newContent.innerHTML;
+                }
+                
+                return;
+            }
+
             // 尝试递归更新列表和DIV，以支持子元素动画
-            // 排除代码块（通常整块更新）
-            if (['UL', 'OL', 'DIV'].includes(oldNode.tagName) &&
-                !oldNode.classList.contains('code-block-wrapper')) {
+            if (['UL', 'OL', 'DIV'].includes(oldNode.tagName)) {
                 updateDOM(oldNode, newNode.innerHTML);
             } else {
                 // 其他情况直接更新内容
@@ -6078,16 +6237,16 @@ function updateThinkingBox(oldBox, newBox) {
 }
 
 function bindEvents(element) {
-    if (element.querySelectorAll) {
-        // 绑定代码复制按钮
-        if (element.querySelector('.copy-code-btn')) {
-            bindCodeCopyButtons(element);
-        }
-    }
+   if (element.querySelectorAll) {
+       // 绑定代码块事件
+       if (element.querySelector('.code-block-wrapper')) {
+           bindCodeBlockEvents(element);
+       }
+   }
 }
 
 // 更新消息内容
-function updateMessage(messageId, content) {
+function updateMessage(messageId, content, isStreaming = false) {
 // 查找哪个对话拥有这个messageId
 let targetConversationId = null;
 for (const [convId, state] of Object.entries(streamingStates)) {
@@ -6188,7 +6347,7 @@ if (existingThinkingBox) {
     isThinkingOpen = !settings.thinkingCollapsed;
 }
 
-const newHTML = parseMarkdown(content, isThinkingOpen);
+const newHTML = parseMarkdown(content, isThinkingOpen, isStreaming);
 
 // 确保在更新内容前移除打字指示器（双重保险）
 const typingIndicator = bubbleElement.querySelector('.typing-indicator');
@@ -6219,8 +6378,8 @@ updateDOM(bubbleElement, newHTML);
  bubbleElement.classList.remove('generating-bubble');
  messageElement.classList.remove('generating');
 
- // 绑定代码复制按钮事件
- bindCodeCopyButtons(bubbleElement);
+ // 绑定代码块事件
+ bindCodeBlockEvents(bubbleElement);
 
  // 检查是否正在思考
  const isThinkingActive = bubbleElement.querySelector('.thinking-active') !== null;
@@ -6344,8 +6503,9 @@ updateDOM(bubbleElement, newHTML);
  // 移除操作按钮容器（桌面端在气泡内）
  clone.querySelectorAll('.message-actions').forEach(el => el.remove());
 
- // 移除可能存在的代码块复制按钮文本
+ // 移除可能存在的代码块复制按钮和下载按钮文本
  clone.querySelectorAll('.copy-code-btn').forEach(el => el.remove());
+ clone.querySelectorAll('.download-code-btn').forEach(el => el.remove());
  
  // 获取纯文本
  let text = clone.textContent.trim();
@@ -6544,8 +6704,43 @@ function getProgressInfo(text) {
  return progressHTML;
  }
 
+ // 检查代码块是否未闭合
+ function isCodeBlockOpen(text) {
+ const lines = text.split('\n');
+ let inBlock = false;
+ let fenceChar = null;
+ let fenceLength = 0;
+
+ for (const line of lines) {
+ // 匹配以可选空白开头，后跟至少3个反引号或波浪号的行
+ const match = line.match(/^(\s*)(`{3,}|~{3,})(.*)$/);
+ if (match) {
+ const [_, indent, fence, info] = match;
+
+ if (!inBlock) {
+ // 开启代码块
+ inBlock = true;
+ fenceChar = fence[0];
+ fenceLength = fence.length;
+ } else {
+ // 尝试关闭代码块
+ // 字符匹配且长度足够
+ if (fence[0] === fenceChar && fence.length >= fenceLength) {
+ // 还要确保该行没有其他内容（除了空白）
+ if (info.trim().length === 0) {
+ inBlock = false;
+ fenceChar = null;
+ fenceLength = 0;
+ }
+ }
+ }
+ }
+ }
+ return inBlock;
+ }
+
  // 解析Markdown - 只处理高亮，不绑定事件
- function parseMarkdown(text, forceOpenThinking = !settings.thinkingCollapsed) {
+ function parseMarkdown(text, forceOpenThinking = !settings.thinkingCollapsed, isStreaming = false) {
  // 首先检查是否包含进度信息
  const progressHTML = convertProgressToHTML(text);
  if (progressHTML) {
@@ -6600,13 +6795,17 @@ function getProgressInfo(text) {
  });
  }
 
+ // 计算当前文本末尾是否处于未闭合的代码块中
+ const isCodeOpen = isCodeBlockOpen(processedText);
+
  const html = marked.parse(processedText);
 
  // 处理代码高亮
  const tempDiv = document.createElement('div');
  tempDiv.innerHTML = html;
 
- tempDiv.querySelectorAll('pre code').forEach((block) => {
+ const codeBlocks = tempDiv.querySelectorAll('pre code');
+ codeBlocks.forEach((block, index) => {
  // 获取语言标识
  const langClass = Array.from(block.classList).find(cls => cls.startsWith('language-'));
  const lang = langClass ? langClass.replace('language-', '') : 'text';
@@ -6617,76 +6816,104 @@ function getProgressInfo(text) {
  // 获取 pre 元素（代码块父容器）
  const pre = block.parentElement;
  
- // 创建代码块包装容器
- const wrapper = document.createElement('div');
+ // 创建代码块包装容器 - 改为 details 以支持折叠
+ const wrapper = document.createElement('details');
  wrapper.className = 'code-block-wrapper';
+ // 默认折叠：不设置 open 属性
  
- // 创建头部 UI
- const header = document.createElement('div');
+ // 创建头部 UI - 改为 summary
+ const header = document.createElement('summary');
  header.className = 'code-block-header';
  
- // 语言标识
- const langSpan = document.createElement('span');
- langSpan.className = 'code-language';
- langSpan.textContent = lang;
+ // 标题区
+ const titleDiv = document.createElement('div');
+ titleDiv.className = 'code-block-title';
+ // 如果正在流式输出且是最后一个代码块，显示加载动画
+ // 简单的检测方法：检查是否是当前正在解析的文本的末尾附近
+ // 但这里我们已经传递了 isStreaming 参数，我们只需要知道是否是最后一个代码块
+ // 目前的实现是每次都重新解析整个 Markdown，所以只要是流式输出，并且代码块未闭合（highlight.js通常能处理未闭合的），
+ // 或者即使闭合了但仍处于流式输出中，我们都可以在最后一个代码块显示动画。
+ // 为了简单有效，我们假设如果 isStreaming 为 true，且这是最后一个代码块，就显示动画。
+ const isLastBlock = index === tempDiv.querySelectorAll('pre code').length - 1;
+ // 只有当流式输出中、是最后一个代码块、且该代码块确实未闭合时，才显示动画
+ const showGeneratingIcon = isStreaming && isLastBlock && isCodeOpen;
+
+ titleDiv.innerHTML = `
+   <svg class="code-collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+   <span class="code-language">${lang}</span>
+   ${showGeneratingIcon ? '<span class="code-generating-icon" title="代码生成中..."></span>' : ''}
+ `;
+ 
+ // 操作区
+ const actionsDiv = document.createElement('div');
+ actionsDiv.className = 'code-block-actions';
+ 
+ // 下载按钮
+ const downloadBtn = document.createElement('button');
+ downloadBtn.className = 'action-btn download-code-btn';
+ downloadBtn.setAttribute('data-code-content', block.textContent);
+ downloadBtn.setAttribute('data-language', lang);
+ downloadBtn.innerHTML = `
+   <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+   <span>下载</span>
+ `;
+ downloadBtn.title = "下载代码";
  
  // 复制按钮
  const copyBtn = document.createElement('button');
- copyBtn.className = 'copy-code-btn';
+ copyBtn.className = 'action-btn copy-code-btn';
  copyBtn.setAttribute('data-code-content', block.textContent);
  copyBtn.innerHTML = `
- <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
- <span>复制</span>
+   <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+   <span>复制</span>
  `;
+ copyBtn.title = "复制代码";
  
- // 组装头部
- header.appendChild(langSpan);
- header.appendChild(copyBtn);
+ actionsDiv.appendChild(downloadBtn);
+ actionsDiv.appendChild(copyBtn);
  
- // 替换原有结构： pre -> wrapper(header + pre)
+ header.appendChild(titleDiv);
+ header.appendChild(actionsDiv);
+ 
+ // 替换原有结构： pre -> details(summary + pre)
  pre.parentNode.insertBefore(wrapper, pre);
  wrapper.appendChild(header);
+ 
+ // 创建内容容器，方便 padding 控制
+ // const contentDiv = document.createElement('div');
+ // contentDiv.className = 'code-block-content';
+ // contentDiv.appendChild(pre);
+ // wrapper.appendChild(contentDiv);
  wrapper.appendChild(pre);
  });
 
  return tempDiv.innerHTML;
  }
 
- // 绑定代码复制按钮事件
- function bindCodeCopyButtons(container) {
+ // 绑定代码块事件（复制和下载）
+ function bindCodeBlockEvents(container) {
+ // 绑定复制按钮
  container.querySelectorAll('.copy-code-btn').forEach((button) => {
- // 移除旧的事件监听器（如果有）
+ // 移除旧的事件监听器
  const newButton = button.cloneNode(true);
  button.parentNode.replaceChild(newButton, button);
 
- // 绑定新的事件
  const copyCode = function(e) {
  e.preventDefault();
- e.stopPropagation();
+ e.stopPropagation(); // 防止触发折叠
 
- // 获取代码内容 (从按钮属性或关联的 pre code 获取)
+ // 获取代码内容
  let codeText = this.getAttribute('data-code-content');
  
  if (!codeText) {
- // 尝试从 DOM 结构查找
  const wrapper = this.closest('.code-block-wrapper');
  if (wrapper) {
  const codeBlock = wrapper.querySelector('code');
- if (codeBlock) {
- codeText = codeBlock.textContent;
- }
+ if (codeBlock) codeText = codeBlock.textContent;
  }
  }
  
- // 如果还是没有，尝试旧的方式
- if (!codeText) {
- const pre = this.closest('pre'); // 旧结构兼容
- if (pre) {
- codeText = pre.querySelector('code')?.textContent;
- }
- }
-
- if (!codeText) return; // 无法获取内容，直接返回
+ if (!codeText) return;
 
  if (navigator.clipboard && window.isSecureContext) {
  navigator.clipboard.writeText(codeText).then(() => {
@@ -6706,6 +6933,39 @@ function getProgressInfo(text) {
 
  newButton.addEventListener('click', copyCode);
  newButton.addEventListener('touchend', copyCode);
+ });
+
+ // 绑定下载按钮
+ container.querySelectorAll('.download-code-btn').forEach((button) => {
+ const newButton = button.cloneNode(true);
+ button.parentNode.replaceChild(newButton, button);
+
+ const downloadCode = function(e) {
+ e.preventDefault();
+ e.stopPropagation(); // 防止触发折叠
+
+ let codeText = this.getAttribute('data-code-content');
+ let lang = this.getAttribute('data-language') || 'text';
+ 
+ if (!codeText) {
+ const wrapper = this.closest('.code-block-wrapper');
+ if (wrapper) {
+ const codeBlock = wrapper.querySelector('code');
+ if (codeBlock) codeText = codeBlock.textContent;
+ }
+ }
+ 
+ if (!codeText) return;
+
+ const ext = getExtensionForLanguage(lang);
+ const filename = `code_${Date.now()}.${ext}`;
+ 
+ downloadStringAsFile(codeText, filename);
+ showToast('正在下载代码...', 'success');
+ };
+
+ newButton.addEventListener('click', downloadCode);
+ newButton.addEventListener('touchend', downloadCode);
  });
  }
 
@@ -7013,8 +7273,8 @@ function addMessageToUI(role, content, files = []) {
  bubbleElement.classList.add('generating-bubble');
  messageElement.classList.add('generating');
  } else {
- // 绑定代码复制按钮事件
- bindCodeCopyButtons(bubbleElement);
+ // 绑定代码块事件
+ bindCodeBlockEvents(bubbleElement);
  }
  }
 
@@ -7197,8 +7457,8 @@ if (isGeneratingProgress) {
 bubbleElement.classList.add('generating-bubble');
 messageElement.classList.add('generating');
 } else {
-// 绑定代码复制按钮事件
-bindCodeCopyButtons(bubbleElement);
+// 绑定代码块事件
+bindCodeBlockEvents(bubbleElement);
 }
 }
 

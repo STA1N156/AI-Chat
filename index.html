@@ -5879,7 +5879,7 @@ filterMobileModels();
  updateFilePreview();
 
  // 显示加载状态
- const loadingId = addMessage('assistant', '');
+ const loadingId = addMessage('assistant', '', [], true);
  showTypingIndicator(loadingId);
 
  // 立即将空的assistant消息保存到对话记录，以便切换时能恢复
@@ -5901,7 +5901,7 @@ showToast('已取消生成', 'warning');
 }
 
  // 添加消息到界面
- function addMessage(role, content, files = []) {
+ function addMessage(role, content, files = [], isGenerating = false) {
 
  if (role !== 'user' && role !== 'assistant') {
  return null;
@@ -5992,7 +5992,7 @@ showToast('已取消生成', 'warning');
  }
 
  // 添加复制按钮和重新生成按钮（仅对AI消息且非生成状态）
- if (role === 'assistant' && !isGeneratingProgress) {
+ if (role === 'assistant' && !isGeneratingProgress && !isGenerating) {
  // 气泡内的操作按钮（桌面端）
  const actionsElement = document.createElement('div');
  actionsElement.className = 'message-actions';
@@ -6385,7 +6385,7 @@ updateDOM(bubbleElement, newHTML);
  const isThinkingActive = bubbleElement.querySelector('.thinking-active') !== null;
 
  // 如果正在思考，不显示操作按钮
- if (!isThinkingActive) {
+ if (!isThinkingActive && !isStreaming) {
  // 重新创建气泡内的操作按钮（桌面端）
  let actionsElement = bubbleElement.querySelector('.message-actions');
  if (!actionsElement) {
@@ -6771,7 +6771,7 @@ function getProgressInfo(text) {
    </svg>
  </span>`;
 
- const arrowIcon = `<svg class="thinking-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+ const arrowIcon = `<svg class="thinking-icon" viewBox="0 0 24 24" width="163" height="163" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
  
  return `\n\n<details class="thinking-box"${openAttr}>
  <summary class="thinking-summary">
@@ -7170,10 +7170,10 @@ const validContent = msg.content || '';
 
 // 对于正在流式输出的消息，使用保存的messageId
 if (isStreamingMessage) {
-// 重新创建消息元素时使用相同的messageId
-addMessageToUIWithId(validRole, validContent, msg.files || [], streamingState.messageId);
+    // 重新创建消息元素时使用相同的messageId
+    addMessageToUIWithId(validRole, validContent, msg.files || [], streamingState.messageId, true);
 } else {
-addMessageToUI(validRole, validContent, msg.files || []);
+    addMessageToUI(validRole, validContent, msg.files || [], false);
 }
 });
 }
@@ -7191,7 +7191,7 @@ toggleSidebar();
 }
 
 // 仅添加到UI，不更新对话记录
-function addMessageToUI(role, content, files = []) {
+function addMessageToUI(role, content, files = [], isGenerating = false) {
 
  if (role !== 'user' && role !== 'assistant') {
  return;
@@ -7376,9 +7376,9 @@ behavior: 'smooth'
 }
 
 // 使用指定ID添加消息到UI（用于恢复流式输出状态）
-function addMessageToUIWithId(role, content, files = [], specifiedMessageId = null) {
+function addMessageToUIWithId(role, content, files = [], specifiedMessageId = null, isGenerating = false) {
 
-if (role !== 'user' && role !== 'assistant') {
+ if (role !== 'user' && role !== 'assistant') {
 return;
 }
 
@@ -7467,7 +7467,7 @@ const isGeneratingProgress = convertProgressToHTML(content) !== null;
 const isThinkingActive = bubbleElement.querySelector('.thinking-active') !== null;
 const isGeneratingUI = role === 'assistant' && (isGeneratingProgress || isThinkingActive);
 
-if (role === 'assistant' && !isGeneratingUI) {
+if (role === 'assistant' && !isGeneratingUI && !isGenerating) {
 // 气泡内的复制按钮（桌面端）
 const actionsElement = document.createElement('div');
 actionsElement.className = 'message-actions';

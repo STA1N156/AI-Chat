@@ -702,10 +702,10 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  }
 
 .message-bubble {
- max-width: min(75%, 1000px);
- padding: 14px 18px;
- border-radius: 18px;
- position: relative;
+max-width: min(75%, 1000px);
+padding: 14px 24px; /* 增加左右内边距，防止列表项被切 */
+border-radius: 18px;
+position: relative;
  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
  overflow: visible;
  overflow-wrap: break-word;
@@ -735,8 +735,8 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  }
 
  .message.user .message-file-item {
- background: rgba(255, 255, 255, 0.2);
- color: white;
+ background: rgba(0, 0, 0, 0.05);
+ color: var(--text-primary);
  }
 
  .message-file-icon {
@@ -752,16 +752,22 @@ min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
  }
 
  .message.user .message-bubble {
- background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
- color: white;
+ background: var(--card-background);
+ color: var(--text-primary);
  border-bottom-right-radius: 4px;
+ border: 1px solid var(--border-color);
  }
 
  .message.assistant .message-bubble {
- background-color: var(--card-background);
+ background-color: transparent;
  color: var(--text-primary);
  border-bottom-left-radius: 4px;
- border: 1px solid var(--border-color);
+ border: none;
+ box-shadow: none;
+ padding-left: 12px; /* 增加左侧内边距，防止列表符号被切 */
+ padding-right: 12px;
+ padding-bottom: 28px; /* 增加底部内边距，为操作按钮留出空间 */
+ max-width: 100%;
  }
 
  .message-actions {
@@ -1541,6 +1547,69 @@ overflow-wrap: normal;
 word-wrap: normal;
 }
 
+.message-bubble ul, .message-bubble ol {
+margin-left: 24px; /* 增加列表左边距 */
+padding-left: 0;
+list-style-position: outside; /* 确保列表符号在内容外部 */
+margin-bottom: 1em;
+}
+
+.message-bubble li {
+margin-bottom: 0.5em;
+}
+
+.message-bubble p {
+margin-bottom: 1em;
+}
+
+.message-bubble pre {
+margin-bottom: 1em;
+}
+
+.message-bubble blockquote {
+margin-bottom: 1em;
+}
+
+.message-bubble table {
+width: 100%;
+border-collapse: collapse;
+margin-bottom: 1em;
+font-size: 0.95em;
+display: block;
+overflow-x: auto;
+border-spacing: 0;
+}
+
+.message-bubble th,
+.message-bubble td {
+border: 1px solid var(--border-color);
+padding: 8px 12px;
+text-align: left;
+}
+
+.message-bubble th {
+background-color: rgba(0, 0, 0, 0.03);
+font-weight: 600;
+}
+
+.message-bubble tr:nth-child(even) {
+background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+.message-bubble th {
+background-color: rgba(255, 255, 255, 0.05);
+}
+.message-bubble tr:nth-child(even) {
+background-color: rgba(255, 255, 255, 0.02);
+}
+}
+
+.message-bubble *:last-child {
+margin-bottom: 0;
+}
+
 /* 代码块复制按钮 */
 .code-block-header .copy-code-btn {
 background: transparent;
@@ -1718,7 +1787,8 @@ height: 14px;
 
 /* 优化消息气泡最大宽度 */
 .message-bubble {
-max-width: min(65%, 1200px); /* 限制桌面端气泡最大宽度为1200px，避免单行内容过长 */
+max-width: 900px !important; /* 强制限制桌面端气泡最大宽度为800px，确保生效 */
+width: fit-content;
 }
 
  /* 优化输入容器 */
@@ -2619,26 +2689,24 @@ flex-direction: column;
  position: fixed;
  top: 0;
  left: 0;
- width: 70vw;
- max-width: 280px;
+ width: 75vw;
+ max-width: 300px;
  height: 100vh;
  height: 100dvh;
- background: rgba(255, 255, 255, 0.95);
+ background: #FFFFFF; /* 纯白背景，解决白边和性能问题 */
  border-radius: 0 24px 24px 0;
  transform: translateX(-100%) translateZ(0);
- transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+ transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1); /* 更优雅的缓动曲线 */
  z-index: 2000;
- box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
+ box-shadow: 10px 0 40px rgba(0, 0, 0, 0.1); /* 更柔和的投影 */
  display: flex;
  flex-direction: column;
  overflow: hidden;
- border: 1px solid rgba(255, 255, 255, 0.2);
+ border-right: 1px solid rgba(0, 0, 0, 0.05); /* 极淡的边框替代 */
  will-change: transform;
  -webkit-transform: translateX(-100%) translateZ(0);
  backface-visibility: hidden;
- perspective: 1000px;
- -webkit-perspective: 1000px;
-}
+ }
 
 .sidebar.open {
  transform: translateX(0) translateZ(0);
@@ -2647,19 +2715,18 @@ flex-direction: column;
 
  .sidebar-header {
  padding: max(20px, env(safe-area-inset-top, 20px)) 16px 20px;
- background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
- color: white;
+ background: var(--card-background); /* 改为纯白背景 */
+ color: var(--text-primary);
  position: relative;
  flex-shrink: 0;
- border-radius: 0 24px 0 0;
- box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+ border-bottom: 1px solid var(--border-color); /* 简单的分隔线 */
+ box-shadow: none; /* 移除强烈阴影 */
  }
 
  .mobile-sidebar-title {
  font-size: 18px;
  font-weight: 700;
  margin-bottom: 16px;
- text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
  display: flex;
  align-items: center;
  justify-content: flex-start;
@@ -2667,50 +2734,47 @@ flex-direction: column;
  top: 20px;
  left: 16px;
  margin-bottom: 0;
+ color: var(--text-primary); /* 适配亮色背景 */
  }
 
  .mobile-sidebar-title svg {
  width: 24px;
  height: 24px;
- stroke: white;
+ stroke: var(--primary-color); /* 使用主题色 */
  stroke-width: 2;
  stroke-linecap: round;
  stroke-linejoin: round;
  fill: none;
- filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
  }
 
  .mobile-back-btn {
  position: absolute;
  top: max(20px, env(safe-area-inset-top, 20px));
  right: 16px;
- background: rgba(255, 255, 255, 0.2);
- border: none;
- color: white;
- width: 36px;
- height: 36px;
+ background: var(--background-color);
+ border: 1px solid var(--border-color);
+ color: var(--text-secondary);
+ width: 32px;
+ height: 32px;
  border-radius: 50%;
  cursor: pointer;
  transition: all 0.2s ease;
  display: flex;
  align-items: center;
  justify-content: center;
- backdrop-filter: blur(20px);
- -webkit-backdrop-filter: blur(20px);
- border: 1px solid rgba(255, 255, 255, 0.3);
- box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
  }
 
  .mobile-back-btn:active {
- background: rgba(255, 255, 255, 0.3);
+ background: var(--border-color);
  transform: scale(0.95);
+ color: var(--text-primary);
  }
 
  .mobile-back-btn svg {
- width: 18px;
- height: 18px;
- stroke: white;
- stroke-width: 2.5;
+ width: 16px;
+ height: 16px;
+ stroke: currentColor;
+ stroke-width: 2;
  stroke-linecap: round;
  stroke-linejoin: round;
  fill: none;
@@ -2723,26 +2787,39 @@ flex-direction: column;
  }
 
  .new-chat-btn, .clear-all-btn {
- background: rgba(255, 255, 255, 0.2);
- border: 1px solid rgba(255, 255, 255, 0.3);
- color: white;
- padding: 14px 16px;
- border-radius: 16px;
- font-size: 15px;
+ background: var(--background-color);
+ border: 1px solid var(--border-color);
+ color: var(--text-primary);
+ padding: 12px 16px;
+ border-radius: 12px;
+ font-size: 14px;
  font-weight: 600;
- min-height: 48px;
- box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
- text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
- transition: transform 0.2s ease, background 0.2s ease;
- will-change: transform;
- transform: translateZ(0);
- -webkit-transform: translateZ(0);
+ min-height: 44px;
+ box-shadow: none;
+ text-shadow: none;
+ transition: all 0.2s ease;
+ }
+ 
+ .new-chat-btn {
+ color: var(--primary-color);
+ background: rgba(0, 122, 255, 0.05);
+ border-color: rgba(0, 122, 255, 0.1);
+ }
+ 
+ .clear-all-btn {
+ color: var(--danger-color);
+ background: rgba(255, 59, 48, 0.05);
+ border-color: rgba(255, 59, 48, 0.1);
  }
 
- .new-chat-btn:active, .clear-all-btn:active {
- background: rgba(255, 255, 255, 0.3);
- transform: scale(0.98) translateZ(0);
- -webkit-transform: scale(0.98) translateZ(0);
+ .new-chat-btn:active {
+ background: rgba(0, 122, 255, 0.1);
+ transform: scale(0.98);
+ }
+ 
+ .clear-all-btn:active {
+ background: rgba(255, 59, 48, 0.1);
+ transform: scale(0.98);
  }
 
  .conversation-list {
@@ -2756,16 +2833,16 @@ flex-direction: column;
  }
 
  .conversation-item {
- background: rgba(255, 255, 255, 0.9);
- margin: 0 0 10px 0;
- border-radius: 16px;
+ background: var(--card-background);
+ margin: 0 0 8px 0;
+ border-radius: 12px;
  padding: 14px;
- border: 1px solid rgba(255, 255, 255, 0.3);
+ border: 1px solid var(--border-color);
  min-height: 72px;
  display: flex;
  align-items: center;
- box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
- transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+ box-shadow: none; /* 移除阴影，更加扁平化 */
+ transition: all 0.2s ease;
  will-change: transform;
  transform: translateZ(0);
  -webkit-transform: translateZ(0);
@@ -2780,16 +2857,16 @@ flex-direction: column;
  }
 
  .conversation-item.active {
- background: rgba(0, 122, 255, 0.15);
- border: 2px solid var(--primary-color);
- color: var(--text-primary);
- box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+ background: rgba(0, 122, 255, 0.08); /* 更柔和的激活背景 */
+ border: 1px solid var(--primary-color); /* 边框变细 */
+ color: var(--primary-color); /* 文字变色 */
+ box-shadow: none;
  }
 
  .conversation-item:active {
  transform: scale(0.98) translateZ(0);
  -webkit-transform: scale(0.98) translateZ(0);
- background: rgba(0, 122, 255, 0.1);
+ background: var(--background-color);
  }
 
  .conversation-header {
@@ -2815,31 +2892,39 @@ flex-direction: column;
 
  .conversation-count {
  font-size: 11px;
- padding: 3px 8px;
- border-radius: 10px;
- background: rgba(0, 122, 255, 0.15);
+ padding: 2px 6px;
+ border-radius: 6px;
+ background: var(--background-color);
+ color: var(--text-secondary);
+ border: 1px solid var(--border-color);
+ }
+ 
+ .conversation-item.active .conversation-count {
+ background: white;
+ color: var(--primary-color);
+ border-color: transparent;
  }
 
  .delete-btn {
  opacity: 1;
- width: 36px;
- height: 36px;
- border-radius: 18px;
- font-size: 16px;
- background: rgba(255, 59, 48, 0.15);
- border: 1px solid rgba(255, 59, 48, 0.2);
- box-shadow: 0 2px 6px rgba(255, 59, 48, 0.1);
- transition: transform 0.2s ease, background 0.2s ease;
- will-change: transform;
- transform: translateZ(0);
- -webkit-transform: translateZ(0);
+ width: 32px;
+ height: 32px;
+ border-radius: 50%;
+ font-size: 14px;
+ background: transparent;
+ border: none;
+ color: var(--text-secondary);
+ box-shadow: none;
+ transition: all 0.2s ease;
+ display: flex;
+ align-items: center;
+ justify-content: center;
  }
 
  .delete-btn:active {
- background: var(--danger-color);
- color: white;
- transform: scale(0.95) translateZ(0);
- -webkit-transform: scale(0.95) translateZ(0);
+ background: rgba(255, 59, 48, 0.1);
+ color: var(--danger-color);
+ transform: scale(0.9);
  }
 
  .header {
@@ -2903,15 +2988,20 @@ flex-direction: column;
  .message.user .message-bubble {
  border-bottom-right-radius: 4px;
  margin-left: 6%;
- background: var(--primary-color);
- color: white;
+ background: var(--card-background);
+ color: var(--text-primary);
+ border: 1px solid var(--border-color);
  }
 
  .message.assistant .message-bubble {
  border-bottom-left-radius: 4px;
- margin-right: 6%;
- background: var(--card-background);
- border: 1px solid var(--border-color);
+ margin-right: 0;
+ background: transparent;
+ border: none;
+ box-shadow: none;
+ padding-left: 8px; /* 移动端增加少量内边距 */
+ padding-right: 8px;
+ max-width: 100%;
  }
 
  /* 移动端复制按钮优化 - 放在气泡内部右下角 */
@@ -3302,15 +3392,16 @@ flex-direction: column;
  }
 
  .sidebar-empty-icon {
- font-size: 64px;
- margin-bottom: 24px;
- opacity: 0.3;
+ font-size: 48px;
+ margin-bottom: 16px;
+ opacity: 0.2;
+ filter: grayscale(100%);
  }
 
  .sidebar-empty h4 {
- font-size: 18px;
+ font-size: 16px;
  font-weight: 600;
- margin-bottom: 12px;
+ margin-bottom: 8px;
  color: var(--text-primary);
  }
 
@@ -3569,25 +3660,61 @@ stroke: var(--primary-color);
  }
  }
 
- /* 思维链折叠样式 */
+ /* 思维链折叠样式 - 无边框精美样式 */
  details.thinking-box {
  margin-bottom: 1rem;
- border-radius: 12px;
- background-color: rgba(0, 0, 0, 0.03);
- border: 1px solid var(--border-color);
+ border-radius: 0;
+ background-color: transparent;
+ border: none;
  overflow: hidden;
  transition: all 0.3s ease;
  min-width: 160px;
+ position: relative;
+ padding-left: 12px; /* 为左侧竖线留出空间 */
+ }
+
+ /* 左侧竖线装饰 */
+ details.thinking-box::before {
+ content: '';
+ position: absolute;
+ left: 0;
+ top: 10px;
+ bottom: 10px;
+ width: 2px;
+ background-color: var(--border-color);
+ border-radius: 2px;
+ transition: background-color 0.3s;
+ }
+
+ /* 展开时竖线变色 - 浅灰色 */
+ details.thinking-box[open]::before {
+ background-color: rgba(0, 0, 0, 0.15);
+ }
+
+ /* 暗色模式适配 */
+ @media (prefers-color-scheme: dark) {
+ details.thinking-box[open]::before {
+ background-color: rgba(255, 255, 255, 0.2);
+ }
+ }
+
+ /* 动态文字控制 */
+ .thinking-status-text.default-text::after {
+ content: "显示思考过程";
+ }
+
+ details.thinking-box[open] .thinking-status-text.default-text::after {
+ content: "隐藏思考过程";
  }
 
  details.thinking-box[open] {
- background-color: rgba(0, 0, 0, 0.05);
+ background-color: transparent;
  }
 
  summary.thinking-summary {
- padding: 12px 14px;
+ padding: 8px 4px;
  cursor: pointer;
- font-weight: 600;
+ font-weight: 500;
  font-size: 13px;
  color: var(--text-secondary);
  display: flex;
@@ -3596,12 +3723,12 @@ stroke: var(--primary-color);
  user-select: none;
  transition: color 0.2s;
  outline: none;
- -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+ -webkit-tap-highlight-color: transparent;
  }
 
  @media (hover: hover) {
  summary.thinking-summary:hover {
- color: var(--primary-color);
+ color: var(--text-primary);
  }
  }
 
@@ -3610,35 +3737,161 @@ stroke: var(--primary-color);
  display: none;
  }
 
+ /* 指示图标 */
  summary.thinking-summary .thinking-icon {
- width: 16px;
- height: 16px;
+ width: 14px;
+ height: 14px;
  transition: transform 0.3s ease;
+ color: var(--text-secondary);
  }
 
  details.thinking-box[open] summary.thinking-summary .thinking-icon {
- transform: rotate(90deg);
+ transform: rotate(180deg);
+ }
+
+ /* Gemini Logo 样式 */
+ .gemini-logo {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ margin-right: 6px;
+ }
+ 
+ .gemini-logo svg {
+ width: 24px;
+ height: 24px;
+ fill: url(#gemini-gradient);
+ transition: all 0.3s ease;
+ }
+
+ /* 思考时的动态效果 */
+ @keyframes gemini-pulse-rotate {
+ 0% {
+ transform: rotate(0deg) scale(1);
+ filter: drop-shadow(0 0 2px rgba(78, 117, 246, 0.3));
+ }
+ 50% {
+ transform: rotate(180deg) scale(1.1);
+ filter: drop-shadow(0 0 8px rgba(78, 117, 246, 0.6));
+ }
+ 100% {
+ transform: rotate(360deg) scale(1);
+ filter: drop-shadow(0 0 2px rgba(78, 117, 246, 0.3));
+ }
+ }
+
+ .gemini-logo.thinking-active svg {
+ animation: gemini-pulse-rotate 2s linear infinite;
  }
 
  .thinking-content {
- padding: 12px 14px;
- border-top: 1px solid var(--border-color);
- font-size: 14px;
- color: var(--text-secondary);
+ padding: 8px 4px 16px 12px;
+ border-top: none;
+ font-size: 14px; /* 稍微减小字体以区分正文 */
+ color: var(--text-primary);
  line-height: 1.6;
- background-color: rgba(255, 255, 255, 0.3);
+ background-color: transparent;
+ opacity: 0.6;
+ }
+
+ /* 思考内容Markdown样式优化 */
+ .thinking-content p {
+ margin-bottom: 0.6em;
+ }
+
+ .thinking-content ul,
+ .thinking-content ol {
+ margin-top: 0.4em;
+ margin-bottom: 0.6em;
+ margin-left: 1.2em;
+ padding-left: 0;
+ }
+
+ .thinking-content li {
+ margin-bottom: 0.2em;
+ }
+
+ .thinking-content pre {
+ margin: 0.6em 0;
+ background: rgba(0, 0, 0, 0.03) !important; /* 更淡的背景 */
+ border: 1px solid rgba(0, 0, 0, 0.05);
+ border-radius: 6px;
+ padding: 10px !important;
+ }
+
+ .thinking-content code {
+ font-size: 0.9em;
+ background: rgba(0, 0, 0, 0.04);
+ padding: 0.1em 0.3em;
+ border-radius: 3px;
+ }
+ 
+ .thinking-content pre code {
+ background: transparent;
+ padding: 0;
+ }
+
+ .thinking-content blockquote {
+ margin: 0.6em 0;
+ padding-left: 0.8em;
+ border-left: 2px solid var(--border-color);
+ opacity: 0.8;
+ }
+ 
+ .thinking-content *:last-child {
+ margin-bottom: 0;
+ }
+
+ .thinking-content h1,
+ .thinking-content h2,
+ .thinking-content h3,
+ .thinking-content h4,
+ .thinking-content h5,
+ .thinking-content h6 {
+ font-size: 1.1em;
+ margin-top: 1em;
+ margin-bottom: 0.5em;
+ font-weight: 600;
+ line-height: 1.4;
+ }
+ 
+ .thinking-content table {
+ font-size: 0.9em;
+ border-collapse: collapse;
+ margin: 0.6em 0;
+ width: 100%;
+ }
+ 
+ .thinking-content th,
+ .thinking-content td {
+ border: 1px solid var(--border-color);
+ padding: 4px 8px;
+ }
+
+ .thinking-content th {
+ background: rgba(0, 0, 0, 0.02);
  }
 
  /* 暗色模式适配 */
  @media (prefers-color-scheme: dark) {
  details.thinking-box {
- background-color: rgba(255, 255, 255, 0.05);
+ background-color: transparent;
  }
  details.thinking-box[open] {
- background-color: rgba(255, 255, 255, 0.08);
+ background-color: transparent;
  }
  .thinking-content {
- background-color: rgba(0, 0, 0, 0.2);
+ background-color: transparent;
+ }
+ .thinking-content pre {
+ background: rgba(255, 255, 255, 0.05) !important;
+ border-color: rgba(255, 255, 255, 0.1);
+ }
+ .thinking-content code {
+ background: rgba(255, 255, 255, 0.1);
+ }
+ .thinking-content th {
+ background: rgba(255, 255, 255, 0.05);
  }
  }
 
@@ -5783,26 +6036,38 @@ const newHTML = parseMarkdown(content, isThinkingOpen);
 // 尝试智能更新以保留动画状态
 let updated = false;
 
-// 检查是否正在思考（旧的有 spinner）
-const oldSpinner = existingThinkingBox ? existingThinkingBox.querySelector('.thinking-spinner') : null;
-
-if (oldSpinner) {
+// 检查是否已有思考框
+if (existingThinkingBox) {
     // 创建临时容器解析新 HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = newHTML;
     const newThinkingBox = tempDiv.querySelector('.thinking-box');
-    const newSpinner = newThinkingBox ? newThinkingBox.querySelector('.thinking-spinner') : null;
     
-    // 如果新旧都在思考中，尝试局部更新
-    if (newThinkingBox && newSpinner) {
-        // 1. 更新思考内容
+    // 如果新旧都有思考框，尝试局部更新
+    if (newThinkingBox) {
+        // 1. 更新思考内容，但不触碰 summary (包含动画图标)
         const newContent = newThinkingBox.querySelector('.thinking-content').innerHTML;
         const oldContentDiv = existingThinkingBox.querySelector('.thinking-content');
+        
         if (oldContentDiv && oldContentDiv.innerHTML !== newContent) {
             oldContentDiv.innerHTML = newContent;
         }
         
-        // 2. 更新思考框之后的内容（正文）
+        // 2. 更新状态文本（如果思考结束）
+        // 检查新状态是否还在思考
+        const newIsThinking = newThinkingBox.querySelector('.thinking-active');
+        const oldIsThinking = existingThinkingBox.querySelector('.thinking-active');
+        
+        // 如果状态改变（思考完成），需要更新图标和类名
+        if (!newIsThinking && oldIsThinking) {
+            const oldSummary = existingThinkingBox.querySelector('.thinking-summary');
+            const newSummary = newThinkingBox.querySelector('.thinking-summary');
+            if (oldSummary && newSummary) {
+                oldSummary.innerHTML = newSummary.innerHTML;
+            }
+        }
+        
+        // 3. 更新思考框之后的内容（正文）
         // 移除 tempDiv 中的 thinking-box，剩下的就是正文
         newThinkingBox.remove();
         
@@ -5850,6 +6115,11 @@ if (!updated) {
  // 绑定代码复制按钮事件
  bindCodeCopyButtons(bubbleElement);
 
+ // 检查是否正在思考
+ const isThinkingActive = bubbleElement.querySelector('.thinking-active') !== null;
+
+ // 如果正在思考，不显示操作按钮
+ if (!isThinkingActive) {
  // 重新创建气泡内的操作按钮（桌面端）
  let actionsElement = bubbleElement.querySelector('.message-actions');
  if (!actionsElement) {
@@ -5926,6 +6196,7 @@ if (!updated) {
  });
  actionsWrapper.appendChild(copyBtnOutside);
  messageElement.appendChild(actionsWrapper);
+ }
  }
  }
 
@@ -6180,17 +6451,31 @@ function getProgressInfo(text) {
  // 生成思考框HTML的辅助函数
  const createThinkingHTML = (innerContent, isThinking) => {
  const openAttr = forceOpenThinking ? ' open' : '';
- const statusText = isThinking ? '思考中' : '已深度思考';
- const statusIconHTML = isThinking
- ? '<div class="thinking-spinner"></div>'
- : '<svg class="thinking-check-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
- const arrowIcon = `<svg class="thinking-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`;
+ // 如果正在思考，显示"正在思考..."，否则留空由CSS控制显示"显示/隐藏思考过程"
+ const statusText = isThinking ? '正在思考...' : '';
+ const statusClass = isThinking ? '' : ' default-text';
+ const activeClass = isThinking ? ' thinking-active' : '';
+ 
+ // Gemini Logo SVG
+ const geminiLogo = `<span class="gemini-logo${activeClass}">
+   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+   <defs>
+   <linearGradient id="gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+   <stop offset="0%" style="stop-color:#4E75F6;stop-opacity:1" />
+   <stop offset="100%" style="stop-color:#FF8F76;stop-opacity:1" />
+   </linearGradient>
+   </defs>
+   <path d="M19.07 4.93L17.07 6.93L19.07 8.93L21.07 6.93L19.07 4.93ZM10.5 2C10.5 2 9.5 7 6.5 10C3.5 13 2.5 13 2.5 13C2.5 13 7.5 14 10.5 17C13.5 20 14.5 22 14.5 22C14.5 22 15.5 17 18.5 14C21.5 11 22.5 11 22.5 11C22.5 11 17.5 10 14.5 7C11.5 4 10.5 2 10.5 2Z" fill="url(#gemini-gradient)"/>
+   </svg>
+ </span>`;
+
+ const arrowIcon = `<svg class="thinking-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
  
  return `\n\n<details class="thinking-box"${openAttr}>
  <summary class="thinking-summary">
+ ${geminiLogo}
+ <span class="thinking-status-text${statusClass}">${statusText}</span>
  ${arrowIcon}
- ${statusIconHTML}
- <span class="thinking-status-text">${statusText}</span>
  </summary>
  <div class="thinking-content">\n\n${innerContent}\n\n</div>
  </details>\n\n`;
@@ -6600,8 +6885,10 @@ function addMessageToUI(role, content, files = []) {
  }
  }
 
- // 检查是否是生成状态
- const isGeneratingUI = role === 'assistant' && convertProgressToHTML(content) !== null;
+ // 检查是否是生成状态 (进度条模式 或 正在思考模式)
+ const isGeneratingProgress = convertProgressToHTML(content) !== null;
+ const isThinkingActive = bubbleElement.querySelector('.thinking-active') !== null;
+ const isGeneratingUI = role === 'assistant' && (isGeneratingProgress || isThinkingActive);
 
  if (role === 'assistant' && !isGeneratingUI) {
  // 气泡内的操作按钮（桌面端）
@@ -6782,8 +7069,10 @@ bindCodeCopyButtons(bubbleElement);
 }
 }
 
-// 检查是否是生成状态
-const isGeneratingUI = role === 'assistant' && convertProgressToHTML(content) !== null;
+// 检查是否是生成状态 (进度条模式 或 正在思考模式)
+const isGeneratingProgress = convertProgressToHTML(content) !== null;
+const isThinkingActive = bubbleElement.querySelector('.thinking-active') !== null;
+const isGeneratingUI = role === 'assistant' && (isGeneratingProgress || isThinkingActive);
 
 if (role === 'assistant' && !isGeneratingUI) {
 // 气泡内的复制按钮（桌面端）

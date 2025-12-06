@@ -20,7 +20,8 @@ box-sizing: border-box;
 :root {
  --primary-color: #007AFF;
  --secondary-color: #5856D6;
- --background-color: #F5F5F7;
+ /* 优化后的背景色：更柔和的冷灰调，减少视觉疲劳 */
+ --background-color: #F0F2F5;
  --card-background: #FFFFFF;
  --text-primary: #1D1D1F;
  --text-secondary: #86868B;
@@ -33,7 +34,7 @@ box-sizing: border-box;
  --warning-color: #FF9500;
  --error-color: #FF3B30;
  --danger-color: #FF453A;
- --sidebar-bg: rgba(252, 252, 254, 0.85);
+ --sidebar-bg: rgba(255, 255, 255, 0.95); /* 更干净的侧边栏 */
  --conversation-bg: rgba(255, 255, 255, 0.6);
  --conversation-hover: rgba(0, 0, 0, 0.04);
  --conversation-active: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -752,10 +753,12 @@ position: relative;
  }
 
  .message.user .message-bubble {
- background: var(--card-background);
+ /* 用户气泡：使用极淡的品牌色背景，与白色背景区分，更显高级 */
+ background: linear-gradient(135deg, #FFFFFF 0%, #F5F7FF 100%);
  color: var(--text-primary);
  border-bottom-right-radius: 4px;
- border: 1px solid var(--border-color);
+ border: 1px solid rgba(0, 122, 255, 0.1);
+ box-shadow: 0 2px 8px rgba(0, 122, 255, 0.05);
  }
 
  .message.assistant .message-bubble {
@@ -2685,43 +2688,44 @@ flex-direction: column;
 }
 
 /* 移动端侧边栏 - 性能优化版本 */
- .sidebar {
- position: fixed;
- top: 0;
- left: 0;
- width: 75vw;
- max-width: 300px;
- height: 100vh;
- height: 100dvh;
- background: #FFFFFF; /* 纯白背景，解决白边和性能问题 */
- border-radius: 0 24px 24px 0;
- transform: translateX(-100%) translateZ(0);
- transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1); /* 更优雅的缓动曲线 */
- z-index: 2000;
- box-shadow: 10px 0 40px rgba(0, 0, 0, 0.1); /* 更柔和的投影 */
- display: flex;
- flex-direction: column;
- overflow: hidden;
- border-right: 1px solid rgba(0, 0, 0, 0.05); /* 极淡的边框替代 */
- will-change: transform;
- -webkit-transform: translateX(-100%) translateZ(0);
- backface-visibility: hidden;
- }
+.sidebar {
+position: fixed;
+top: 0;
+left: 0;
+width: 75vw;
+max-width: 300px;
+height: 100vh;
+height: 100dvh;
+/* 优化背景色：从刺眼的纯白改为极淡的灰白，更护眼 */
+background: #FAFAFC;
+border-radius: 0 24px 24px 0;
+transform: translateX(-100%) translateZ(0);
+transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1); /* 更优雅的缓动曲线 */
+z-index: 2000;
+box-shadow: 10px 0 40px rgba(0, 0, 0, 0.08); /* 减淡阴影，更轻盈 */
+display: flex;
+flex-direction: column;
+overflow: hidden;
+border-right: 1px solid rgba(0, 0, 0, 0.05); /* 极淡的边框替代 */
+will-change: transform;
+-webkit-transform: translateX(-100%) translateZ(0);
+backface-visibility: hidden;
+}
 
 .sidebar.open {
- transform: translateX(0) translateZ(0);
- -webkit-transform: translateX(0) translateZ(0);
- }
+transform: translateX(0) translateZ(0);
+-webkit-transform: translateX(0) translateZ(0);
+}
 
- .sidebar-header {
- padding: max(20px, env(safe-area-inset-top, 20px)) 16px 20px;
- background: var(--card-background); /* 改为纯白背景 */
- color: var(--text-primary);
- position: relative;
- flex-shrink: 0;
- border-bottom: 1px solid var(--border-color); /* 简单的分隔线 */
- box-shadow: none; /* 移除强烈阴影 */
- }
+.sidebar-header {
+padding: max(20px, env(safe-area-inset-top, 20px)) 16px 20px;
+background: transparent; /* 移除头部独立背景色，保持整体统一 */
+color: var(--text-primary);
+position: relative;
+flex-shrink: 0;
+border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* 更淡的分隔线 */
+box-shadow: none; /* 移除强烈阴影 */
+}
 
  .mobile-sidebar-title {
  font-size: 18px;
@@ -2833,20 +2837,26 @@ flex-direction: column;
  }
 
  .conversation-item {
- background: var(--card-background);
- margin: 0 0 8px 0;
+ /* 未选中项使用透明背景，减少白色块堆积感 */
+ background: transparent;
+ margin: 0 0 4px 0; /* 减小间距 */
  border-radius: 12px;
  padding: 14px;
- border: 1px solid var(--border-color);
+ border: 1px solid transparent; /* 默认无边框 */
  min-height: 72px;
  display: flex;
  align-items: center;
- box-shadow: none; /* 移除阴影，更加扁平化 */
+ box-shadow: none;
  transition: all 0.2s ease;
  will-change: transform;
  transform: translateZ(0);
  -webkit-transform: translateZ(0);
-}
+ }
+ 
+ .conversation-item:active {
+ background: rgba(0, 0, 0, 0.03); /* 点击反馈 */
+ transform: scale(0.98);
+ }
 
 .conversation-item:first-child {
  margin-top: 0;
@@ -3169,6 +3179,7 @@ flex-direction: column;
  flex-direction: column;
  padding: 0;
  overflow: hidden;
+ background: #FFFFFF;
  }
 
  .modal.show .modal-content {
@@ -3176,31 +3187,40 @@ flex-direction: column;
  }
 
  .modal-header {
- padding: max(20px, env(safe-area-inset-top)) 20px 20px;
- background: var(--primary-color);
- color: white;
+ padding: max(16px, env(safe-area-inset-top)) 20px 16px;
+ background: rgba(255, 255, 255, 0.9);
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ color: var(--text-primary);
  margin-bottom: 0;
  flex-shrink: 0;
  display: flex;
  justify-content: space-between;
  align-items: center;
+ border-bottom: 1px solid var(--border-color);
+ z-index: 10;
  }
 
  .modal-title {
- font-size: 20px;
- font-weight: 700;
+ font-size: 18px;
+ font-weight: 600;
  }
 
  .close-btn {
- background: rgba(255, 255, 255, 0.15);
- color: white;
- width: 40px;
- height: 40px;
- border-radius: 20px;
- font-size: 24px;
+ background: rgba(0, 0, 0, 0.05);
+ color: var(--text-primary);
+ width: 32px;
+ height: 32px;
+ border-radius: 50%;
+ font-size: 20px;
  display: flex;
  align-items: center;
  justify-content: center;
+ transition: background 0.2s;
+ }
+ 
+ .close-btn:active {
+ background: rgba(0, 0, 0, 0.1);
  }
 
  .modal-body {
@@ -3209,14 +3229,16 @@ flex-direction: column;
  overflow-y: scroll;
  overflow-x: hidden;
  -webkit-overflow-scrolling: touch;
- background: var(--background-color);
+ background: #F5F7FA; /* 极淡的灰背景，衬托白色卡片 */
  }
 
  .setting-group {
- background: var(--card-background);
+ background: #FFFFFF;
  padding: 20px;
- border-radius: 16px;
+ border-radius: 20px;
  margin-bottom: 16px;
+ box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+ border: 1px solid rgba(0, 0, 0, 0.03);
  }
 
  .setting-label {
@@ -3260,13 +3282,19 @@ flex-direction: column;
  position: sticky;
  bottom: max(20px, env(safe-area-inset-bottom));
  width: calc(100% - 40px);
- margin: 20px;
- padding: 18px;
- font-size: 18px;
- font-weight: 700;
- border-radius: 16px;
- box-shadow: 0 8px 32px rgba(0, 122, 255, 0.3);
+ margin: 20px auto;
+ padding: 16px;
+ font-size: 17px;
+ font-weight: 600;
+ border-radius: 24px;
+ box-shadow: 0 4px 20px rgba(0, 122, 255, 0.25);
  flex-shrink: 0;
+ background: linear-gradient(135deg, #007AFF, #5856D6);
+ }
+ 
+ .save-settings-btn:active {
+ transform: scale(0.98);
+ box-shadow: 0 2px 10px rgba(0, 122, 255, 0.2);
  }
 
  /* 移动端Toast - 性能优化版本 */
@@ -4116,6 +4144,26 @@ stroke: var(--primary-color);
  stroke-width: 2;
  fill: none;
  }
+
+ /* 流式输出过渡动画 - 优雅非线性版 */
+ @keyframes slideInUp {
+ 0% {
+ opacity: 0;
+ transform: translateY(30px) scale(0.98);
+ filter: blur(4px);
+ }
+ 100% {
+ opacity: 1;
+ transform: translateY(0) scale(1);
+ filter: blur(0);
+ }
+ }
+
+ .element-animate {
+ /* 使用这种特殊的贝塞尔曲线，不仅会有平滑的减速，还配合了透明度、位移、缩放和模糊的复合变化 */
+ animation: slideInUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+ will-change: transform, opacity, filter;
+ }
  </style>
 <!-- 引入 mammoth.js 用于解析 docx 文件 -->
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" 
@@ -4721,6 +4769,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
    // 自动获取模型
    setTimeout(getModels, 500);
+
+   // 监听输入框粘贴事件
+   const messageInput = document.getElementById('messageInput');
+   if (messageInput) {
+       messageInput.addEventListener('paste', handlePaste);
+   }
 
 // 移动端特殊处理
 if (isMobile()) {
@@ -5929,6 +5983,109 @@ showToast('已取消生成', 'warning');
  return messageId;
  }
 
+// 智能DOM更新函数，用于实现流式输出动画
+function updateDOM(container, newHTML) {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = newHTML;
+    
+    // 获取新旧节点列表，过滤掉操作按钮和其他UI组件
+    // 注意：不再过滤 typing-indicator，以便新内容能替换掉它
+    const newNodes = Array.from(tempDiv.children);
+    const oldNodes = Array.from(container.children).filter(node =>
+        !node.classList.contains('message-actions') &&
+        !node.classList.contains('message-actions-wrapper')
+    );
+    
+    // 如果旧节点比新节点多，移除多余的
+    while (oldNodes.length > newNodes.length) {
+        const nodeToRemove = oldNodes.pop();
+        if (nodeToRemove.parentNode === container) {
+            nodeToRemove.remove();
+        }
+    }
+    
+    newNodes.forEach((newNode, index) => {
+        const oldNode = oldNodes[index];
+        
+        if (!oldNode) {
+            // 新增节点：克隆并添加动画
+            const clone = newNode.cloneNode(true);
+            clone.classList.add('element-animate');
+            // 插入到操作按钮之前（如果有的话）
+            const actionsBtn = container.querySelector('.message-actions, .message-actions-wrapper');
+            if (actionsBtn) {
+                container.insertBefore(clone, actionsBtn);
+            } else {
+                container.appendChild(clone);
+            }
+            bindEvents(clone);
+            return;
+        }
+        
+        // 节点类型不同：替换
+        if (oldNode.tagName !== newNode.tagName) {
+            const clone = newNode.cloneNode(true);
+            clone.classList.add('element-animate');
+            container.replaceChild(clone, oldNode);
+            bindEvents(clone);
+            return;
+        }
+        
+        // 特殊处理 Thinking Box
+        if (oldNode.classList.contains('thinking-box')) {
+            updateThinkingBox(oldNode, newNode);
+            return;
+        }
+
+        // 内容不同：更新
+        if (oldNode.innerHTML !== newNode.innerHTML) {
+            // 尝试递归更新列表和DIV，以支持子元素动画
+            // 排除代码块（通常整块更新）
+            if (['UL', 'OL', 'DIV'].includes(oldNode.tagName) &&
+                !oldNode.classList.contains('code-block-wrapper')) {
+                updateDOM(oldNode, newNode.innerHTML);
+            } else {
+                // 其他情况直接更新内容
+                // 检查并更新 class
+                if (oldNode.className !== newNode.className) {
+                    // 保留已有的动画类
+                    const hasAnim = oldNode.classList.contains('element-animate');
+                    oldNode.className = newNode.className;
+                    if (hasAnim) oldNode.classList.add('element-animate');
+                }
+                oldNode.innerHTML = newNode.innerHTML;
+                bindEvents(oldNode);
+            }
+        }
+    });
+}
+
+function updateThinkingBox(oldBox, newBox) {
+    // 更新摘要（图标状态等）
+    const oldSummary = oldBox.querySelector('.thinking-summary');
+    const newSummary = newBox.querySelector('.thinking-summary');
+    if (oldSummary && newSummary && oldSummary.innerHTML !== newSummary.innerHTML) {
+         oldSummary.innerHTML = newSummary.innerHTML;
+    }
+    
+    // 更新思考内容
+    const oldContent = oldBox.querySelector('.thinking-content');
+    const newContent = newBox.querySelector('.thinking-content');
+    if (oldContent && newContent && oldContent.innerHTML !== newContent.innerHTML) {
+        // 递归更新思考内容，让思考过程中的段落也有动画
+        updateDOM(oldContent, newContent.innerHTML);
+    }
+}
+
+function bindEvents(element) {
+    if (element.querySelectorAll) {
+        // 绑定代码复制按钮
+        if (element.querySelector('.copy-code-btn')) {
+            bindCodeCopyButtons(element);
+        }
+    }
+}
+
 // 更新消息内容
 function updateMessage(messageId, content) {
 // 查找哪个对话拥有这个messageId
@@ -6033,64 +6190,14 @@ if (existingThinkingBox) {
 
 const newHTML = parseMarkdown(content, isThinkingOpen);
 
-// 尝试智能更新以保留动画状态
-let updated = false;
-
-// 检查是否已有思考框
-if (existingThinkingBox) {
-    // 创建临时容器解析新 HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = newHTML;
-    const newThinkingBox = tempDiv.querySelector('.thinking-box');
-    
-    // 如果新旧都有思考框，尝试局部更新
-    if (newThinkingBox) {
-        // 1. 更新思考内容，但不触碰 summary (包含动画图标)
-        const newContent = newThinkingBox.querySelector('.thinking-content').innerHTML;
-        const oldContentDiv = existingThinkingBox.querySelector('.thinking-content');
-        
-        if (oldContentDiv && oldContentDiv.innerHTML !== newContent) {
-            oldContentDiv.innerHTML = newContent;
-        }
-        
-        // 2. 更新状态文本（如果思考结束）
-        // 检查新状态是否还在思考
-        const newIsThinking = newThinkingBox.querySelector('.thinking-active');
-        const oldIsThinking = existingThinkingBox.querySelector('.thinking-active');
-        
-        // 如果状态改变（思考完成），需要更新图标和类名
-        if (!newIsThinking && oldIsThinking) {
-            const oldSummary = existingThinkingBox.querySelector('.thinking-summary');
-            const newSummary = newThinkingBox.querySelector('.thinking-summary');
-            if (oldSummary && newSummary) {
-                oldSummary.innerHTML = newSummary.innerHTML;
-            }
-        }
-        
-        // 3. 更新思考框之后的内容（正文）
-        // 移除 tempDiv 中的 thinking-box，剩下的就是正文
-        newThinkingBox.remove();
-        
-        // 清空 existingThinkingBox 后面的所有节点（包括旧的正文和操作按钮）
-        let nextNode = existingThinkingBox.nextSibling;
-        while (nextNode) {
-            const toRemove = nextNode;
-            nextNode = nextNode.nextSibling;
-            toRemove.remove();
-        }
-        
-        // 将 tempDiv 的内容（新的正文）移动到 bubbleElement
-        while (tempDiv.firstChild) {
-            bubbleElement.appendChild(tempDiv.firstChild);
-        }
-        
-        updated = true;
-    }
+// 确保在更新内容前移除打字指示器（双重保险）
+const typingIndicator = bubbleElement.querySelector('.typing-indicator');
+if (typingIndicator) {
+    typingIndicator.remove();
 }
 
-if (!updated) {
-    bubbleElement.innerHTML = newHTML;
-}
+// 使用智能DOM更新替代直接的innerHTML替换，实现流式动画
+updateDOM(bubbleElement, newHTML);
 }
 
 // 如果是生成状态，添加特殊样式类，不添加操作按钮
@@ -6615,6 +6722,32 @@ function getProgressInfo(text) {
  event.preventDefault();
  sendMessage();
  }
+ }
+
+ // 处理粘贴事件
+ function handlePaste(event) {
+     const paste = (event.clipboardData || window.clipboardData).getData('text');
+     
+     // 如果粘贴内容超过300字
+     if (paste && paste.length > 300) {
+         event.preventDefault(); // 阻止默认粘贴行为
+         
+         const fileName = '粘贴内容.txt';
+         const blob = new Blob([paste], { type: 'text/plain' });
+         const file = new File([blob], fileName, { type: 'text/plain' });
+         
+         const fileInfo = {
+             id: Date.now() + Math.random(),
+             file: file,
+             name: fileName,
+             size: blob.size,
+             type: 'text/plain',
+             content: paste
+         };
+         
+         uploadedFiles.push(fileInfo);
+         updateFilePreview();
+     }
  }
 
  // 更新发送按钮状态

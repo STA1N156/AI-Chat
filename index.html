@@ -6470,6 +6470,8 @@ showToast('已取消生成', 'warning');
  const messageElement = document.createElement('div');
  messageElement.className = `message ${role}`;
  messageElement.id = messageId;
+ // 存储原始 Markdown 内容
+ messageElement._rawContent = content;
 
  const bubbleElement = document.createElement('div');
  bubbleElement.className = 'message-bubble';
@@ -6821,6 +6823,9 @@ saveConversationsDebounced(targetConversationId); // 使用防抖保存
 
 const messageElement = document.getElementById(messageId);
 if (messageElement) {
+// 更新原始内容
+messageElement._rawContent = content;
+
 const bubbleElement = messageElement.querySelector('.message-bubble');
 
 // 检查是否是进度内容
@@ -7037,29 +7042,82 @@ updateDOM(bubbleElement, newHTML);
  // 复制消息内容 - 修复移动端复制问题
  function copyMessageContent(button) {
  // 尝试从气泡内或外部找到消息气泡
- let messageElement = button.closest('.message-bubble');
- if (!messageElement) {
+ let messageBubble = button.closest('.message-bubble');
+ let messageElement = null;
+ 
+ if (!messageBubble) {
  // 如果按钮在外部，通过message元素找到气泡
- const messageContainer = button.closest('.message');
- messageElement = messageContainer ? messageContainer.querySelector('.message-bubble') : null;
+ messageElement = button.closest('.message');
+ messageBubble = messageElement ? messageElement.querySelector('.message-bubble') : null;
+ } else {
+ messageElement = messageBubble.closest('.message');
  }
- if (!messageElement) return;
+ 
+ if (!messageBubble) return;
 
+ let text = '';
+
+ // 尝试获取原始 Markdown 内容（保留格式）
+ if (messageElement && messageElement._rawContent) {
+ text = messageElement._rawContent;
+ 
+ // 1. 移除 <think> 标签及其内容
+ text = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+ // 移除未闭合的 <think> 标签（如果在末尾）
+ text = text.replace(/<think>[\s\S]*/gi, '');
+
+ // 2. 移除搜索结果详情块 (HTML 结构)
+ text = text.replace(/<details class="search-result-details">[\s\S]*?<\/details>/gi, '');
+
+ // 3. 移除搜索失败提示 (HTML 结构)
+ text = text.replace(/<div class="search-failed-tip"[\s\S]*?<\/div>/gi, '');
+ // 兼容旧版无 class 的失败提示
+ text = text.replace(/<div style="[^"]*color: var\(--error-color\)[^"]*">[\s\S]*?<\/div>/gi, '');
+
+ // 4. 移除 Markdown 格式的搜索结果标记 (兼容旧历史记录)
+ const searchMarker = '**联网搜索结果：**';
+ const scrapeMarker = '**网页内容（来源：';
+ const failMarker = '**联网搜索失败**';
+ 
+ // 简单移除标记行，避免误删正文（如果正文紧跟在后面）
+ // 如果需要更彻底的移除整个搜索块，需要更复杂的逻辑，目前主要针对新生成的 HTML 格式
+ if (text.includes(searchMarker)) {
+ // 尝试匹配常见的搜索结果块模式并移除
+ text = text.replace(/\n\n\*\*联网搜索结果：\*\*[\s\S]*?(\n\n请根据|$)/g, '$1');
+ }
+ 
+ // 5. 移除可能的 SEARCH_QUERY 命令残留
+ text = text.replace(/SEARCH_QUERY:.*$/gm, '');
+
+ // 6. 处理文本中的加粗符号（**）
+ // 需求：保持排版（即保留加粗效果对应的文本），但不要有 ** 这种 markdown 星号
+ // 替换 **text** 为 text
+ text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+ // 替换 __text__ 为 text (兼容性)
+ text = text.replace(/__(.*?)__/g, '$1');
+ 
+ // 7. 清理多余的空行 (超过2个换行符替换为2个)
+ text = text.replace(/\n{3,}/g, '\n\n');
+ 
+ text = text.trim();
+ } else {
+ // 降级：从 DOM 获取纯文本（会丢失 Markdown 格式）
  // 克隆节点以进行处理，不影响界面显示
- const clone = messageElement.cloneNode(true);
+ const clone = messageBubble.cloneNode(true);
 
  // 移除思考过程
  clone.querySelectorAll('.thinking-box').forEach(el => el.remove());
  
- // 移除操作按钮容器（桌面端在气泡内）
+ // 移除操作按钮容器
  clone.querySelectorAll('.message-actions').forEach(el => el.remove());
+ clone.querySelectorAll('.message-actions-wrapper').forEach(el => el.remove());
 
  // 移除可能存在的代码块复制按钮和下载按钮文本
  clone.querySelectorAll('.copy-code-btn').forEach(el => el.remove());
  clone.querySelectorAll('.download-code-btn').forEach(el => el.remove());
  
- // 获取纯文本
- let text = clone.textContent.trim();
+ text = clone.textContent.trim();
+ }
 
  // 使用现代复制API
  if (navigator.clipboard && window.isSecureContext) {
@@ -7764,6 +7822,8 @@ return;
  const messageElement = document.createElement('div');
  messageElement.className = `message ${role}`;
  messageElement.id = messageId;
+ // 存储原始 Markdown 内容
+ messageElement._rawContent = content;
 
  const bubbleElement = document.createElement('div');
  bubbleElement.className = 'message-bubble';
@@ -8013,6 +8073,8 @@ chatContainer.innerHTML = '';
 const messageElement = document.createElement('div');
 messageElement.className = `message ${role}`;
 messageElement.id = messageId;
+// 存储原始 Markdown 内容
+messageElement._rawContent = content;
 
 const bubbleElement = document.createElement('div');
 bubbleElement.className = 'message-bubble';

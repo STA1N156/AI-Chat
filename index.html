@@ -6011,7 +6011,7 @@ filterMobileModels();
       contentToCheck = fullResponse.substring(lastThinkCloseIdx + 8); // 8 is length of </think>
   }
 
-  const searchMatch = contentToCheck.match(/SEARCH_QUERY:\s*(.*)/);
+  const searchMatch = contentToCheck.match(/SEARCH_QUERY:\s*(.+)\n/);
   if (searchMatch && !isSearchTriggered && !isThinking) {
   isSearchTriggered = true;
   const query = searchMatch[1].trim();
@@ -6099,6 +6099,10 @@ filterMobileModels();
   throw { type: 'SEARCH_TRIGGERED', query, newInitialContent, injectedMsg };
   } else {
   // 搜索失败，追加失败信息继续生成（或者重试，这里简单处理为追加失败提示）
+  
+  console.error('Search failed for query:', query);
+  console.log('AI search call text:', `SEARCH_QUERY: ${query}`);
+
   // 添加 class="search-failed-tip" 以便后续清理
   const failedBlock = `\n\n<div class="search-failed-tip" style="margin-top: 12px; font-size: 13px; color: var(--error-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; background: rgba(255, 59, 48, 0.05); display: flex; align-items: center; gap: 8px;"><span>✕</span> 🌐 联网搜索失败</div>\n\n`;
   const newInitialContent = cleanResponse + failedBlock;
@@ -6143,6 +6147,63 @@ filterMobileModels();
  }
  }
  }
+ }
+
+ // 循环结束后，检查是否遗漏了最后一行没有换行符的搜索命令
+ if (!isSearchTriggered && !isThinking) {
+  const lastThinkCloseIdx = fullResponse.lastIndexOf('</think>');
+  let contentToCheck = fullResponse;
+  if (lastThinkCloseIdx !== -1) {
+  contentToCheck = fullResponse.substring(lastThinkCloseIdx + 8);
+  }
+  
+  const searchMatch = contentToCheck.match(/SEARCH_QUERY:\s*(.+)$/);
+  if (searchMatch) {
+  isSearchTriggered = true;
+  const query = searchMatch[1].trim();
+  
+  controller.abort();
+  
+  let cleanResponse = fullResponse;
+  if (lastThinkCloseIdx !== -1) {
+   const prefix = fullResponse.substring(0, lastThinkCloseIdx + 8);
+   const suffix = fullResponse.substring(lastThinkCloseIdx + 8);
+   cleanResponse = prefix + suffix.replace(/SEARCH_QUERY:.*$/, '');
+  } else {
+   cleanResponse = fullResponse.replace(/SEARCH_QUERY:.*$/, '');
+  }
+  
+  const loadingHtml = cleanResponse + `
+   <details class="search-result-details">
+   <summary class="search-result-summary">
+    <div class="search-earth-icon search-icon-spin" style="color: var(--primary-color);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+    </div>
+    <span>正在搜索: ${query}...</span>
+   </summary>
+   </details>`;
+   
+  updateMessage(loadingId, loadingHtml, true, false);
+  
+  const searchResults = await performWebSearch(query);
+  
+  if (searchResults) {
+   const searchResultsHtml = marked.parse(searchResults);
+   const searchResultBlock = `\n\n<details class="search-result-details"><summary class="search-result-summary"><div class="search-earth-icon" style="color: var(--primary-color);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div><span>已参考联网搜索结果</span><div class="search-check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div></summary><div class="search-result-content">${searchResultsHtml}</div></details>\n\n`;
+   const systemContext = `Here are the web search results for "${query}". Please use them to answer the user's question.\n\n${searchResults}`;
+   
+   const newInitialContent = cleanResponse + searchResultBlock;
+   const injectedMsg = [{ role: 'user', content: systemContext }];
+   
+   throw { type: 'SEARCH_TRIGGERED', query, newInitialContent, injectedMsg };
+  } else {
+   const failedBlock = `\n\n<div class="search-failed-tip" style="margin-top: 12px; font-size: 13px; color: var(--error-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; background: rgba(255, 59, 48, 0.05); display: flex; align-items: center; gap: 8px;"><span>✕</span> 🌐 联网搜索失败</div>\n\n`;
+   const newInitialContent = cleanResponse + failedBlock;
+   updateMessage(loadingId, newInitialContent, true);
+   const injectedMsg = [{ role: 'user', content: `Search for "${query}" failed. Please answer without new external information.` }];
+   throw { type: 'SEARCH_TRIGGERED', query, newInitialContent, injectedMsg };
+  }
+  }
  }
 
  // 确保最后如果还在思考中，要闭合标签

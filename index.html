@@ -647,15 +647,19 @@ stroke: currentColor;
 /* 移动端导航按钮调整 */
 @media (max-width: 768px) {
 .nav-buttons {
-bottom: 90px;
+bottom: 160px; /* 整体再次上移 */
 right: 12px;
 gap: 12px; /* 增加间距防误触 */
 }
 .nav-btn {
-width: 40px;
-height: 40px;
+width: 32px; /* 缩小按钮 */
+height: 32px;
 background: rgba(255, 255, 255, 0.9);
 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-btn svg {
+width: 16px; /* 缩小图标 */
+height: 16px;
 }
 }
 

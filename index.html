@@ -4750,14 +4750,13 @@ aria-label="搜索模型"
 
  <div class="setting-group">
  <div class="switch-container">
- <span class="switch-label">启用联网搜索(BETA)</span>
+ <span class="switch-label">启用联网搜索 (BETA)</span>
  <label class="switch">
  <input type="checkbox" id="webSearchSwitch" aria-label="联网搜索开关">
  <span class="slider-switch"></span>
  </label>
  </div>
- <label class="setting-label" style="margin-top: 12px; font-size: 14px;">Serper API Key</label>
- <input type="password" class="textarea" id="serperKeyInput" placeholder="输入 Serper API Key" style="min-height: 40px; height: 40px; padding: 8px 12px;" aria-label="Serper API Key">
+ <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">让所有模型具备联网能力，部分模型可能会调用失败</div>
  </div>
 
  <div class="setting-group">
@@ -8583,7 +8582,7 @@ saveConversations(conversation.id);
  settings.systemPrompt = document.getElementById('systemPrompt').value;
  settings.thinkingCollapsed = document.getElementById('thinkingCollapsedSwitch').checked;
  settings.webSearchEnabled = document.getElementById('webSearchSwitch').checked;
- settings.serperKey = document.getElementById('serperKeyInput').value.trim();
+ // settings.serperKey = document.getElementById('serperKeyInput').value.trim();
 
  localStorage.setItem('settings', JSON.stringify(settings));
  closeSettings();
@@ -8598,7 +8597,7 @@ saveConversations(conversation.id);
  document.getElementById('systemPrompt').value = settings.systemPrompt;
  document.getElementById('thinkingCollapsedSwitch').checked = settings.thinkingCollapsed;
  document.getElementById('webSearchSwitch').checked = settings.webSearchEnabled;
- if(settings.serperKey) document.getElementById('serperKeyInput').value = settings.serperKey;
+ // if(settings.serperKey) document.getElementById('serperKeyInput').value = settings.serperKey;
  }
 
 // 存储管理

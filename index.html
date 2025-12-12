@@ -980,7 +980,7 @@ z-index: 100;
  .input-wrapper {
  display: flex;
  align-items: flex-end; /* 底部对齐 */
- gap: 12px;
+ gap: 4px;
  max-width: 900px;
  margin: 0 auto;
  background: var(--card-background);
@@ -4515,7 +4515,7 @@ stroke: var(--primary-color);
  </button>
  <!-- PC端模型选择器 -->
  <div class="pc-model-selector" id="pcModelSelector">
- <button class="model-select-btn" id="modelSelectBtn" onclick="togglePCModelPicker()" aria-label="选择AI模型">
+ <button class="model-select-btn" id="modelSelectBtn" onclick="togglePCModelPicker()" aria-label="选择模型">
  <svg class="model-icon" viewBox="0 0 24 24" width="20" height="20">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
@@ -4544,7 +4544,7 @@ stroke: var(--primary-color);
  </div>
  </div>
  <!-- 移动端保留原始select -->
- <select class="model-select mobile-only" id="modelSelect" aria-label="选择AI模型" style="display: none;">
+ <select class="model-select mobile-only" id="modelSelect" aria-label="选择模型" style="display: none;">
  <option value="">选择模型</option>
  <option value="gemini-3-pro-preview-thinking">gemini-3-pro-preview-thinking</option>
  </select>
@@ -4587,7 +4587,7 @@ stroke: var(--primary-color);
  <div class="empty-state">
  <div class="empty-state-icon">💬</div>
  <h3>开始新的对话</h3>
- <p>选择或创建对话，然后选择AI模型开始聊天</p>
+ <p>选择或创建对话，然后开始聊天</p>
  </div>
  </div>
 
@@ -4665,7 +4665,7 @@ stroke: var(--primary-color);
 <div class="mobile-model-picker" id="mobileModelPicker">
 <div class="model-picker-header">
 <div class="model-picker-handle"></div>
-<div class="model-picker-title">选择AI模型</div>
+<div class="model-picker-title">选择模型</div>
 </div>
 <div class="mobile-search-container">
 <input 
@@ -7602,8 +7602,8 @@ function getProgressInfo(text) {
  // 自动调整输入框高度
  function autoResize(textarea) {
  textarea.style.height = 'auto';
- // 加上4px边框高度(上下各2px)，防止因为box-sizing: border-box导致的高度塌缩
- textarea.style.height = Math.min(textarea.scrollHeight + 4, 120) + 'px';
+ // 加上2px边框高度，防止因为box-sizing: border-box导致的高度塌缩
+ textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
  }
 
  // 处理键盘事件

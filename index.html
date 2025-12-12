@@ -2181,6 +2181,46 @@ width: fit-content;
  .conversation-list {
  overflow-y: auto;
  overflow-x: hidden;
+ display: flex;
+ flex-direction: column;
+ }
+
+ /* PC端侧边栏空状态样式 */
+ .sidebar-empty {
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ padding: 40px;
+ text-align: center;
+ color: var(--text-secondary);
+ animation: fadeIn 0.6s ease-out forwards;
+ min-height: 300px;
+ }
+
+ .sidebar-empty-icon {
+ font-size: 64px;
+ margin-bottom: 24px;
+ opacity: 0.8;
+ color: var(--primary-color);
+ filter: drop-shadow(0 4px 12px rgba(0, 122, 255, 0.2));
+ }
+
+ .sidebar-empty h4 {
+ font-size: 18px;
+ font-weight: 600;
+ margin-bottom: 12px;
+ color: var(--text-primary);
+ opacity: 1;
+ }
+
+ .sidebar-empty p {
+ font-size: 14px;
+ line-height: 1.6;
+ opacity: 0.7;
+ max-width: 240px;
+ margin: 0 auto;
  }
 
  /* 对话列表入场动画 - 仅首次加载 */
@@ -3541,30 +3581,35 @@ transform: none;
  flex-direction: column;
  align-items: center;
  justify-content: center;
- padding: 80px 40px;
+ height: 100%;
+ padding: 40px;
  text-align: center;
  color: var(--text-secondary);
- min-height: 300px;
+ animation: fadeIn 0.6s ease-out forwards;
  }
 
  .sidebar-empty-icon {
- font-size: 48px;
- margin-bottom: 16px;
- opacity: 0.2;
- filter: grayscale(100%);
+ font-size: 56px;
+ margin-bottom: 20px;
+ opacity: 0.8;
+ color: var(--primary-color);
+ filter: drop-shadow(0 4px 12px rgba(0, 122, 255, 0.2));
  }
 
  .sidebar-empty h4 {
- font-size: 16px;
+ font-size: 17px;
  font-weight: 600;
- margin-bottom: 8px;
+ margin-bottom: 10px;
  color: var(--text-primary);
+ opacity: 1;
  }
 
  .sidebar-empty p {
- font-size: 16px;
+ font-size: 15px;
  line-height: 1.5;
  opacity: 0.7;
+ max-width: 200px;
+ margin: 0 auto;
  }
 
  /* 移动端模型选择器 - 性能优化版本 */

@@ -2542,7 +2542,7 @@ animation: slideDownSmooth 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
  @keyframes mobileSlideInFromBottom {
  0% {
  opacity: 0;
- transform: translateY(40px) translateZ(0);
+ transform: translateY(35px) translateZ(0);
  }
  100% {
  opacity: 1;
@@ -4217,7 +4217,7 @@ stroke: var(--primary-color);
  @keyframes slideInUp {
  0% {
  opacity: 0;
- transform: translateY(30px) scale(0.98);
+ transform: translateY(40px) scale(0.98);
  filter: blur(4px);
  }
  100% {
@@ -4229,7 +4229,7 @@ stroke: var(--primary-color);
 
  .element-animate {
  /* 使用这种特殊的贝塞尔曲线，不仅会有平滑的减速，还配合了透明度、位移、缩放和模糊的复合变化 */
- animation: slideInUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+ animation: slideInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
  will-change: transform, opacity, filter;
  }
 

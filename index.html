@@ -4661,7 +4661,7 @@ stroke: var(--primary-color);
 
  .doc-view {
  flex: 1;
- padding: 20px;
+ padding: 0; /* 移除外层内边距，最大化显示空间 */
  overflow-y: auto;
  display: none;
  font-size: 15px;
@@ -4755,7 +4755,7 @@ stroke: var(--primary-color);
  font-size: 15px; /* 减小字体大小 */
  line-height: 1.6;
  color: var(--text-primary);
- padding: 32px 10px; /* 进一步减小左右内边距，最大化内容显示区域 */
+ padding: 24px 12px; /* 减小左右内边距，最大化内容显示区域 */
  max-width: 100%;
  margin: 0 auto;
  }
@@ -4921,7 +4921,15 @@ stroke: var(--primary-color);
  /* 移动端适配 */
  @media (max-width: 768px) {
  .doc-preview-content {
- padding: 16px;
+ padding: 16px 8px; /* 减小左右边距 */
+ }
+ 
+ .doc-view {
+ padding: 0 !important; /* 移动端移除外层内边距，最大化显示空间 */
+ }
+ 
+ .doc-editor {
+ padding: 16px; /* 编辑器保持内边距 */
  }
  }
 
@@ -4955,6 +4963,7 @@ stroke: var(--primary-color);
  line-height: 1.6;
  color: var(--text-primary);
  background: transparent;
+ padding: 20px; /* 为编辑器添加内边距 */
  }
 
  /* 文档卡片样式 */

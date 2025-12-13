@@ -8473,7 +8473,7 @@ filterMobileModels();
  const currentFiles = [...uploadedFiles];
 
  // 添加用户消息（显示文件图标而不是完整内容）
- const displayMessage = (message || (currentFiles.length > 0 ? '请分析这些图片/文件' : ''));
+ const displayMessage = (message || (currentFiles.length > 0 ? '请分析文件，并给出详细总结或适合的回答' : ''));
  const userMessageId = addMessage('user', displayMessage, currentFiles);
 
  // 立即清空输入框和文件列表

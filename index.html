@@ -6608,11 +6608,6 @@ filterMobileModels();
  // 如果是图片，读取预览（多模态模式直接发送图片）
  if (file.type.startsWith('image/')) {
      try {
-         // 如果大于 1MB，提示正在处理
-         if (file.size > 1024 * 1024) {
-             showToast(`正在优化图片 ${file.name}...`, 'info');
-         }
-         
          const compressedDataUrl = await compressImage(file);
          fileInfo.preview = compressedDataUrl;
          

@@ -4667,10 +4667,13 @@ stroke: var(--primary-color);
  font-size: 15px;
  line-height: 1.6;
  position: relative; /* 为绝对定位的工具栏提供参考 */
+ opacity: 0;
+ transform: scale(0.98);
  }
 
  .doc-view.active {
  display: block;
+ animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
  }
 
  /* HTML预览工具栏 */
@@ -4748,12 +4751,197 @@ stroke: var(--primary-color);
  }
 
  .doc-preview-content {
+ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+ font-size: 15px; /* 减小字体大小 */
+ line-height: 1.6;
+ color: var(--text-primary);
+ padding: 32px 10px; /* 进一步减小左右内边距，最大化内容显示区域 */
  max-width: 100%;
+ margin: 0 auto;
+ }
+
+ .doc-preview-content > *:first-child {
+ margin-top: 0 !important;
+ }
+
+ .doc-preview-content > *:last-child {
+ margin-bottom: 0 !important;
+ }
+
+ .doc-preview-content h1,
+ .doc-preview-content h2,
+ .doc-preview-content h3,
+ .doc-preview-content h4,
+ .doc-preview-content h5,
+ .doc-preview-content h6 {
+ margin-top: 24px;
+ margin-bottom: 16px;
+ font-weight: 600;
+ line-height: 1.25;
+ color: var(--text-primary);
+ }
+
+ .doc-preview-content h1 {
+ font-size: 2em;
+ padding-bottom: 0.3em;
+ border-bottom: 1px solid var(--border-color);
+ }
+
+ .doc-preview-content h2 {
+ font-size: 1.5em;
+ padding-bottom: 0.3em;
+ border-bottom: 1px solid var(--border-color);
+ }
+
+ .doc-preview-content h3 { font-size: 1.25em; }
+ .doc-preview-content h4 { font-size: 1em; }
+ .doc-preview-content h5 { font-size: 0.875em; }
+ .doc-preview-content h6 { font-size: 0.85em; color: var(--text-secondary); }
+
+ .doc-preview-content p {
+ margin-bottom: 16px;
+ }
+
+ .doc-preview-content ul,
+ .doc-preview-content ol {
+ margin-bottom: 16px;
+ padding-left: 2em;
+ }
+
+ .doc-preview-content li {
+ margin-bottom: 0.25em;
+ }
+ 
+ .doc-preview-content li > p {
+ margin-bottom: 0.5em;
+ }
+
+ .doc-preview-content blockquote {
+ padding: 0 1em;
+ color: var(--text-secondary);
+ border-left: 0.25em solid var(--border-color);
+ margin: 0 0 16px 0;
+ background-color: rgba(0, 0, 0, 0.02);
+ border-radius: 0 4px 4px 0;
+ padding: 8px 16px;
+ }
+ 
+ .doc-preview-content blockquote > :last-child {
+ margin-bottom: 0;
+ }
+
+ /* 表格样式优化 */
+ .doc-preview-content table {
+ border-spacing: 0;
+ border-collapse: collapse;
+ margin-bottom: 16px;
+ width: 100%;
+ display: block;
+ overflow-x: auto;
+ border: 1px solid var(--border-color);
+ border-radius: 8px;
+ }
+
+ .doc-preview-content table tr {
+ background-color: var(--card-background);
+ border-top: 1px solid var(--border-color);
+ }
+
+ .doc-preview-content table tr:nth-child(2n) {
+ background-color: rgba(0, 0, 0, 0.02);
+ }
+
+ .doc-preview-content table th,
+ .doc-preview-content table td {
+ padding: 8px 13px;
+ border: 1px solid var(--border-color);
+ }
+
+ .doc-preview-content table th {
+ font-weight: 600;
+ background-color: rgba(0, 0, 0, 0.04);
+ text-align: left;
+ }
+
+ /* 代码块优化 */
+ .doc-preview-content pre {
+ padding: 16px;
+ overflow: auto;
+ font-size: 85%;
+ line-height: 1.45;
+ background-color: rgba(0, 0, 0, 0.03);
+ border-radius: 8px;
+ margin-bottom: 16px;
+ border: 1px solid var(--border-color);
+ }
+
+ .doc-preview-content code {
+ padding: 0.2em 0.4em;
+ margin: 0;
+ font-size: 85%;
+ background-color: rgba(0, 0, 0, 0.05);
+ border-radius: 6px;
+ font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+ }
+
+ .doc-preview-content pre code {
+ padding: 0;
+ background-color: transparent;
+ font-size: 100%;
+ white-space: pre;
+ word-break: normal;
+ }
+
+ .doc-preview-content hr {
+ height: 0.25em;
+ padding: 0;
+ margin: 24px 0;
+ background-color: var(--border-color);
+ border: 0;
  }
  
  .doc-preview-content img {
  max-width: 100%;
+ box-sizing: content-box;
+ background-color: var(--background-color);
  border-radius: 8px;
+ box-shadow: var(--shadow);
+ margin-bottom: 16px;
+ }
+ 
+ .doc-preview-content a {
+ color: var(--primary-color);
+ text-decoration: none;
+ }
+ 
+ .doc-preview-content a:hover {
+ text-decoration: underline;
+ }
+ 
+ /* 移动端适配 */
+ @media (max-width: 768px) {
+ .doc-preview-content {
+ padding: 16px;
+ }
+ }
+
+ /* 暗色模式适配 */
+ @media (prefers-color-scheme: dark) {
+ .doc-preview-content table tr:nth-child(2n) {
+ background-color: rgba(255, 255, 255, 0.03);
+ }
+ .doc-preview-content table th {
+ background-color: rgba(255, 255, 255, 0.05);
+ }
+ .doc-preview-content code {
+ background-color: rgba(255, 255, 255, 0.1);
+ }
+ .doc-preview-content pre {
+ background-color: rgba(255, 255, 255, 0.05);
+ }
+ .doc-preview-content blockquote {
+ background-color: rgba(255, 255, 255, 0.05);
+ }
  }
 
  .doc-editor {
@@ -6810,7 +6998,8 @@ filterMobileModels();
  streamingStates[conversationId] = {
  messageId: loadingId,
  controller: null,
- isGenerating: true
+ isGenerating: true,
+ docMap: new Map() // 用于在流式输出中保持文档ID稳定
  };
 
  // 更新当前对话的发送按钮状态
@@ -7842,7 +8031,7 @@ if (existingThinkingBox) {
     isThinkingOpen = !settings.thinkingCollapsed;
 }
 
-const newHTML = parseMarkdown(content, isThinkingOpen, isStreaming);
+const newHTML = parseMarkdown(content, isThinkingOpen, isStreaming, targetConversationId);
 
 // 确保在更新内容前移除打字指示器（双重保险）
 const typingIndicator = bubbleElement.querySelector('.typing-indicator');
@@ -8286,7 +8475,7 @@ function getProgressInfo(text) {
  }
 
  // 生成文档卡片 HTML (重构版)
- function convertDocToCard(title, content, isComplete, isStreaming = false) {
+ function convertDocToCard(title, content, isComplete, isStreaming = false, docIndex = 0, conversationId = null) {
  // 如果是流式输出且未闭合，状态为生成中
  const status = (isComplete || !isStreaming) ? 'completed' : 'generating';
  
@@ -8298,25 +8487,23 @@ function getProgressInfo(text) {
  window.latestDocTitle = title;
 
  // 生成唯一ID并存储文档数据
- // 使用内容哈希或长度作为ID的一部分，以区分不同文档
  let docId;
- // 简单的内容指纹
- const contentFingerprint = title + '-' + cleanContent.length;
  
- if (isStreaming && window.latestDocId && window.latestDocFingerprint === contentFingerprint.substring(0, contentFingerprint.lastIndexOf('-'))) {
- // 如果是流式传输且指纹匹配（标题没变），复用ID
- docId = window.latestDocId;
+ if (isStreaming && conversationId && streamingStates[conversationId] && streamingStates[conversationId].docMap) {
+ // 流式输出模式：使用 docMap 保持 ID 稳定
+ const docMap = streamingStates[conversationId].docMap;
+ if (docMap.has(docIndex)) {
+ docId = docMap.get(docIndex);
  } else {
- // 尝试查找已存在的相同内容的文档
+ docId = 'doc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+ docMap.set(docIndex, docId);
+ }
+ } else {
+ // 非流式模式（如加载历史记录）：尝试查找已存在的相同内容的文档
  const existingId = Object.keys(window.docData || {}).find(key =>
  window.docData[key].content === cleanContent && window.docData[key].title === title
  );
  docId = existingId || ('doc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
- }
- 
- if (isStreaming) {
- window.latestDocId = docId;
- window.latestDocFingerprint = title; // 记录标题作为指纹基准
  }
 
  if (!window.docData) window.docData = {};
@@ -8332,7 +8519,8 @@ function getProgressInfo(text) {
  }, 500);
  }
  // 如果是生成中，实时更新右侧预览
- if (isRightSidebarOpen && isStreaming) {
+ // 修复：仅当当前预览的文档就是该文档时才刷新，避免多文档生成时互相抢占
+ if (isRightSidebarOpen && isStreaming && window.currentDocId === docId) {
  // 防抖更新
  if (!window.updateDocTimeout) {
  window.updateDocTimeout = setTimeout(() => {
@@ -8465,7 +8653,7 @@ function getProgressInfo(text) {
  }
 
  // 解析Markdown - 只处理高亮，不绑定事件
- function parseMarkdown(text, forceOpenThinking = !settings.thinkingCollapsed, isStreaming = false) {
+ function parseMarkdown(text, forceOpenThinking = !settings.thinkingCollapsed, isStreaming = false, conversationId = null) {
  // 首先检查是否包含进度信息
  const progressHTML = convertProgressToHTML(text);
  if (progressHTML) {
@@ -8482,13 +8670,15 @@ function getProgressInfo(text) {
  // 注意：必须在处理完 <think> 之后再处理文档卡片，否则文档内容里的 think 标签可能会被错误处理
  // 使用全局匹配支持多个文档
  const docCardRegex = /:::doc\s*(?:\[(.*?)\])?\s*:::([\s\S]*?)(?::::|$)/g;
+ let docIndex = 0;
  
  processedText = processedText.replace(docCardRegex, (match, title, content) => {
+ docIndex++;
  title = title || '文档';
  // 检查是否完整闭合 (以 ::: 结尾)
  const isComplete = match.trim().endsWith(':::');
  
- return convertDocToCard(title, content, isComplete, isStreaming);
+ return convertDocToCard(title, content, isComplete, isStreaming, docIndex, conversationId);
  });
  
  // 生成思考框HTML的辅助函数

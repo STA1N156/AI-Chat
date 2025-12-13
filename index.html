@@ -5280,6 +5280,9 @@ stroke: var(--primary-color);
 <!-- 引入 docx.js 用于生成 docx 文件 -->
 <script src="https://unpkg.com/docx@7.3.0/build/index.js"
         onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/docx@7.3.0/build/index.js';console.error('docx.js 主要CDN加载失败，尝试备用CDN')"></script>
+<!-- 引入 lamejs 用于音频压缩 -->
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"
+        onerror="console.error('lamejs 加载失败')"></script>
 </head>
 <body>
  <div class="app-container initial-load">
@@ -6530,6 +6533,138 @@ filterMobileModels();
  'sh', 'bash', 'ps1', 'yaml', 'yml', 'toml', 'ini', 'conf'
  ];
 
+ // 压缩音频函数 (使用 Web Worker 避免阻塞 UI)
+ async function compressAudio(file) {
+    // 阈值 1MB
+    if (file.size <= 1024 * 1024) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    console.log(`[Audio Compression] Start: ${file.name}, Original Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        // 提取音频数据 (Float32)
+        const leftChannel = audioBuffer.getChannelData(0);
+        const rightChannel = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : null;
+        
+        // 构建 Worker 代码
+        const workerCode = `
+            importScripts('https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js');
+
+            self.onmessage = function(e) {
+                const { channels, sampleRate, left, right } = e.data;
+                
+                try {
+                    const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
+                    let mp3Data = [];
+
+                    // 转换 float32 到 int16
+                    const convertBuffer = (buffer) => {
+                        let l = buffer.length;
+                        let buf = new Int16Array(l);
+                        while (l--) {
+                            let s = Math.max(-1, Math.min(1, buffer[l]));
+                            buf[l] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                        }
+                        return buf;
+                    };
+
+                    const leftInt16 = convertBuffer(left);
+                    const rightInt16 = right ? convertBuffer(right) : undefined;
+                    
+                    const sampleBlockSize = 1152;
+                    for (let i = 0; i < leftInt16.length; i += sampleBlockSize) {
+                        const leftChunk = leftInt16.subarray(i, i + sampleBlockSize);
+                        let mp3buf;
+                        
+                        if (channels === 1) {
+                            mp3buf = mp3encoder.encodeBuffer(leftChunk);
+                        } else {
+                            const rightChunk = rightInt16.subarray(i, i + sampleBlockSize);
+                            mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+                        }
+                        
+                        if (mp3buf.length > 0) {
+                            mp3Data.push(mp3buf);
+                        }
+                    }
+
+                    const mp3buf = mp3encoder.flush();
+                    if (mp3buf.length > 0) {
+                        mp3Data.push(mp3buf);
+                    }
+
+                    self.postMessage({ success: true, mp3Data: mp3Data });
+                } catch (error) {
+                    self.postMessage({ success: false, error: error.message });
+                }
+            };
+        `;
+
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(blob);
+        const worker = new Worker(workerUrl);
+
+        return new Promise((resolve, reject) => {
+            worker.onmessage = function(e) {
+                if (e.data.success) {
+                    const mp3Blob = new Blob(e.data.mp3Data, { type: 'audio/mp3' });
+                    console.log(`[Audio Compression] Done: ${file.name}, New Size: ${(mp3Blob.size / 1024 / 1024).toFixed(2)} MB, Ratio: ${(mp3Blob.size / file.size * 100).toFixed(1)}%`);
+                    
+                    const reader = new FileReader();
+                    reader.onload = (evt) => resolve(evt.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(mp3Blob);
+                } else {
+                    reject(new Error(e.data.error));
+                }
+                
+                worker.terminate();
+                URL.revokeObjectURL(workerUrl);
+            };
+
+            worker.onerror = function(error) {
+                reject(error);
+                worker.terminate();
+                URL.revokeObjectURL(workerUrl);
+            };
+
+            // 发送数据到 Worker (使用 Transferable Objects 优化)
+            // Float32Array 的 buffer 是 ArrayBuffer，可以转移所有权
+            const transferList = [leftChannel.buffer];
+            if (rightChannel) {
+                transferList.push(rightChannel.buffer);
+            }
+
+            worker.postMessage({
+                channels: audioBuffer.numberOfChannels,
+                sampleRate: audioBuffer.sampleRate,
+                left: leftChannel,
+                right: rightChannel
+            }, transferList);
+        });
+
+    } catch (e) {
+        console.error("Audio compression failed", e);
+        // 失败时降级为原始文件
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+ }
+
  // 压缩图片函数
  async function compressImage(file) {
     // 阈值 1MB
@@ -6551,7 +6686,8 @@ filterMobileModels();
                 let width = img.width;
                 let height = img.height;
 
-                // 限制最大边长 3840 (4K)，保证近乎无损同时限制极端情况
+                // 不再限制最大边长，保持原始分辨率
+                /*
                 const MAX_SIZE = 3840;
                 if (width > MAX_SIZE || height > MAX_SIZE) {
                     if (width > height) {
@@ -6562,6 +6698,7 @@ filterMobileModels();
                         height = MAX_SIZE;
                     }
                 }
+                */
 
                 canvas.width = width;
                 canvas.height = height;
@@ -6625,14 +6762,35 @@ filterMobileModels();
          console.error("Image compression failed", e);
          showToast(`图片处理失败: ${file.name}`, 'error');
      }
- } else if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
- const reader = new FileReader();
- reader.onload = (e) => {
- fileInfo.content = e.target.result; // Store Base64 data
- uploadedFiles.push(fileInfo);
- updateFilePreview();
- };
- reader.readAsDataURL(file);
+ } else if (file.type.startsWith('audio/')) {
+     try {
+         // 显示持久化 Toast (duration = 0)
+         showToast(`正在处理音频: ${file.name}...`, 'info', 0);
+         const compressedDataUrl = await compressAudio(file);
+         fileInfo.content = compressedDataUrl;
+         
+         // 如果进行了压缩，更新大小显示
+         if (file.size > 1024 * 1024) {
+             // 估算 base64 大小
+             const approxSize = Math.round((compressedDataUrl.length - 22) * 0.75);
+             fileInfo.size = approxSize;
+         }
+         
+         uploadedFiles.push(fileInfo);
+         updateFilePreview();
+         showToast(`音频处理完成: ${file.name}`, 'success');
+     } catch (e) {
+         console.error("Audio processing failed", e);
+         showToast(`音频处理失败: ${file.name}`, 'error');
+     }
+ } else if (file.type.startsWith('video/')) {
+     const reader = new FileReader();
+     reader.onload = (e) => {
+         fileInfo.content = e.target.result; // Store Base64 data
+         uploadedFiles.push(fileInfo);
+         updateFilePreview();
+     };
+     reader.readAsDataURL(file);
  } else if (file.type === 'text/plain') {
  // 如果是文本文件，直接读取内容
  const reader = new FileReader();
@@ -10831,54 +10989,56 @@ async function saveConversations(specificConversationId = null) {
 
  // 防抖保存函数，避免流式输出时频繁写入DB
  const saveConversationsDebounced = debounce((id) => saveConversations(id), 2000);
+// 优化Toast显示函数 - 完成后消失而不是隐藏
+function showToast(message, type = 'success', duration = 2000) {
+   // 清除之前的超时
+   if (toastTimeout) {
+       clearTimeout(toastTimeout);
+       toastTimeout = null;
+   }
 
- // 优化Toast显示函数 - 完成后消失而不是隐藏
- function showToast(message, type = 'success') {
- // 清除之前的超时
- if (toastTimeout) {
- clearTimeout(toastTimeout);
- }
+   const toast = document.getElementById('toast');
 
- const toast = document.getElementById('toast');
+   // 如果Toast正在显示，先隐藏它
+   if (toast.classList.contains('show')) {
+       toast.classList.add('hide');
+       setTimeout(() => {
+           displayToast(toast, message, type, duration);
+       }, 200);
+   } else {
+       displayToast(toast, message, type, duration);
+   }
+}
 
- // 如果Toast正在显示，先隐藏它
- if (toast.classList.contains('show')) {
- toast.classList.add('hide');
- setTimeout(() => {
- displayToast(toast, message, type);
- }, 200);
- } else {
- displayToast(toast, message, type);
- }
- }
+// 实际显示Toast的函数
+function displayToast(toast, message, type, duration) {
+   // 移除所有状态类
+   toast.classList.remove('show', 'hide', 'success', 'warning', 'error', 'info');
 
- // 实际显示Toast的函数
- function displayToast(toast, message, type) {
- // 移除所有状态类
- toast.classList.remove('show', 'hide', 'success', 'warning', 'error', 'info');
+   // 设置内容和类型
+   toast.textContent = message;
+   toast.classList.add(type);
 
- // 设置内容和类型
- toast.textContent = message;
- toast.classList.add(type);
+   // 显示Toast
+   setTimeout(() => {
+       toast.classList.add('show');
+   }, 50);
 
- // 显示Toast
- setTimeout(() => {
- toast.classList.add('show');
- }, 50);
+   // 如果 duration > 0，则设置自动隐藏
+   if (duration > 0) {
+       toastTimeout = setTimeout(() => {
+           toast.classList.remove('show');
+           toast.classList.add('hide');
 
- // 设置自动隐藏 - 使用向上消失的动画
- toastTimeout = setTimeout(() => {
- toast.classList.remove('show');
- toast.classList.add('hide');
+           // 动画完成后重置状态
+           setTimeout(() => {
+               toast.classList.remove('hide', type);
+           }, 400);
 
- // 动画完成后重置状态
- setTimeout(() => {
- toast.classList.remove('hide', type);
- }, 400);
-
- toastTimeout = null;
- }, 2000);
- }
+           toastTimeout = null;
+       }, duration);
+   }
+}
 
  // 工具函数
  function formatTime(isoString) {

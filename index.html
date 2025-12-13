@@ -7038,8 +7038,8 @@ filterMobileModels();
         if (!inlineTokens) return [];
         const runs = [];
         
-        // 如果是标题，不设置 size，让其继承样式；否则设置为 28 (14pt)
-        const fontSize = isHeading ? undefined : 28;
+        // 如果是标题，不设置 size，让其继承样式；否则设置为 26 (13pt)
+        const fontSize = isHeading ? undefined : 26;
         
         for (const token of inlineTokens) {
             // 合并当前样式
@@ -7211,7 +7211,7 @@ filterMobileModels();
                 children: [new TextRun({
                     text: line,
                     font: "Courier New",
-                    size: 24 // 12pt
+                    size: 22 // 11pt
                 })],
                 spacing: { line: 240 } // 行高
             }));
@@ -7254,7 +7254,7 @@ filterMobileModels();
                 if (cell.tokens) {
                     cellContent = await processInlineTokensAsync(cell.tokens);
                 } else {
-                    cellContent = [new TextRun({ text: cell.text || cell, bold: true, size: 28 })];
+                    cellContent = [new TextRun({ text: cell.text || cell, bold: true, size: 26 })];
                 }
 
                 return new TableCell({
@@ -7281,7 +7281,7 @@ filterMobileModels();
                     if (cell.tokens) {
                         cellContent = await processInlineTokensAsync(cell.tokens);
                     } else {
-                        cellContent = [new TextRun({ text: cell.text || cell, size: 28 })];
+                        cellContent = [new TextRun({ text: cell.text || cell, size: 24 })];
                     }
 
                     return new TableCell({
@@ -7381,8 +7381,20 @@ filterMobileModels();
     showToast('正在生成 .docx 文档，请稍候...', 'info');
 
     try {
+        // 预处理：修复可能挤在一行的列表项
+        // 将 "：* " 或 "。* " 等模式替换为换行，以便 marked 正确解析为列表
+        let processedContent = content;
+        
+        // 1. 修复挤在一行的无序列表 (* 或 -)
+        // 匹配模式：前面是标点，后面是 * 或 - 且跟空格
+        // 扩展标点符号支持：冒号、句号、感叹号、问号、分号、右括号
+        processedContent = processedContent.replace(/([：：:。；！!？?）\)])\s*([*\-]\s+)/g, '$1\n\n$2');
+        
+        // 2. 修复挤在一行的有序列表 (1. )
+        processedContent = processedContent.replace(/([：：:。；！!？?）\)])\s*(\d+\.\s+)/g, '$1\n\n$2');
+
         // 1. 解析 Markdown 获取 Tokens
-        const tokens = marked.lexer(content);
+        const tokens = marked.lexer(processedContent);
 
         // 2. 转换为 docx 文档结构 (异步)
         const docChildren = await convertTokensToDocxParagraphsAsync(tokens);
@@ -7393,7 +7405,7 @@ filterMobileModels();
                 default: {
                     document: {
                         run: {
-                            size: 28, // 14pt
+                            size: 26, // 13pt
                             font: "Microsoft YaHei"
                         },
                         paragraph: {
@@ -7404,9 +7416,9 @@ filterMobileModels();
                     },
                     heading1: {
                         run: {
-                            size: 48, // 24pt
+                            size: 40, // 20pt
                             bold: true,
-                            color: "2E74B5"
+                            color: "000000"
                         },
                         paragraph: {
                             spacing: {
@@ -7417,9 +7429,9 @@ filterMobileModels();
                     },
                     heading2: {
                         run: {
-                            size: 36, // 18pt
+                            size: 32, // 16pt
                             bold: true,
-                            color: "2E74B5"
+                            color: "000000"
                         },
                         paragraph: {
                             spacing: {
@@ -7430,9 +7442,9 @@ filterMobileModels();
                     },
                     heading3: {
                         run: {
-                            size: 32, // 16pt
+                            size: 28, // 14pt
                             bold: true,
-                            color: "1F4D78"
+                            color: "000000"
                         },
                         paragraph: {
                             spacing: {
@@ -7443,9 +7455,9 @@ filterMobileModels();
                     },
                     heading4: {
                         run: {
-                            size: 28, // 14pt
+                            size: 26, // 13pt
                             bold: true,
-                            color: "1F4D78"
+                            color: "000000"
                         },
                         paragraph: {
                             spacing: {

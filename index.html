@@ -4699,6 +4699,13 @@ stroke: var(--primary-color);
  transition: opacity 0.2s;
  }
 
+ /* 移动端隐藏HTML预览工具栏 */
+ @media (max-width: 768px) {
+ .html-preview-toolbar {
+ display: none !important;
+ }
+ }
+
  .doc-view:hover .html-preview-toolbar {
  opacity: 1;
  }

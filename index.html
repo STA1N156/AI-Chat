@@ -6,7 +6,7 @@
  <meta name="apple-mobile-web-app-capable" content="yes">
  <meta name="apple-mobile-web-app-status-bar-style" content="default">
  <title>AI Chat Assistant</title>
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
  <style>
@@ -1474,9 +1474,9 @@ details.code-block-wrapper {
 margin: 12px 0;
 border-radius: 12px;
 overflow: hidden;
-border: 1px solid var(--border-color);
-background: #282c34;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+border: 1px solid #d0d7de;
+background: #ffffff;
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 transition: all 0.3s ease;
 }
 
@@ -1486,9 +1486,9 @@ display: flex;
 justify-content: space-between;
 align-items: center;
 padding: 8px 16px;
-background: rgba(255, 255, 255, 0.05);
-border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-color: #abb2bf;
+background: #f6f8fa;
+border-bottom: 1px solid #d0d7de;
+color: #24292f;
 font-size: 12px;
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 user-select: none;
@@ -1525,6 +1525,7 @@ width: 14px;
 height: 14px;
 transition: transform 0.2s;
 opacity: 0.7;
+color: #57606a;
 }
 
 details.code-block-wrapper[open] .code-collapse-icon {
@@ -1535,7 +1536,8 @@ transform: rotate(90deg);
 font-weight: 600;
 text-transform: uppercase;
 letter-spacing: 0.5px;
-opacity: 0.8;
+color: #24292f;
+opacity: 0.9;
 }
 
 .code-block-actions {
@@ -1549,8 +1551,8 @@ display: inline-block;
 width: 14px;
 height: 14px;
 margin-left: 8px;
-border: 1.5px solid rgba(255, 255, 255, 0.2);
-border-top-color: rgba(255, 255, 255, 0.8);
+border: 1.5px solid rgba(0, 0, 0, 0.1);
+border-top-color: var(--primary-color);
 border-radius: 50%;
 animation: code-spin 1s linear infinite;
 vertical-align: middle;
@@ -1681,32 +1683,35 @@ background-color: rgba(255, 255, 255, 0.02);
 margin-bottom: 0;
 }
 
-/* 代码块操作按钮（复制/下载） */
+/* 代码块操作按钮（复制/下载/预览） */
 .code-block-header .copy-code-btn,
-.code-block-header .download-code-btn {
+.code-block-header .download-code-btn,
+.code-block-header .preview-code-btn {
 background: transparent;
 border: none;
-color: #abb2bf;
+color: #57606a;
 cursor: pointer;
 display: flex;
 align-items: center;
 gap: 6px;
 padding: 4px 8px;
-border-radius: 4px;
+border-radius: 6px;
 font-size: 12px;
-opacity: 0.7;
+opacity: 0.8;
 transition: all 0.2s ease;
 }
 
 .code-block-header .copy-code-btn:hover,
-.code-block-header .download-code-btn:hover {
+.code-block-header .download-code-btn:hover,
+.code-block-header .preview-code-btn:hover {
 opacity: 1;
-background: rgba(255, 255, 255, 0.1);
-color: white;
+background: rgba(0, 0, 0, 0.05);
+color: var(--primary-color);
 }
 
 .code-block-header .copy-code-btn svg,
-.code-block-header .download-code-btn svg {
+.code-block-header .download-code-btn svg,
+.code-block-header .preview-code-btn svg {
 width: 14px;
 height: 14px;
 }
@@ -4561,11 +4566,11 @@ stroke: var(--primary-color);
  padding: 16px 20px;
  border-bottom: 1px solid var(--border-color);
  display: flex;
- justify-content: space-between;
  align-items: center;
  background: rgba(255, 255, 255, 0.8);
  backdrop-filter: blur(10px);
  -webkit-backdrop-filter: blur(10px);
+ gap: 16px;
  }
 
  .right-sidebar-title {
@@ -4574,12 +4579,14 @@ stroke: var(--primary-color);
  display: flex;
  align-items: center;
  gap: 8px;
+ color: var(--primary-color);
  }
 
  .right-sidebar-actions {
  display: flex;
  align-items: center;
  gap: 8px;
+ margin-left: auto;
  }
 
  .right-sidebar-btn, .right-sidebar-close {
@@ -4609,20 +4616,32 @@ stroke: var(--primary-color);
 
  .doc-tabs {
  display: flex;
- padding: 12px 20px 0;
- gap: 16px;
- border-bottom: 1px solid var(--border-color);
- background: var(--card-background);
+ gap: 4px;
+ background: rgba(0, 0, 0, 0.05);
+ padding: 3px;
+ border-radius: 8px;
  }
 
  .doc-tab {
- padding: 8px 4px;
- font-size: 14px;
+ padding: 4px 12px;
+ font-size: 13px;
  font-weight: 500;
  color: var(--text-secondary);
  cursor: pointer;
- border-bottom: 2px solid transparent;
+ border-radius: 6px;
  transition: all 0.2s;
+ }
+
+ .doc-tab:hover {
+ color: var(--text-primary);
+ background: rgba(255, 255, 255, 0.5);
+ }
+
+ .doc-tab.active {
+ color: var(--primary-color);
+ background: #FFFFFF;
+ box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+ font-weight: 600;
  }
 
  .doc-tab:hover {
@@ -4641,10 +4660,85 @@ stroke: var(--primary-color);
  display: none;
  font-size: 15px;
  line-height: 1.6;
+ position: relative; /* 为绝对定位的工具栏提供参考 */
  }
 
  .doc-view.active {
  display: block;
+ }
+
+ /* HTML预览工具栏 */
+ .html-preview-toolbar {
+ position: absolute;
+ top: 12px;
+ right: 12px;
+ display: flex;
+ gap: 8px;
+ z-index: 10;
+ background: rgba(255, 255, 255, 0.8);
+ padding: 4px;
+ border-radius: 8px;
+ border: 1px solid rgba(0, 0, 0, 0.05);
+ backdrop-filter: blur(4px);
+ -webkit-backdrop-filter: blur(4px);
+ opacity: 0;
+ transition: opacity 0.2s;
+ }
+
+ .doc-view:hover .html-preview-toolbar {
+ opacity: 1;
+ }
+
+ .html-toolbar-btn {
+ width: 28px;
+ height: 28px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ border: none;
+ background: transparent;
+ border-radius: 6px;
+ cursor: pointer;
+ color: var(--text-secondary);
+ transition: all 0.2s;
+ }
+
+ .html-toolbar-btn:hover {
+ background: rgba(0, 0, 0, 0.05);
+ color: var(--text-primary);
+ }
+
+ .html-toolbar-btn svg {
+ width: 16px;
+ height: 16px;
+ }
+
+ /* HTML 全屏预览样式 */
+ .html-preview-fullscreen {
+ position: fixed !important;
+ top: 0;
+ left: 0;
+ width: 100vw !important;
+ height: 100vh !important;
+ z-index: 9999 !important; /* 提高层级，确保覆盖所有元素 */
+ background: #fff;
+ padding: 0 !important;
+ border-radius: 0 !important;
+ /* 移除 transform 影响 */
+ transform: none !important;
+ animation: none !important;
+ }
+
+ .html-preview-fullscreen iframe {
+ border-radius: 0 !important;
+ }
+
+ .html-preview-fullscreen .html-preview-toolbar {
+ top: 20px;
+ right: 20px;
+ opacity: 1; /* 全屏模式下常驻显示 */
+ background: rgba(255, 255, 255, 0.9);
+ box-shadow: 0 2px 8px rgba(0,0,0,0.1);
  }
 
  .doc-preview-content {
@@ -4935,20 +5029,19 @@ stroke: var(--primary-color);
  <div class="right-sidebar-header">
  <div class="right-sidebar-title">
  <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
- 文档预览
+ </div>
+ <div class="doc-tabs">
+ <div class="doc-tab active" onclick="switchDocTab('preview')">预览</div>
+ <div class="doc-tab" onclick="switchDocTab('edit')">源码</div>
  </div>
  <div class="right-sidebar-actions">
- <button class="right-sidebar-btn" onclick="copyCurrentDoc()" title="复制文档内容">
+ <button class="right-sidebar-btn" id="docCopyBtn" onclick="copyCurrentDoc()" title="复制文档内容">
  <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
  </button>
  <button class="right-sidebar-close" onclick="toggleRightSidebar(false)" title="关闭">
  <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
  </button>
  </div>
- </div>
- <div class="doc-tabs">
- <div class="doc-tab active" onclick="switchDocTab('preview')">预览</div>
- <div class="doc-tab" onclick="switchDocTab('edit')">源码</div>
  </div>
  <div class="right-sidebar-content">
  <div class="doc-view active" id="docPreview">
@@ -4957,6 +5050,17 @@ stroke: var(--primary-color);
  <p style="font-size: 14px;">暂无文档内容</p>
  </div>
  </div>
+ </div>
+ <div class="doc-view" id="htmlPreview" style="padding: 0; height: 100%; overflow: hidden;">
+ <div class="html-preview-toolbar">
+ <button class="html-toolbar-btn" onclick="refreshHtmlPreview()" title="刷新">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+ </button>
+ <button class="html-toolbar-btn" onclick="toggleHtmlFullscreen()" title="全屏">
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+ </button>
+ </div>
+ <iframe id="htmlPreviewFrame" sandbox="allow-scripts allow-forms allow-popups allow-modals" style="width: 100%; height: 100%; border: none; background: white;"></iframe>
  </div>
  <div class="doc-view" id="docEdit">
  <textarea class="doc-editor" id="docEditor" placeholder="在此处编辑 Markdown 内容..." oninput="updateDocFromEditor()"></textarea>
@@ -6202,6 +6306,15 @@ filterMobileModels();
  // ============ 右侧边栏逻辑 ============
  let currentDocContent = '';
  let isRightSidebarOpen = false;
+ let currentDocType = 'markdown'; // 'markdown' or 'html'
+
+ // 重置文档复制按钮
+ function resetDocCopyButton() {
+ const btn = document.getElementById('docCopyBtn');
+ if (btn) {
+ btn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+ }
+ }
 
  // 切换右侧边栏
  function toggleRightSidebar(show) {
@@ -6219,6 +6332,8 @@ filterMobileModels();
  if (window.innerWidth > 768) {
  body.classList.add('right-sidebar-open');
  }
+ // 每次打开侧边栏时重置复制按钮
+ resetDocCopyButton();
  } else {
  sidebar.classList.remove('open');
  body.classList.remove('right-sidebar-open');
@@ -6231,9 +6346,9 @@ filterMobileModels();
  document.querySelectorAll('.doc-tab').forEach(tab => {
  tab.classList.remove('active');
  });
- // 找到对应的标签并激活（这里简单通过文本内容或onclick匹配，实际建议加data-tab属性）
+ // 找到对应的标签并激活
  const tabs = document.querySelectorAll('.doc-tab');
- if (tabName === 'preview') tabs[0].classList.add('active');
+ if (tabName === 'preview' || tabName === 'html') tabs[0].classList.add('active');
  if (tabName === 'edit') tabs[1].classList.add('active');
 
  // 更新视图显示
@@ -6242,8 +6357,22 @@ filterMobileModels();
  });
  
  if (tabName === 'preview') {
+ // 如果当前是 HTML 模式，切换到 HTML 预览，否则切换到 Markdown 预览
+ if (currentDocType === 'html') {
+ document.getElementById('htmlPreview').classList.add('active');
+ // 确保 iframe 内容是最新的（如果从源码编辑回来）
+ const iframe = document.getElementById('htmlPreviewFrame');
+ if (iframe && iframe.srcdoc !== currentDocContent) {
+ iframe.srcdoc = currentDocContent;
+ }
+ } else {
  document.getElementById('docPreview').classList.add('active');
  renderMarkdownDocument(); // 重新渲染预览
+ }
+ } else if (tabName === 'html') {
+ // 显式切换到 HTML 预览（通常由 loadHTMLPreview 调用）
+ document.getElementById('htmlPreview').classList.add('active');
+ currentDocType = 'html';
  } else if (tabName === 'edit') {
  document.getElementById('docEdit').classList.add('active');
  // 确保编辑器内容是最新的
@@ -6278,7 +6407,7 @@ filterMobileModels();
  hljs.highlightElement(block);
  });
  
- // 如果之前在底部，保持自动滚动
+ // Markdown 文档保持自动滚动逻辑
  if (isNearBottom) {
  setTimeout(() => {
  docView.scrollTo({
@@ -6286,6 +6415,53 @@ filterMobileModels();
  behavior: 'smooth'
  });
  }, 50);
+ }
+ }
+
+ // 刷新 HTML 预览
+ function refreshHtmlPreview() {
+ const iframe = document.getElementById('htmlPreviewFrame');
+ if (iframe) {
+ iframe.srcdoc = iframe.srcdoc;
+ }
+ }
+
+ // 切换 HTML 预览全屏
+ function toggleHtmlFullscreen() {
+ const htmlPreview = document.getElementById('htmlPreview');
+ const btn = htmlPreview.querySelector('button[title="全屏"]') || htmlPreview.querySelector('button[title="退出全屏"]');
+ 
+ if (htmlPreview.classList.contains('html-preview-fullscreen')) {
+ // 退出全屏
+ htmlPreview.classList.remove('html-preview-fullscreen');
+ 
+ // 将 htmlPreview 放回原来的位置
+ const rightSidebarContent = document.querySelector('.right-sidebar-content');
+ if (rightSidebarContent) {
+ // 重新插入到文档结构中正确的位置（这里简单处理，实际可能需要更精确的占位符）
+ // 由于它是 .right-sidebar-content 的直接子元素，且通常在最后，我们可以直接 append
+ // 但如果有其他兄弟元素（如 docEdit），需要注意顺序
+ // 目前结构是：docPreview, htmlPreview, docEdit
+ const docEdit = document.getElementById('docEdit');
+ if (docEdit) {
+ rightSidebarContent.insertBefore(htmlPreview, docEdit);
+ } else {
+ rightSidebarContent.appendChild(htmlPreview);
+ }
+ }
+ 
+ // 恢复图标
+ btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+ btn.title = "全屏";
+ } else {
+ // 进入全屏
+ // 将 htmlPreview 移动到 body 下，以脱离父容器的 transform/overflow 限制
+ document.body.appendChild(htmlPreview);
+ 
+ htmlPreview.classList.add('html-preview-fullscreen');
+ // 切换图标为退出全屏
+ btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
+ btn.title = "退出全屏";
  }
  }
 
@@ -6299,10 +6475,74 @@ filterMobileModels();
  // 加载文档内容
  function loadDocument(content) {
  currentDocContent = content;
+ currentDocType = 'markdown'; // 标记为 Markdown 文档
  document.getElementById('docEditor').value = content;
  renderMarkdownDocument();
+ 
+ // 先重置按钮，再打开侧边栏
+ resetDocCopyButton();
  toggleRightSidebar(true);
  switchDocTab('preview');
+ }
+
+ // 加载 HTML 预览
+ function loadHTMLPreview(content, switchTab = true) {
+ currentDocContent = content;
+ currentDocType = 'html'; // 标记为 HTML 文档
+ document.getElementById('docEditor').value = content;
+ 
+ const iframe = document.getElementById('htmlPreviewFrame');
+ if (iframe) {
+ // 注入脚本以拦截所有链接点击和表单提交，防止导航到父页面
+ const script = `
+ <script>
+ document.addEventListener('click', function(e) {
+ var target = e.target;
+ while (target && target.tagName !== 'A') {
+ target = target.parentNode;
+ }
+ if (target && target.tagName === 'A') {
+ e.preventDefault();
+ // 如果是锚点链接，允许页内跳转
+ if (target.getAttribute('href').startsWith('#')) {
+ var id = target.getAttribute('href').substring(1);
+ var el = document.getElementById(id);
+ if (el) el.scrollIntoView();
+ } else {
+ console.log('External navigation blocked:', target.href);
+ }
+ }
+ }, true);
+ 
+ document.addEventListener('submit', function(e) {
+ // 允许表单提交，但阻止默认导航行为（如果需要的话，视具体需求而定）
+ // 这里为了安全，如果表单没有 target="_blank"，可能会导致当前页面跳转，所以需要小心
+ // 由于 sandbox 移除了 allow-top-navigation，表单提交不应该能跳出 iframe，除非 target="_top"
+ // 但为了保险起见，可以拦截
+ // e.preventDefault();
+ // console.log('Form submission intercepted');
+ }, true);
+ <\/script>
+ `;
+ 
+ // 将拦截脚本注入到 content 中
+ // 尝试插入到 <head> 中，如果没有 <head> 则插入到开头
+ let injectedContent = content;
+ if (content.includes('<head>')) {
+ injectedContent = content.replace('<head>', '<head>' + script);
+ } else if (content.includes('<html>')) {
+ injectedContent = content.replace('<html>', '<html><head>' + script + '</head>');
+ } else {
+ injectedContent = script + content;
+ }
+ 
+ iframe.srcdoc = injectedContent;
+ }
+ 
+ if (switchTab) {
+ toggleRightSidebar(true);
+ switchDocTab('html');
+ }
  }
 
  // 通过ID加载文档
@@ -6317,14 +6557,16 @@ filterMobileModels();
  function copyCurrentDoc() {
  if (currentDocContent) {
  const plainText = removeMarkdown(currentDocContent);
+ const btn = document.getElementById('docCopyBtn');
+ 
  if (navigator.clipboard && window.isSecureContext) {
  navigator.clipboard.writeText(plainText).then(() => {
- showToast('文档内容已复制', 'success');
+ showCopySuccess(btn);
  }).catch(() => {
- fallbackCopy(plainText, document.querySelector('.right-sidebar-btn'));
+ fallbackCopy(plainText, btn);
  });
  } else {
- fallbackCopy(plainText, document.querySelector('.right-sidebar-btn'));
+ fallbackCopy(plainText, btn);
  }
  } else {
  showToast('暂无内容可复制', 'warning');
@@ -7276,6 +7518,8 @@ showToast('已取消生成', 'warning');
  chatContainer.appendChild(messageElement);
 
  // 滚动到底部 - 移动端优化
+ // 仅在用户消息或非流式输出时自动滚动，流式输出时禁用自动滚动以免干扰阅读
+ if (!isGenerating && role !== 'assistant') {
  setTimeout(() => {
  chatContainer.scrollTop = chatContainer.scrollHeight;
  // 移动端额外确保滚动到底部
@@ -7288,6 +7532,7 @@ showToast('已取消生成', 'warning');
  });
  }
  }, 100);
+ }
 
  // 更新对话记录（不自动更新，因为需要完整的文件内容）
  // if (content && currentConversationId) {
@@ -7690,6 +7935,9 @@ updateDOM(bubbleElement, newHTML);
  }
 
  // 滚动到底部 - 移动端优化
+ // 禁用流式输出时的自动滚动，仅在第一次添加消息时滚动（上面已经处理）
+ // 这里是 updateMessage，通常是流式更新，所以移除自动滚动逻辑
+ /*
  const chatContainer = document.getElementById('chatContainer');
  setTimeout(() => {
  chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -7703,6 +7951,7 @@ updateDOM(bubbleElement, newHTML);
  });
  }
  }, 50);
+ */
  }
  }
 
@@ -7827,14 +8076,43 @@ updateDOM(bubbleElement, newHTML);
 
  // 显示复制成功反馈
  function showCopySuccess(button) {
- showToast('消息已复制', 'success');
+ if (!button) return;
+ 
+ // 如果是右侧边栏的复制按钮，不显示Toast，只变换图标
+ if (button.classList.contains('right-sidebar-btn') || button.id === 'docCopyBtn') {
+ // 临时禁用 transition 以便立即切换图标，避免图标切换时的闪烁
+ button.style.transition = 'none';
+ button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24" style="stroke: var(--success-color); transform: scale(1.2); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+ 
+ // 强制重绘
+ void button.offsetWidth;
+ 
+ // 恢复 transition 并应用缩放动画
+ button.style.transition = 'all 0.2s ease';
+ 
+ // 修改需求：复制成功后不再自动恢复，直到下次进入预览
+ /*
+ setTimeout(() => {
+ // 恢复原始图标
+ button.innerHTML = originalHTML;
+ }, 1500);
+ */
+ } else {
+ // 其他地方的复制按钮保持原有逻辑（显示Toast）
+ showToast('内容已复制', 'success');
  const originalHTML = button.innerHTML;
- button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+ button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg><span>已复制</span>`;
+ // 如果是纯图标按钮（如代码块头部的），不显示文字
+ if (button.classList.contains('copy-code-btn') || button.classList.contains('copy-btn')) {
+    button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+ }
+ 
  button.style.background = 'rgba(52, 199, 89, 0.2)';
  setTimeout(() => {
  button.innerHTML = originalHTML;
  button.style.background = '';
  }, 1000);
+ }
  }
 
 // 显示打字指示器
@@ -7980,55 +8258,38 @@ function getProgressInfo(text) {
  return progressHTML;
  }
 
- // 检测并生成文档卡片 HTML
- function convertDocToCard(text, isStreaming = false) {
- // 匹配 :::doc [标题] ::: ... ::: 格式
- // 注意：流式输出时可能未闭合，我们需要处理这种情况
- const docStartRegex = /:::doc\s*(?:\[(.*?)\])?\s*:::/;
- const docEndRegex = /:::/;
- 
- const match = text.match(docStartRegex);
- if (!match) return null;
-
- const title = match[1] || '文档';
- const startIndex = match.index + match[0].length;
- let content = text.substring(startIndex);
- let isComplete = false;
-
- // 检查是否有闭合标记
- const endMatch = content.match(docEndRegex);
- if (endMatch) {
- content = content.substring(0, endMatch.index);
- isComplete = true;
- }
-
+ // 生成文档卡片 HTML (重构版)
+ function convertDocToCard(title, content, isComplete, isStreaming = false) {
  // 如果是流式输出且未闭合，状态为生成中
  const status = (isComplete || !isStreaming) ? 'completed' : 'generating';
  
- // 保存文档内容到全局变量（用于预览和Diff）
- // 为了支持多个文档，可以使用 Map，这里简单处理只保存最新的
- // 注意：在渲染循环中频繁调用，需要避免副作用
- // 我们只在完整生成或流式更新时更新内容，但不在这里直接操作 DOM 打开侧边栏
- // 而是通过按钮触发
- 
- // 存储当前正在生成的文档内容，供“打开”按钮使用
  // 移除文档内容中的 <think> 标签，确保预览纯净
  const cleanContent = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*/gi, '').trim();
+ 
+ // 更新全局最新文档信息
  window.latestDocContent = cleanContent;
  window.latestDocTitle = title;
 
  // 生成唯一ID并存储文档数据
+ // 使用内容哈希或长度作为ID的一部分，以区分不同文档
  let docId;
- if (isStreaming && window.latestDocId) {
+ // 简单的内容指纹
+ const contentFingerprint = title + '-' + cleanContent.length;
+ 
+ if (isStreaming && window.latestDocId && window.latestDocFingerprint === contentFingerprint.substring(0, contentFingerprint.lastIndexOf('-'))) {
+ // 如果是流式传输且指纹匹配（标题没变），复用ID
  docId = window.latestDocId;
  } else {
- // 如果内容完全一样，尝试复用现有ID（防止闪烁）
- const existingId = Object.keys(window.docData || {}).find(key => window.docData[key].content === cleanContent && window.docData[key].title === title);
+ // 尝试查找已存在的相同内容的文档
+ const existingId = Object.keys(window.docData || {}).find(key =>
+ window.docData[key].content === cleanContent && window.docData[key].title === title
+ );
  docId = existingId || ('doc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
  }
  
  if (isStreaming) {
  window.latestDocId = docId;
+ window.latestDocFingerprint = title; // 记录标题作为指纹基准
  }
 
  if (!window.docData) window.docData = {};
@@ -8190,20 +8451,18 @@ function getProgressInfo(text) {
 
  // 检查是否包含文档标记
  // 如果包含，我们只显示文档卡片，隐藏原始 Markdown 内容（因为它在卡片里预览）
- // 但是为了避免把解释性文字也隐藏了，我们需要精细处理
  // 策略：将 :::doc ... ::: 块替换为卡片 HTML，保留其他文字
  // 注意：必须在处理完 <think> 之后再处理文档卡片，否则文档内容里的 think 标签可能会被错误处理
- const docCardRegex = /:::doc\s*(?:\[(.*?)\])?\s*:::([\s\S]*?)(?::::|$)/;
- const docMatch = processedText.match(docCardRegex);
+ // 使用全局匹配支持多个文档
+ const docCardRegex = /:::doc\s*(?:\[(.*?)\])?\s*:::([\s\S]*?)(?::::|$)/g;
  
- if (docMatch) {
- const cardHTML = convertDocToCard(text, isStreaming); // 使用原始 text 提取文档内容，避免被 think 处理影响
- if (cardHTML) {
- // 将文档部分替换为卡片
- // 注意：这里简单替换整个文档块，如果文档块前后有文字，保留它们
- processedText = processedText.replace(docMatch[0], cardHTML);
- }
- }
+ processedText = processedText.replace(docCardRegex, (match, title, content) => {
+ title = title || '文档';
+ // 检查是否完整闭合 (以 ::: 结尾)
+ const isComplete = match.trim().endsWith(':::');
+ 
+ return convertDocToCard(title, content, isComplete, isStreaming);
+ });
  
  // 生成思考框HTML的辅助函数
  const createThinkingHTML = (innerContent, isThinking) => {
@@ -8321,6 +8580,41 @@ function getProgressInfo(text) {
  // 操作区
  const actionsDiv = document.createElement('div');
  actionsDiv.className = 'code-block-actions';
+ 
+ // 如果是 HTML 代码，添加预览按钮
+ if (lang === 'html' || lang === 'xml') {
+   const previewBtn = document.createElement('button');
+   previewBtn.className = 'action-btn preview-code-btn';
+   previewBtn.setAttribute('data-code-content', block.textContent);
+   previewBtn.innerHTML = `
+     <svg class="icon-svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+     <span>预览</span>
+   `;
+   previewBtn.title = "预览网页";
+   actionsDiv.appendChild(previewBtn);
+
+   // 如果正在流式输出且是最后一个代码块，自动打开预览
+   // 使用 Set 记录已自动打开过的代码块内容哈希（简单用长度+前几个字符代替），防止重复打开
+   if (isStreaming && isLastBlock && window.innerWidth > 768) {
+     const contentHash = 'html-' + block.textContent.length + '-' + block.textContent.substring(0, 20);
+     if (!window.autoOpenedDocIds.has(contentHash)) {
+       window.autoOpenedDocIds.add(contentHash);
+       setTimeout(() => {
+         loadHTMLPreview(block.textContent);
+       }, 500);
+     }
+     // 如果右侧边栏已打开且显示的是HTML预览，实时更新
+     if (isRightSidebarOpen && document.getElementById('htmlPreview').classList.contains('active')) {
+        // 防抖更新
+        if (!window.updateHtmlTimeout) {
+            window.updateHtmlTimeout = setTimeout(() => {
+                loadHTMLPreview(block.textContent, false); // false 表示不强制切换 tab，只更新内容
+                window.updateHtmlTimeout = null;
+            }, 500);
+        }
+     }
+   }
+ }
  
  // 下载按钮
  const downloadBtn = document.createElement('button');
@@ -8440,6 +8734,34 @@ function getProgressInfo(text) {
 
  newButton.addEventListener('click', downloadCode);
  newButton.addEventListener('touchend', downloadCode);
+ });
+
+ // 绑定预览按钮
+ container.querySelectorAll('.preview-code-btn').forEach((button) => {
+ const newButton = button.cloneNode(true);
+ button.parentNode.replaceChild(newButton, button);
+
+ const previewCode = function(e) {
+ e.preventDefault();
+ e.stopPropagation(); // 防止触发折叠
+
+ let codeText = this.getAttribute('data-code-content');
+ 
+ if (!codeText) {
+ const wrapper = this.closest('.code-block-wrapper');
+ if (wrapper) {
+ const codeBlock = wrapper.querySelector('code');
+ if (codeBlock) codeText = codeBlock.textContent;
+ }
+ }
+ 
+ if (!codeText) return;
+
+ loadHTMLPreview(codeText);
+ };
+
+ newButton.addEventListener('click', previewCode);
+ newButton.addEventListener('touchend', previewCode);
  });
  }
 

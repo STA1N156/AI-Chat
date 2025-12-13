@@ -6820,7 +6820,8 @@ filterMobileModels();
 
     // 辅助函数：处理行内样式（粗体、斜体、代码、图片等）
     // isHeading 参数用于指示当前是否在处理标题，如果是，则不强制设置字体大小，以便继承 Heading 样式
-    const processInlineTokensAsync = async (inlineTokens, isHeading = false) => {
+    // parentStyle 参数用于递归传递样式（如粗体、斜体）
+    const processInlineTokensAsync = async (inlineTokens, isHeading = false, parentStyle = {}) => {
         if (!inlineTokens) return [];
         const runs = [];
         
@@ -6828,38 +6829,65 @@ filterMobileModels();
         const fontSize = isHeading ? undefined : 28;
         
         for (const token of inlineTokens) {
-            if (token.type === 'text') {
-                // 处理文本中的换行符
-                const parts = token.text.split('\n');
-                parts.forEach((part, index) => {
-                    if (index > 0) {
-                        runs.push(new TextRun({ break: 1 })); // 软换行
-                    }
-                    runs.push(new TextRun({
-                        text: part,
-                        bold: false,
-                        italics: false,
-                        size: fontSize
-                    }));
-                });
+            // 合并当前样式
+            const currentStyle = { ...parentStyle };
+            // 只有当不是标题时，才应用默认字体大小
+            if (!isHeading) {
+                currentStyle.size = fontSize;
+            }
+
+            if (token.type === 'text' || token.type === 'escape') {
+                // 如果 text token 包含子 tokens (例如列表项中的混合内容)，优先递归处理
+                if (token.tokens && token.tokens.length > 0) {
+                    const subRuns = await processInlineTokensAsync(token.tokens, isHeading, currentStyle);
+                    runs.push(...subRuns);
+                } else {
+                    // 处理纯文本中的换行符
+                    const textContent = token.text || token.raw || "";
+                    const parts = textContent.split('\n');
+                    parts.forEach((part, index) => {
+                        if (index > 0) {
+                            runs.push(new TextRun({ break: 1 })); // 软换行
+                        }
+                        runs.push(new TextRun({
+                            text: part,
+                            ...currentStyle
+                        }));
+                    });
+                }
             } else if (token.type === 'strong') {
-                runs.push(new TextRun({
-                    text: token.text,
-                    bold: true,
-                    size: fontSize
-                }));
+                const newStyle = { ...currentStyle, bold: true };
+                if (token.tokens && token.tokens.length > 0) {
+                    const subRuns = await processInlineTokensAsync(token.tokens, isHeading, newStyle);
+                    runs.push(...subRuns);
+                } else {
+                    runs.push(new TextRun({
+                        text: token.text,
+                        ...newStyle
+                    }));
+                }
             } else if (token.type === 'em') {
-                runs.push(new TextRun({
-                    text: token.text,
-                    italics: true,
-                    size: fontSize
-                }));
+                const newStyle = { ...currentStyle, italics: true };
+                if (token.tokens && token.tokens.length > 0) {
+                    const subRuns = await processInlineTokensAsync(token.tokens, isHeading, newStyle);
+                    runs.push(...subRuns);
+                } else {
+                    runs.push(new TextRun({
+                        text: token.text,
+                        ...newStyle
+                    }));
+                }
             } else if (token.type === 'del') {
-                runs.push(new TextRun({
-                    text: token.text,
-                    strike: true,
-                    size: fontSize
-                }));
+                const newStyle = { ...currentStyle, strike: true };
+                if (token.tokens && token.tokens.length > 0) {
+                    const subRuns = await processInlineTokensAsync(token.tokens, isHeading, newStyle);
+                    runs.push(...subRuns);
+                } else {
+                    runs.push(new TextRun({
+                        text: token.text,
+                        ...newStyle
+                    }));
+                }
             } else if (token.type === 'codespan') {
                 runs.push(new TextRun({
                     text: ` ${token.text} `, // 添加一点间距
@@ -6870,13 +6898,16 @@ filterMobileModels();
                 }));
             } else if (token.type === 'link') {
                 // docx.js 的 ExternalHyperlink 需要在 Paragraph 级别处理，这里简化为蓝色下划线文本
-                // 如果需要真正的超链接，需要重构 Paragraph 的构建逻辑
-                runs.push(new TextRun({
-                    text: token.text,
-                    color: "0563C1",
-                    underline: { type: "single" },
-                    size: fontSize
-                }));
+                const newStyle = { ...currentStyle, color: "0563C1", underline: { type: "single" } };
+                if (token.tokens && token.tokens.length > 0) {
+                    const subRuns = await processInlineTokensAsync(token.tokens, isHeading, newStyle);
+                    runs.push(...subRuns);
+                } else {
+                    runs.push(new TextRun({
+                        text: token.text,
+                        ...newStyle
+                    }));
+                }
             } else if (token.type === 'image') {
                 const imageBuffer = await fetchImage(token.href);
                 if (imageBuffer) {
@@ -6899,7 +6930,7 @@ filterMobileModels();
                 // 默认回退
                 runs.push(new TextRun({
                     text: token.text || token.raw || "",
-                    size: fontSize
+                    ...currentStyle
                 }));
             }
         }

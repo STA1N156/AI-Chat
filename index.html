@@ -6999,7 +6999,8 @@ filterMobileModels();
  messageId: loadingId,
  controller: null,
  isGenerating: true,
- docMap: new Map() // 用于在流式输出中保持文档ID稳定
+ docMap: new Map(), // 用于在流式输出中保持文档ID稳定
+ lastAutoOpenedDocIndex: 0 // 记录最后自动打开的文档索引，防止跳回旧文档
  };
 
  // 更新当前对话的发送按钮状态

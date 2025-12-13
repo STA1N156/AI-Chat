@@ -4921,11 +4921,11 @@ stroke: var(--primary-color);
  /* 移动端适配 */
  @media (max-width: 768px) {
  .doc-preview-content {
- padding: 16px 8px; /* 减小左右边距 */
+ padding: 16px 16px; /* 增加左右边距 */
  }
  
  .doc-view {
- padding: 0 !important; /* 移动端移除外层内边距，最大化显示空间 */
+ padding: 0; /* 移动端移除外层内边距，最大化显示空间 */
  }
  
  .doc-editor {
@@ -8670,15 +8670,32 @@ function getProgressInfo(text) {
  return progressHTML;
  }
 
- // 处理 <think> 标签
+ // 预处理：先提取所有 <think> 内容，暂时替换为占位符
+ // 这样可以防止文档识别逻辑错误地处理思考过程中的内容
+ // 同时，这也确保了文档卡片只识别正文中的标记
+ let thinkBlocks = [];
  let processedText = text;
  
+ // 处理完整的 <think> 标签
+ processedText = processedText.replace(/<think>([\s\S]*?)<\/think>/gi, (match, content) => {
+ thinkBlocks.push({ content, isThinking: false });
+ return `__THINK_BLOCK_${thinkBlocks.length - 1}__`;
+ });
+ 
+ // 处理流式输出中可能未闭合的 <think> (思考中)
+ const lastThinkOpenIndex = processedText.lastIndexOf('<think>');
+ const lastThinkCloseIndex = processedText.lastIndexOf('</think>');
+ 
+ if (lastThinkOpenIndex > lastThinkCloseIndex) {
+ const beforeThink = processedText.substring(0, lastThinkOpenIndex);
+ const thinkContent = processedText.substring(lastThinkOpenIndex + 7); // 7 is length of <think>
+ thinkBlocks.push({ content: thinkContent, isThinking: true });
+ processedText = beforeThink + `__THINK_BLOCK_${thinkBlocks.length - 1}__`;
+ }
 
  // 检查是否包含文档标记
+ // 此时 processedText 中已经移除了思考链内容，所以只匹配正文
  // 如果包含，我们只显示文档卡片，隐藏原始 Markdown 内容（因为它在卡片里预览）
- // 策略：将 :::doc ... ::: 块替换为卡片 HTML，保留其他文字
- // 注意：必须在处理完 <think> 之后再处理文档卡片，否则文档内容里的 think 标签可能会被错误处理
- // 使用全局匹配支持多个文档
  const docCardRegex = /:::doc\s*(?:\[(.*?)\])?\s*:::([\s\S]*?)(?::::|$)/g;
  let docIndex = 0;
  
@@ -8738,22 +8755,11 @@ function getProgressInfo(text) {
  </details>\n\n`;
  };
 
- // 处理闭合的 <think>...</think> (思考完成)
- processedText = processedText.replace(/<think>([\s\S]*?)<\/think>/gi, (match, content) => {
- return createThinkingHTML(content, false);
+ // 还原思考块
+ thinkBlocks.forEach((block, index) => {
+ const placeholder = `__THINK_BLOCK_${index}__`;
+ processedText = processedText.replace(placeholder, createThinkingHTML(block.content, block.isThinking));
  });
-
- // 处理流式输出中可能未闭合的 <think> (思考中)
- // 注意：如果之前已经有闭合的think标签（比如搜索前的思考），我们需要确保只处理最后一个未闭合的think
- const lastThinkOpenIndex = processedText.lastIndexOf('<think>');
- const lastThinkCloseIndex = processedText.lastIndexOf('</think>');
- 
- if (lastThinkOpenIndex > lastThinkCloseIndex) {
-     // 存在未闭合的 think 标签
-     const beforeThink = processedText.substring(0, lastThinkOpenIndex);
-     const thinkContent = processedText.substring(lastThinkOpenIndex + 7); // 7 is length of <think>
-     processedText = beforeThink + createThinkingHTML(thinkContent, true);
- }
 
  // 计算当前文本末尾是否处于未闭合的代码块中
  const isCodeOpen = isCodeBlockOpen(processedText);

@@ -3274,7 +3274,7 @@ transform: none;
  margin: 0;
  background: #FEFEFD;
  border-radius: 32px;
- padding: 8px 16px;
+ padding: 6px 14px;
  border: 1px solid rgba(0, 0, 0, 0.05);
  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
  align-items: center; /* 垂直居中对齐 */
@@ -3294,7 +3294,7 @@ transform: none;
 
  .input-field {
  font-size: 16px;
- padding: 14px 0;
+ padding: 10px 0;
  min-height: 24px; /* 减小最小高度 */
  max-height: 120px;
  border-radius: 0;
@@ -8392,22 +8392,29 @@ showToast('已取消生成', 'warning');
 
  chatContainer.appendChild(messageElement);
 
- // 滚动到底部 - 移动端优化
- // 仅在用户消息或非流式输出时自动滚动，流式输出时禁用自动滚动以免干扰阅读
- // 且必须开启了自动滚动设置
- if (settings.autoScroll && !isGenerating && role !== 'assistant') {
- setTimeout(() => {
- chatContainer.scrollTop = chatContainer.scrollHeight;
- // 移动端额外确保滚动到底部
- if (window.innerWidth <= 768) {
- requestAnimationFrame(() => {
+ // 滚动到底部 - 增强版
+ // 如果开启了自动滚动，无论是什么消息，只要不是流式输出的中间状态（会由 updateMessage 处理），都尝试滚动
+ if (settings.autoScroll) {
+ // 使用多重延时确保滚动生效（解决键盘弹出、DOM渲染延迟等问题）
+ const scrollBottom = () => {
  chatContainer.scrollTo({
  top: chatContainer.scrollHeight,
  behavior: 'smooth'
  });
- });
+ };
+ 
+ // 立即执行一次
+ scrollBottom();
+ 
+ // 延时执行
+ setTimeout(scrollBottom, 100);
+ setTimeout(scrollBottom, 300);
+ 
+ // 移动端额外处理
+ if (window.innerWidth <= 768) {
+ requestAnimationFrame(scrollBottom);
+ setTimeout(() => requestAnimationFrame(scrollBottom), 500);
  }
- }, 100);
  }
 
  // 更新对话记录（不自动更新，因为需要完整的文件内容）
@@ -8810,19 +8817,15 @@ updateDOM(bubbleElement, newHTML);
  }
  }
 
- // 滚动到底部 - 移动端优化
- // 如果开启了自动滚动，且是流式输出更新，则尝试保持在底部
+ // 滚动到底部 - 强制模式 (流式输出)
+ // 如果开启了自动滚动，且是流式输出更新，强制保持在底部，无视用户滚动位置
  if (settings.autoScroll && isStreaming) {
  const chatContainer = document.getElementById('chatContainer');
- // 只有当用户已经接近底部时才自动滚动，避免干扰用户向上查看历史
- const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 150;
- 
- if (isNearBottom) {
  // 使用 requestAnimationFrame 避免频繁重绘导致的性能问题
  requestAnimationFrame(() => {
+ // 流式输出时直接设置scrollTop比scrollTo更流畅
  chatContainer.scrollTop = chatContainer.scrollHeight;
  });
- }
  }
  }
  }
@@ -10115,16 +10118,21 @@ return;
 
 chatContainer.appendChild(messageElement);
 
-// 移动端自动滚动到底部 (仅当开启自动滚动时)
-if (settings.autoScroll && window.innerWidth <= 768) {
-setTimeout(() => {
-requestAnimationFrame(() => {
+// 自动滚动到底部 (增强版)
+if (settings.autoScroll) {
+const scrollBottom = () => {
 chatContainer.scrollTo({
 top: chatContainer.scrollHeight,
 behavior: 'smooth'
 });
-});
-}, 100);
+};
+
+scrollBottom();
+setTimeout(scrollBottom, 100);
+
+if (window.innerWidth <= 768) {
+setTimeout(() => requestAnimationFrame(scrollBottom), 300);
+}
 }
 }
 
@@ -10337,16 +10345,21 @@ messageElement.appendChild(bubbleElement);
 
 chatContainer.appendChild(messageElement);
 
-// 移动端自动滚动到底部 (仅当开启自动滚动时)
-if (settings.autoScroll && window.innerWidth <= 768) {
-setTimeout(() => {
-requestAnimationFrame(() => {
+// 自动滚动到底部 (增强版)
+if (settings.autoScroll) {
+const scrollBottom = () => {
 chatContainer.scrollTo({
 top: chatContainer.scrollHeight,
 behavior: 'smooth'
 });
-});
-}, 100);
+};
+
+scrollBottom();
+setTimeout(scrollBottom, 100);
+
+if (window.innerWidth <= 768) {
+setTimeout(() => requestAnimationFrame(scrollBottom), 300);
+}
 }
 
 // 返回messageId，保持与addMessageToUI一致

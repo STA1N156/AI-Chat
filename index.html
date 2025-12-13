@@ -5155,6 +5155,9 @@ stroke: var(--primary-color);
 <!-- 引入 SheetJS 用于解析 Excel 文件 -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
         onerror="console.error('SheetJS 加载失败')"></script>
+<!-- 引入 docx.js 用于生成 docx 文件 -->
+<script src="https://unpkg.com/docx@7.3.0/build/index.js"
+        onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/docx@7.3.0/build/index.js';console.error('docx.js 主要CDN加载失败，尝试备用CDN')"></script>
 </head>
 <body>
  <div class="app-container initial-load">
@@ -5738,7 +5741,8 @@ function checkLibraries() {
     const libraries = {
         'mammoth': typeof mammoth !== 'undefined',
         'pdfjsLib': typeof pdfjsLib !== 'undefined',
-        'XLSX': typeof XLSX !== 'undefined'
+        'XLSX': typeof XLSX !== 'undefined',
+        'docx': typeof docx !== 'undefined'
     };
     
     console.log('📚 库加载状态:', libraries);
@@ -6797,59 +6801,460 @@ filterMobileModels();
  }
  }
 
- // 下载文档为Word格式
- function downloadDocAsWord(docId, event) {
- if (event) event.stopPropagation();
- 
- let content = '';
- let title = 'document';
-
- if (window.docData && window.docData[docId]) {
- content = window.docData[docId].content;
- title = window.docData[docId].title || 'document';
- } else if (docId === 'latest' && window.latestDocContent) {
- content = window.latestDocContent;
- title = window.latestDocTitle || 'document';
+ // 异步获取图片并转换为 ArrayBuffer
+ async function fetchImage(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.arrayBuffer();
+    } catch (error) {
+        console.error('Failed to fetch image:', url, error);
+        return null;
+    }
  }
 
- if (!content) {
- showToast('无法获取文档内容', 'error');
- return;
+ // 将 Markdown Tokens 转换为 docx 段落对象 (异步)
+ async function convertTokensToDocxParagraphsAsync(tokens) {
+    const { Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType, ImageRun, HorizontalPosition, VerticalPosition, TextWrappingType, TextWrappingSide } = docx;
+    const children = [];
+
+    // 辅助函数：处理行内样式（粗体、斜体、代码、图片等）
+    // isHeading 参数用于指示当前是否在处理标题，如果是，则不强制设置字体大小，以便继承 Heading 样式
+    const processInlineTokensAsync = async (inlineTokens, isHeading = false) => {
+        if (!inlineTokens) return [];
+        const runs = [];
+        
+        // 如果是标题，不设置 size，让其继承样式；否则设置为 28 (14pt)
+        const fontSize = isHeading ? undefined : 28;
+        
+        for (const token of inlineTokens) {
+            if (token.type === 'text') {
+                // 处理文本中的换行符
+                const parts = token.text.split('\n');
+                parts.forEach((part, index) => {
+                    if (index > 0) {
+                        runs.push(new TextRun({ break: 1 })); // 软换行
+                    }
+                    runs.push(new TextRun({
+                        text: part,
+                        bold: false,
+                        italics: false,
+                        size: fontSize
+                    }));
+                });
+            } else if (token.type === 'strong') {
+                runs.push(new TextRun({
+                    text: token.text,
+                    bold: true,
+                    size: fontSize
+                }));
+            } else if (token.type === 'em') {
+                runs.push(new TextRun({
+                    text: token.text,
+                    italics: true,
+                    size: fontSize
+                }));
+            } else if (token.type === 'del') {
+                runs.push(new TextRun({
+                    text: token.text,
+                    strike: true,
+                    size: fontSize
+                }));
+            } else if (token.type === 'codespan') {
+                runs.push(new TextRun({
+                    text: ` ${token.text} `, // 添加一点间距
+                    font: "Courier New",
+                    color: "C7254E",
+                    shading: { fill: "F9F2F4", color: "auto" },
+                    size: isHeading ? undefined : 24 // 标题中的代码块也继承大小，正文中的设为 24
+                }));
+            } else if (token.type === 'link') {
+                // docx.js 的 ExternalHyperlink 需要在 Paragraph 级别处理，这里简化为蓝色下划线文本
+                // 如果需要真正的超链接，需要重构 Paragraph 的构建逻辑
+                runs.push(new TextRun({
+                    text: token.text,
+                    color: "0563C1",
+                    underline: { type: "single" },
+                    size: fontSize
+                }));
+            } else if (token.type === 'image') {
+                const imageBuffer = await fetchImage(token.href);
+                if (imageBuffer) {
+                    try {
+                        runs.push(new ImageRun({
+                            data: imageBuffer,
+                            transformation: {
+                                width: 400, // 默认宽度，高度自适应
+                                height: 300
+                            }
+                        }));
+                    } catch (e) {
+                        console.error('Error creating ImageRun:', e);
+                        runs.push(new TextRun({ text: `[图片加载失败: ${token.text}]`, color: "FF0000" }));
+                    }
+                } else {
+                    runs.push(new TextRun({ text: `[图片无法获取: ${token.text}]`, color: "FF0000" }));
+                }
+            } else {
+                // 默认回退
+                runs.push(new TextRun({
+                    text: token.text || token.raw || "",
+                    size: fontSize
+                }));
+            }
+        }
+        return runs;
+    };
+
+    for (const token of tokens) {
+        if (token.type === 'heading') {
+            const levels = [
+                HeadingLevel.HEADING_1,
+                HeadingLevel.HEADING_2,
+                HeadingLevel.HEADING_3,
+                HeadingLevel.HEADING_4,
+                HeadingLevel.HEADING_5,
+                HeadingLevel.HEADING_6
+            ];
+            // 传入 true 表示这是标题，不要强制覆盖字体大小
+            const textRuns = await processInlineTokensAsync(token.tokens || [{ type: 'text', text: token.text }], true);
+            
+            children.push(new Paragraph({
+                children: textRuns,
+                heading: levels[token.depth - 1] || HeadingLevel.HEADING_1,
+                spacing: { before: 240, after: 120 }
+            }));
+        } else if (token.type === 'paragraph') {
+            const textRuns = await processInlineTokensAsync(token.tokens);
+            children.push(new Paragraph({
+                children: textRuns,
+                spacing: { before: 120, after: 120 }
+            }));
+        } else if (token.type === 'list') {
+            // 处理列表
+            const processListItems = async (items, level = 0, ordered = false) => {
+                for (const item of items) {
+                    // 列表项内容
+                    const textRuns = await processInlineTokensAsync(item.tokens);
+                    
+                    children.push(new Paragraph({
+                        children: textRuns,
+                        bullet: { level: level }, // docx.js 会自动处理有序/无序，只要 numbering 引用正确
+                        numbering: {
+                            reference: ordered ? "ordered-list" : "unordered-list",
+                            level: level
+                        },
+                        spacing: { before: 60, after: 60 }
+                    }));
+
+                    // 处理嵌套列表 (marked 将嵌套列表放在 item.tokens 中，或者作为单独的 token)
+                    // marked 的结构比较复杂，这里做简化处理：检查 item.tokens 中是否有 list 类型的 token
+                    if (item.tokens) {
+                        for (const subToken of item.tokens) {
+                            if (subToken.type === 'list') {
+                                await processListItems(subToken.items, level + 1, subToken.ordered);
+                            }
+                        }
+                    }
+                }
+            };
+            await processListItems(token.items, 0, token.ordered);
+
+        } else if (token.type === 'code') {
+            // 代码块：整体放在一个表格单元格中，模拟背景色
+            const lines = token.text.split('\n');
+            const codeParagraphs = lines.map(line => new Paragraph({
+                children: [new TextRun({
+                    text: line,
+                    font: "Courier New",
+                    size: 24 // 12pt
+                })],
+                spacing: { line: 240 } // 行高
+            }));
+
+            const codeTable = new Table({
+                rows: [
+                    new TableRow({
+                        children: [
+                            new TableCell({
+                                children: codeParagraphs,
+                                shading: { fill: "F5F5F5" },
+                                borders: {
+                                    top: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                    bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                    left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                    right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" }
+                                },
+                                margins: {
+                                    top: 100, bottom: 100, left: 100, right: 100
+                                }
+                            })
+                        ]
+                    })
+                ],
+                width: { size: 100, type: WidthType.PERCENTAGE }
+            });
+            children.push(codeTable);
+            children.push(new Paragraph({ text: "" })); // 代码块后空行
+
+        } else if (token.type === 'table') {
+            // 构建表格行
+            const rows = [];
+            
+            // 表头
+            const headerCells = await Promise.all(token.header.map(async (cell, index) => {
+                // cell 可能是 token 结构，也可能是 string
+                // marked table header tokens: token.header[i].tokens
+                // 注意：marked 的 table token 结构可能因版本而异，这里做兼容处理
+                let cellContent = [];
+                if (cell.tokens) {
+                    cellContent = await processInlineTokensAsync(cell.tokens);
+                } else {
+                    cellContent = [new TextRun({ text: cell.text || cell, bold: true, size: 28 })];
+                }
+
+                return new TableCell({
+                    children: [new Paragraph({
+                        children: cellContent,
+                        alignment: token.align[index] === 'center' ? AlignmentType.CENTER : (token.align[index] === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT)
+                    })],
+                    shading: { fill: "E0E0E0" },
+                    verticalAlign: "center",
+                    borders: {
+                        top: { style: BorderStyle.SINGLE, size: 1, color: "999999" },
+                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "999999" },
+                        left: { style: BorderStyle.SINGLE, size: 1, color: "999999" },
+                        right: { style: BorderStyle.SINGLE, size: 1, color: "999999" }
+                    }
+                });
+            }));
+            rows.push(new TableRow({ children: headerCells }));
+
+            // 表格内容
+            for (const row of token.rows) {
+                const cells = await Promise.all(row.map(async (cell, index) => {
+                    let cellContent = [];
+                    if (cell.tokens) {
+                        cellContent = await processInlineTokensAsync(cell.tokens);
+                    } else {
+                        cellContent = [new TextRun({ text: cell.text || cell, size: 28 })];
+                    }
+
+                    return new TableCell({
+                        children: [new Paragraph({
+                            children: cellContent,
+                            alignment: token.align[index] === 'center' ? AlignmentType.CENTER : (token.align[index] === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT)
+                        })],
+                        verticalAlign: "center",
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" }
+                        }
+                    });
+                }));
+                rows.push(new TableRow({ children: cells }));
+            }
+
+            const table = new Table({
+                rows: rows,
+                width: {
+                    size: 100,
+                    type: WidthType.PERCENTAGE
+                }
+            });
+            children.push(table);
+            children.push(new Paragraph({ text: "" })); // 表格后空行
+
+        } else if (token.type === 'blockquote') {
+            // 引用块：使用左侧边框和背景色
+            for (const subToken of token.tokens) {
+                if (subToken.type === 'paragraph') {
+                    const textRuns = await processInlineTokensAsync(subToken.tokens);
+                    // 给每个 TextRun 添加斜体
+                    textRuns.forEach(run => {
+                        if (run instanceof TextRun) {
+                            run.italics = true;
+                            run.color = "555555";
+                        }
+                    });
+
+                    children.push(new Paragraph({
+                        children: textRuns,
+                        indent: { left: 360 }, // 缩进
+                        border: {
+                            left: { color: "DDDDDD", space: 200, style: BorderStyle.SINGLE, size: 24 } // 3pt 宽边框
+                        },
+                        spacing: { before: 120, after: 120 }
+                    }));
+                }
+            }
+            children.push(new Paragraph({ text: "" })); // 引用块后空行
+        } else if (token.type === 'hr') {
+            // 水平线
+            children.push(new Paragraph({
+                border: {
+                    bottom: { color: "EEEEEE", space: 1, style: BorderStyle.SINGLE, size: 6 }
+                },
+                spacing: { before: 240, after: 240 }
+            }));
+        } else if (token.type === 'space') {
+            // 忽略纯空白
+        }
+        // 其他类型暂忽略或按需添加
+    }
+
+    return children;
  }
 
- // 将Markdown转换为HTML
- const htmlContent = marked.parse(content);
- 
- // 构建Word文档HTML结构
- const wordHTML = `
- <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
- <head>
- <meta charset='utf-8'>
- <title>${title}</title>
- <style>
- body { font-family: 'Microsoft YaHei', sans-serif; line-height: 1.6; }
- table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
- th, td { border: 1px solid #000; padding: 8px; }
- img { max-width: 100%; }
- pre { background: #f0f0f0; padding: 10px; border-radius: 4px; white-space: pre-wrap; }
- </style>
- </head>
- <body>
- ${htmlContent}
- </body>
- </html>
- `;
+ // 下载文档为Word格式 (docx)
+ async function downloadDocAsWord(docId, event) {
+    if (event) event.stopPropagation();
+    
+    // 检查 docx 库是否加载
+    if (typeof docx === 'undefined') {
+        showToast('文档生成库尚未加载，请稍后重试', 'error');
+        return;
+    }
 
- const blob = new Blob([wordHTML], { type: 'application/msword' });
- const url = URL.createObjectURL(blob);
- const link = document.createElement('a');
- link.href = url;
- link.download = `${title}.doc`;
- document.body.appendChild(link);
- link.click();
- document.body.removeChild(link);
- URL.revokeObjectURL(url);
- showToast('正在下载 Word 文档...', 'success');
+    let content = '';
+    let title = 'document';
+
+    if (window.docData && window.docData[docId]) {
+        content = window.docData[docId].content;
+        title = window.docData[docId].title || 'document';
+    } else if (docId === 'latest' && window.latestDocContent) {
+        content = window.latestDocContent;
+        title = window.latestDocTitle || 'document';
+    }
+
+    if (!content) {
+        showToast('无法获取文档内容', 'error');
+        return;
+    }
+
+    showToast('正在生成 .docx 文档，请稍候...', 'info');
+
+    try {
+        // 1. 解析 Markdown 获取 Tokens
+        const tokens = marked.lexer(content);
+
+        // 2. 转换为 docx 文档结构 (异步)
+        const docChildren = await convertTokensToDocxParagraphsAsync(tokens);
+
+        // 3. 创建 Document 对象
+        const doc = new docx.Document({
+            styles: {
+                default: {
+                    document: {
+                        run: {
+                            size: 28, // 14pt
+                            font: "Microsoft YaHei"
+                        },
+                        paragraph: {
+                            spacing: {
+                                line: 360, // 1.5倍行距
+                            },
+                        },
+                    },
+                    heading1: {
+                        run: {
+                            size: 48, // 24pt
+                            bold: true,
+                            color: "2E74B5"
+                        },
+                        paragraph: {
+                            spacing: {
+                                before: 240,
+                                after: 120
+                            },
+                        },
+                    },
+                    heading2: {
+                        run: {
+                            size: 36, // 18pt
+                            bold: true,
+                            color: "2E74B5"
+                        },
+                        paragraph: {
+                            spacing: {
+                                before: 240,
+                                after: 120
+                            },
+                        },
+                    },
+                    heading3: {
+                        run: {
+                            size: 32, // 16pt
+                            bold: true,
+                            color: "1F4D78"
+                        },
+                        paragraph: {
+                            spacing: {
+                                before: 240,
+                                after: 120
+                            },
+                        },
+                    },
+                    heading4: {
+                        run: {
+                            size: 28, // 14pt
+                            bold: true,
+                            color: "1F4D78"
+                        },
+                        paragraph: {
+                            spacing: {
+                                before: 240,
+                                after: 120
+                            },
+                        },
+                    },
+                },
+            },
+            numbering: {
+                config: [
+                    {
+                        reference: "unordered-list",
+                        levels: [
+                            { level: 0, format: "bullet", text: "•", alignment: "left" },
+                            { level: 1, format: "bullet", text: "◦", alignment: "left" },
+                            { level: 2, format: "bullet", text: "▪", alignment: "left" }
+                        ]
+                    },
+                    {
+                        reference: "ordered-list",
+                        levels: [
+                            { level: 0, format: "decimal", text: "%1.", alignment: "left" },
+                            { level: 1, format: "decimal", text: "%2.", alignment: "left" },
+                            { level: 2, format: "decimal", text: "%3.", alignment: "left" }
+                        ]
+                    }
+                ]
+            },
+            sections: [{
+                properties: {},
+                children: docChildren
+            }]
+        });
+
+        // 4. 生成 Blob 并下载
+        const blob = await docx.Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${title}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showToast('文档下载成功', 'success');
+
+    } catch (error) {
+        console.error('生成 docx 失败:', error);
+        showToast('生成文档失败: ' + error.message, 'error');
+    }
  }
 
  // 构建支持多模态的消息（包含图片的base64和文本文件内容）
@@ -9207,7 +9612,16 @@ if (isStreamingMessage) {
 });
 }
 
-renderConversations();
+// 优化：直接更新DOM状态而不是重绘整个列表，避免动画闪烁
+const items = document.querySelectorAll('.conversation-item');
+items.forEach(item => {
+    if (item.dataset.id === conversationId) {
+        item.classList.add('active');
+    } else {
+        item.classList.remove('active');
+    }
+});
+
 updateMobileTitle();
 
 // 更新发送按钮状态（根据新对话的生成状态）
@@ -9766,6 +10180,7 @@ animationClass = 'item-pushed-down';
 
 return `
 <div class="conversation-item ${currentConversationId === conv.id ? 'active' : ''} ${isGenerating ? 'generating' : ''} ${animationClass}"
+data-id="${conv.id}"
 onclick="switchConversation('${conv.id}')">
 <div class="conversation-header">
 <div class="conversation-info">

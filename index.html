@@ -4563,7 +4563,7 @@ stroke: var(--primary-color);
  }
 
  .right-sidebar-header {
- padding: 16px 20px;
+ padding: 10px 20px; /* 减少上下内边距 */
  border-bottom: 1px solid var(--border-color);
  display: flex;
  align-items: center;
@@ -4571,15 +4571,21 @@ stroke: var(--primary-color);
  backdrop-filter: blur(10px);
  -webkit-backdrop-filter: blur(10px);
  gap: 16px;
+ min-height: 56px; /* 确保最小高度 */
  }
 
  .right-sidebar-title {
- font-size: 16px;
+ font-size: 18px; /* 增大标题字体 */
  font-weight: 600;
  display: flex;
  align-items: center;
- gap: 8px;
+ gap: 10px; /* 增加间距 */
  color: var(--primary-color);
+ }
+ 
+ .right-sidebar-title svg {
+ width: 24px; /* 增大图标尺寸 */
+ height: 24px;
  }
 
  .right-sidebar-actions {
@@ -4623,12 +4629,12 @@ stroke: var(--primary-color);
  }
 
  .doc-tab {
- padding: 4px 12px;
- font-size: 13px;
+ padding: 6px 16px; /* 增大内边距 */
+ font-size: 14px; /* 增大字体 */
  font-weight: 500;
  color: var(--text-secondary);
  cursor: pointer;
- border-radius: 6px;
+ border-radius: 8px; /* 稍微增大圆角 */
  transition: all 0.2s;
  }
 
@@ -4922,7 +4928,24 @@ stroke: var(--primary-color);
  }
  
  .right-sidebar-header {
- padding-top: max(16px, env(safe-area-inset-top)); /* 适配刘海屏 */
+ /* 适配刘海屏，同时保持紧凑的上下间距 (10px) */
+ padding-top: max(10px, env(safe-area-inset-top));
+ padding-bottom: 10px;
+ min-height: auto; /* 移动端高度自适应 */
+ }
+ 
+ .right-sidebar-title {
+ font-size: 18px;
+ }
+ 
+ .right-sidebar-title svg {
+ width: 24px;
+ height: 24px;
+ }
+ 
+ .doc-tab {
+ padding: 8px 16px; /* 移动端增加触摸区域 */
+ font-size: 15px;
  }
  }
  </style>
@@ -6360,11 +6383,8 @@ filterMobileModels();
  // 如果当前是 HTML 模式，切换到 HTML 预览，否则切换到 Markdown 预览
  if (currentDocType === 'html') {
  document.getElementById('htmlPreview').classList.add('active');
- // 确保 iframe 内容是最新的（如果从源码编辑回来）
- const iframe = document.getElementById('htmlPreviewFrame');
- if (iframe && iframe.srcdoc !== currentDocContent) {
- iframe.srcdoc = currentDocContent;
- }
+ // 强制重新渲染 HTML 内容，解决切换导致的空白问题
+ renderHtmlContent(currentDocContent);
  } else {
  document.getElementById('docPreview').classList.add('active');
  renderMarkdownDocument(); // 重新渲染预览
@@ -6418,12 +6438,65 @@ filterMobileModels();
  }
  }
 
+ // 渲染 HTML 内容到 iframe
+ function renderHtmlContent(content) {
+ const iframe = document.getElementById('htmlPreviewFrame');
+ if (!iframe) return;
+
+ // 注入脚本以拦截所有链接点击和表单提交，防止导航到父页面
+ const script = `
+ <script>
+ document.addEventListener('click', function(e) {
+ var target = e.target;
+ while (target && target.tagName !== 'A') {
+ target = target.parentNode;
+ }
+ if (target && target.tagName === 'A') {
+ e.preventDefault();
+ // 如果是锚点链接，允许页内跳转
+ if (target.getAttribute('href').startsWith('#')) {
+ var id = target.getAttribute('href').substring(1);
+ var el = document.getElementById(id);
+ if (el) el.scrollIntoView();
+ } else {
+ console.log('External navigation blocked:', target.href);
+ }
+ }
+ }, true);
+ 
+ document.addEventListener('submit', function(e) {
+ // 允许表单提交，但阻止默认导航行为（如果需要的话，视具体需求而定）
+ }, true);
+ <\/script>
+ `;
+ 
+ // 将拦截脚本注入到 content 中
+ // 尝试插入到 <head> 中，如果没有 <head> 则插入到开头
+ let injectedContent = content;
+ if (content.includes('<head>')) {
+ injectedContent = content.replace('<head>', '<head>' + script);
+ } else if (content.includes('<html>')) {
+ injectedContent = content.replace('<html>', '<html><head>' + script + '</head>');
+ } else {
+ injectedContent = script + content;
+ }
+ 
+ // 使用 Blob URL 替代 srcdoc，解决 display:none 切换导致的空白问题
+ const blob = new Blob([injectedContent], { type: 'text/html;charset=utf-8' });
+ const url = URL.createObjectURL(blob);
+ 
+ // 清理旧的 URL (如果有)
+ if (iframe._blobUrl) {
+ URL.revokeObjectURL(iframe._blobUrl);
+ }
+ 
+ iframe.src = url;
+ iframe._blobUrl = url; // 保存 URL 以便后续清理
+ }
+
  // 刷新 HTML 预览
  function refreshHtmlPreview() {
- const iframe = document.getElementById('htmlPreviewFrame');
- if (iframe) {
- iframe.srcdoc = iframe.srcdoc;
- }
+ renderHtmlContent(currentDocContent);
  }
 
  // 切换 HTML 预览全屏
@@ -6491,53 +6564,7 @@ filterMobileModels();
  currentDocType = 'html'; // 标记为 HTML 文档
  document.getElementById('docEditor').value = content;
  
- const iframe = document.getElementById('htmlPreviewFrame');
- if (iframe) {
- // 注入脚本以拦截所有链接点击和表单提交，防止导航到父页面
- const script = `
- <script>
- document.addEventListener('click', function(e) {
- var target = e.target;
- while (target && target.tagName !== 'A') {
- target = target.parentNode;
- }
- if (target && target.tagName === 'A') {
- e.preventDefault();
- // 如果是锚点链接，允许页内跳转
- if (target.getAttribute('href').startsWith('#')) {
- var id = target.getAttribute('href').substring(1);
- var el = document.getElementById(id);
- if (el) el.scrollIntoView();
- } else {
- console.log('External navigation blocked:', target.href);
- }
- }
- }, true);
- 
- document.addEventListener('submit', function(e) {
- // 允许表单提交，但阻止默认导航行为（如果需要的话，视具体需求而定）
- // 这里为了安全，如果表单没有 target="_blank"，可能会导致当前页面跳转，所以需要小心
- // 由于 sandbox 移除了 allow-top-navigation，表单提交不应该能跳出 iframe，除非 target="_top"
- // 但为了保险起见，可以拦截
- // e.preventDefault();
- // console.log('Form submission intercepted');
- }, true);
- <\/script>
- `;
- 
- // 将拦截脚本注入到 content 中
- // 尝试插入到 <head> 中，如果没有 <head> 则插入到开头
- let injectedContent = content;
- if (content.includes('<head>')) {
- injectedContent = content.replace('<head>', '<head>' + script);
- } else if (content.includes('<html>')) {
- injectedContent = content.replace('<html>', '<html><head>' + script + '</head>');
- } else {
- injectedContent = script + content;
- }
- 
- iframe.srcdoc = injectedContent;
- }
+ renderHtmlContent(content);
  
  if (switchTab) {
  toggleRightSidebar(true);

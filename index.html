@@ -8077,6 +8077,9 @@ filterMobileModels();
           const originalThinking = thinkMatch[1];
           // 异步执行翻译，不阻塞主流程
           translateText(originalThinking).then(translatedThinking => {
+              // 如果已经触发了搜索，停止更新 UI，防止覆盖搜索状态
+              if (isSearchTriggered) return;
+
               if (translatedThinking) {
                   // 只有当原始思考内容还在 fullResponse 中时才替换 (防止极端情况下的冲突)
                   if (fullResponse.includes(originalThinking)) {

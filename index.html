@@ -30,7 +30,7 @@ box-sizing: border-box;
  --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.08);
  --radius: 16px;
  --sidebar-width: 320px;
- --right-sidebar-width: 550px; /* 右侧边栏宽度增加到600px */
+ --right-sidebar-width: 520px; /* 右侧边栏宽度增加到600px */
  --success-color: #34C759;
  --warning-color: #FF9500;
  --error-color: #FF3B30;
@@ -419,7 +419,7 @@ position: relative;
 overflow-x: hidden; /* 防止横向滚动 */
 max-width: 100%;
 min-width: 0; /* 允许弹性收缩 */
-transition: margin-right 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* 保持与侧边栏动画一致 */
+transition: margin-right 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* 保持与侧边栏动画一致 */
 }
 
  /* 主内容区域左侧柔和过渡效果 */
@@ -3772,7 +3772,7 @@ transform: none;
  padding-bottom: max(20px, env(safe-area-inset-bottom));
  transform: translateY(100%) translateZ(0);
  -webkit-transform: translateY(100%) translateZ(0);
- transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+ transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* 调整为更慢更平滑的动画 */
  z-index: 2001;
  max-height: 80vh;
  display: flex;
@@ -4395,7 +4395,7 @@ stroke: var(--primary-color);
  border-radius: 4px;
  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
  transform: scale(0.9);
- transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+ transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* 更优雅的图片预览动画 */
  user-select: none;
  -webkit-user-select: none;
  /* 允许长按菜单 */
@@ -4725,7 +4725,7 @@ stroke: var(--primary-color);
  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.05);
  z-index: 1000;
  transform: translateX(100%);
- transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* 使用更优雅的缓动曲线，移除回弹 */
+ transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* 使用更优雅的缓动曲线，移除回弹 */
  display: flex;
  flex-direction: column;
  }
@@ -4787,7 +4787,8 @@ stroke: var(--primary-color);
 
  .right-sidebar-content {
  flex: 1;
- overflow-y: auto;
+ position: relative; /* 为子元素绝对定位提供基准 */
+ overflow: hidden; /* 防止父容器滚动，滚动由子元素接管 */
  display: flex;
  flex-direction: column;
  }
@@ -4832,20 +4833,31 @@ stroke: var(--primary-color);
  }
 
  .doc-view {
- flex: 1;
- padding: 0; /* 移除外层内边距，最大化显示空间 */
+ position: absolute; /* 绝对定位，重叠显示，避免切换时的排版跳动 */
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ padding: 0;
  overflow-y: auto;
  display: none;
  font-size: 15px;
  line-height: 1.6;
- position: relative; /* 为绝对定位的工具栏提供参考 */
  opacity: 0;
- transform: scale(0.98);
+ background-color: var(--card-background); /* 确保背景不透明 */
+ z-index: 1;
+ }
+
+ /* 整体淡入动画 */
+ @keyframes fadeInSmooth {
+ from { opacity: 0; transform: translateY(10px); }
+ to { opacity: 1; transform: translateY(0); }
  }
 
  .doc-view.active {
  display: block;
- animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+ animation: fadeInSmooth 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+ z-index: 2; /* 确保激活的视图在最上层 */
  }
 
  /* HTML预览工具栏 */
@@ -5272,10 +5284,13 @@ stroke: var(--primary-color);
  text-overflow: ellipsis;
  }
 
+ /* 仅在支持悬停的设备上应用 hover 效果，避免移动端点击后背景滞留 */
+ @media (hover: hover) and (pointer: fine) {
  .suggested-option-btn:hover {
  background: #e4e4e4; /* 悬停时加深背景 */
  transform: translateY(-1px);
  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+ }
  }
 
  .suggested-option-btn:active {
@@ -9839,7 +9854,7 @@ function getProgressInfo(text) {
 
  // 检查是否包含推荐选项标记
  // 格式: :::options [选项1] [选项2] ::: (兼容有无空格，以及中文内容)
- const optionsRegex = /:::options([\s\S]*?):::/g;
+ const optionsRegex = /:::\s*options([\s\S]*?):::/g;
  processedText = processedText.replace(optionsRegex, (match, optionsContent) => {
  // 提取方括号中的内容
  const options = [];
@@ -9930,7 +9945,7 @@ function getProgressInfo(text) {
  processedText = processedText.replace(/\*\*\s*(《[^》]+》)\s*\*\*/g, '<strong>$1</strong>');
  processedText = processedText.replace(/\*\*\s*(“[^”]+”)\s*\*\*/g, '<strong>$1</strong>');
  // 增强修复：只要包含汉字或全角标点，且被 ** 包裹，就手动转为 strong (解决如 **文本（说明）** 等复杂情况)
- processedText = processedText.replace(/\*\*\s*([^\*\n]*?[\u4e00-\u9fa5\uff00-\uffef][^\*\n]*?)\s*\*\*/g, '<strong>$1</strong>');
+ // processedText = processedText.replace(/\*\*\s*([^\*\n]*?[\u4e00-\u9fa5\uff00-\uffef][^\*\n]*?)\s*\*\*/g, '<strong>$1</strong>');
 
  // 3. 还原代码块
  protectedCodeBlocks.forEach((code, index) => {

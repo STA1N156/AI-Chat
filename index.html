@@ -1874,6 +1874,20 @@ height: 14px;
  display: none;
  }
 
+ /* 当侧边栏被隐藏时（如全屏预览文档），显示菜单按钮以便唤出 */
+ body.sidebar-hidden .menu-btn {
+ display: flex;
+ }
+
+ /* 侧边栏隐藏状态 */
+ body.sidebar-hidden .sidebar {
+ transform: translateX(-100%) !important;
+ }
+
+ body.sidebar-hidden .main-content {
+ margin-left: 0;
+ }
+
  /* 隐藏侧边栏的关闭按钮（桌面端不需要） */
  .sidebar-close {
  display: none;
@@ -11132,14 +11146,8 @@ countEl.textContent = `${count} 条消息`;
  const isOpen = sidebar.classList.contains('open');
 
  if (window.innerWidth > 768) {
- // PC端：使用专用遮罩层
- if (isOpen) {
- sidebar.classList.remove('open');
- sidebarOverlay.classList.remove('show');
- } else {
- sidebar.classList.add('open');
- sidebarOverlay.classList.add('show');
- }
+ // PC端：切换 sidebar-hidden 类
+ document.body.classList.toggle('sidebar-hidden');
  } else {
  // 移动端：使用普通遮罩层
  if (isOpen) {

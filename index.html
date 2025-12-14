@@ -49,14 +49,12 @@ color: var(--text-primary);
 -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============ 桌面端样式 ============ */
 .app-container {
 display: flex;
 height: 100vh;
 position: relative;
 }
 
- /* 侧边栏遮罩层 */
  .sidebar-overlay {
  position: fixed;
  top: 0;
@@ -137,7 +135,7 @@ position: relative;
  }
 
  .sidebar-header::after {
- display: none; /* 原来的 after 用来做渐变边框，这里直接用 border-bottom，所以保持隐藏或者移除 */
+ display: none;
  }
 
  .sidebar-actions {
@@ -5912,6 +5910,41 @@ let streamingStates = {}; // { conversationId: { messageId, controller, isGenera
  // 延迟函数
  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+ // 翻译文本函数
+ async function translateText(text) {
+    try {
+        // 使用 gemini-2.5-flash-thinking 进行快速翻译，如果不可用则回退到当前模型
+        const modelToUse = 'gemini-2.5-flash-nothinking';
+        
+        const response = await fetch(`${API_BASE}/v1/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: modelToUse,
+                messages: [
+                    { role: 'system', content: '你是一个专业的翻译助手。请将以下思考过程文本翻译成简体中文，可适当保留特定英文名词。保持原有的Markdown格式，不要添加任何解释、前言或后缀，直接输出翻译后的内容。' },
+                    { role: 'user', content: text }
+                ],
+                temperature: 0.3,
+                max_tokens: 8192
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Translation API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || null;
+    } catch (e) {
+        console.error("Translation failed:", e);
+        return null;
+    }
+ }
+
  // 速率限制检查
  async function checkRateLimit() {
  const now = Date.now();
@@ -6685,20 +6718,6 @@ filterMobileModels();
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-
-                // 不再限制最大边长，保持原始分辨率
-                /*
-                const MAX_SIZE = 3840;
-                if (width > MAX_SIZE || height > MAX_SIZE) {
-                    if (width > height) {
-                        height = Math.round((height * MAX_SIZE) / width);
-                        width = MAX_SIZE;
-                    } else {
-                        width = Math.round((width * MAX_SIZE) / height);
-                        height = MAX_SIZE;
-                    }
-                }
-                */
 
                 canvas.width = width;
                 canvas.height = height;
@@ -8049,6 +8068,29 @@ filterMobileModels();
   if (isThinking) {
   isThinking = false;
   fullResponse += '\n</think>\n';
+
+  // 触发后台翻译逻辑 (仅当模型名包含 gemini 时)
+  if (currentModel.toLowerCase().includes('gemini')) {
+      // 提取刚才生成的思考内容
+      const thinkMatch = fullResponse.match(/<think>([\s\S]*?)<\/think>/);
+      if (thinkMatch && thinkMatch[1]) {
+          const originalThinking = thinkMatch[1];
+          // 异步执行翻译，不阻塞主流程
+          translateText(originalThinking).then(translatedThinking => {
+              if (translatedThinking) {
+                  // 只有当原始思考内容还在 fullResponse 中时才替换 (防止极端情况下的冲突)
+                  if (fullResponse.includes(originalThinking)) {
+                      fullResponse = fullResponse.replace(originalThinking, translatedThinking);
+                      // 更新 UI
+                      updateMessage(loadingId, fullResponse, true, true, false);
+                      // 更新历史记录
+                      updateConversationMessage('assistant', fullResponse);
+                      console.log('Thinking content translated successfully');
+                  }
+              }
+          }).catch(err => console.error('Background translation error:', err));
+      }
+  }
   }
   fullResponse += content;
 
@@ -8263,8 +8305,26 @@ filterMobileModels();
 
  // 确保最后如果还在思考中，要闭合标签
  if (isThinking) {
+ isThinking = false; // 标记结束
  fullResponse += '\n</think>\n';
  updateMessage(loadingId, fullResponse, true);
+
+ // 同样触发后台翻译逻辑 (针对只有思考没有正文，或者在思考中结束的情况)
+ if (currentModel.toLowerCase().includes('gemini')) {
+      const thinkMatch = fullResponse.match(/<think>([\s\S]*?)<\/think>/);
+      if (thinkMatch && thinkMatch[1]) {
+          const originalThinking = thinkMatch[1];
+          translateText(originalThinking).then(translatedThinking => {
+              if (translatedThinking) {
+                  if (fullResponse.includes(originalThinking)) {
+                      fullResponse = fullResponse.replace(originalThinking, translatedThinking);
+                      updateMessage(loadingId, fullResponse, false, true, false); // 这里通常已经结束了，所以 isStreaming=false
+                      updateConversationMessage('assistant', fullResponse);
+                  }
+              }
+          }).catch(err => console.error('Background translation error (final):', err));
+      }
+ }
  }
 
  // 生成结束，移除生成状态动画（isStreaming = false）
@@ -8892,7 +8952,7 @@ function bindEvents(element) {
 }
 
 // 更新消息内容
-function updateMessage(messageId, content, isStreaming = false, saveToHistory = true) {
+function updateMessage(messageId, content, isStreaming = false, saveToHistory = true, triggerScroll = true) {
 // 查找哪个对话拥有这个messageId
 let targetConversationId = null;
 for (const [convId, state] of Object.entries(streamingStates)) {
@@ -9117,7 +9177,7 @@ updateDOM(bubbleElement, newHTML);
 
  // 滚动到底部 - 强制模式 (流式输出)
  // 如果开启了自动滚动，且是流式输出更新，强制保持在底部，无视用户滚动位置
- if (settings.autoScroll && isStreaming) {
+ if (settings.autoScroll && isStreaming && triggerScroll) {
  const chatContainer = document.getElementById('chatContainer');
  // 使用 requestAnimationFrame 避免频繁重绘导致的性能问题
  requestAnimationFrame(() => {

@@ -701,15 +701,15 @@ max-width: min(75%, 1000px);
 padding: 14px 24px; /* 增加左右内边距，防止列表项被切 */
 border-radius: 18px;
 position: relative;
- box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
- overflow: visible;
- overflow-wrap: break-word;
- word-wrap: break-word;
- word-break: break-word;
- min-width: 0;
- font-size: 15px;
- line-height: 1.6;
- }
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+overflow: visible;
+overflow-wrap: break-word;
+word-wrap: break-word;
+word-break: break-word;
+min-width: 0;
+font-size: 16px; /* PC端字体增大到16px */
+line-height: 1.6;
+}
 
  .message-file-attachments {
  display: flex;
@@ -764,23 +764,20 @@ position: relative;
  box-shadow: none;
  padding-left: 12px; /* 增加左侧内边距，防止列表符号被切 */
  padding-right: 12px;
- padding-bottom: 28px; /* 增加底部内边距，为操作按钮留出空间 */
+ padding-bottom: 32px; /* 增加底部内边距，为操作按钮留出空间 */
  max-width: 100%;
  }
 
  .message-actions {
  position: absolute;
- bottom: 4px;
- right: 4px;
- opacity: 0;
- transition: opacity 0.2s;
+ bottom: 6px;
+ left: 12px;
+ right: auto;
+ opacity: 1;
  z-index: 10;
  display: flex;
- gap: 4px;
- }
-
- .message-bubble:hover .message-actions {
- opacity: 1;
+ gap: 12px;
+ pointer-events: auto;
  }
 
  /* 桌面端消息操作按钮 */
@@ -789,22 +786,29 @@ position: relative;
  }
 
  .copy-btn, .regenerate-btn {
- background: rgba(0, 0, 0, 0.1);
+ background: transparent;
  border: none;
- color: inherit;
- padding: 4px 8px;
- border-radius: 6px;
+ color: var(--text-secondary);
+ padding: 6px; /* 增加内边距，扩大点击区域 */
+ border-radius: 8px;
  cursor: pointer;
- font-size: 12px;
- transition: all .2s;
+ font-size: 14px; /* 增大字体 */
+ transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease; /* 优化过渡动画 */
  display: flex;
  align-items: center;
  justify-content: center;
+ opacity: 0.85; /* 增加不透明度 */
  }
 
  .copy-btn:hover, .regenerate-btn:hover {
- background: rgba(0, 0, 0, 0.2);
- transform: scale(1.1);
+ background: rgba(0, 0, 0, 0.05);
+ color: var(--primary-color);
+ opacity: 1;
+ }
+ 
+ .copy-btn:active, .regenerate-btn:active {
+ transform: scale(0.92); /* 添加点击缩放反馈 */
+ transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
  }
 
  .typing-indicator {
@@ -1062,7 +1066,7 @@ z-index: 100;
  display: flex;
  align-items: flex-end; /* 底部对齐 */
  gap: 4px;
- max-width: 900px;
+ max-width: 800px; /* 稍微减小最大宽度，使其更紧凑 */
  margin: 0 auto;
  background: #FFFFFF;
  border-radius: 32px;
@@ -1422,48 +1426,64 @@ z-index: 100;
  box-shadow: var(--shadow-hover);
  }
 
- /* Toast样式 */
+ /* Toast样式 - 优化美观度 */
  .toast {
  position: fixed;
- top: 24px;
- right: 24px;
- background: var(--card-background);
- color: var(--text-primary);
- padding: 14px 20px;
- border-radius: 12px;
- box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+ top: 40px; /* 顶部距离 */
+ left: calc(50% + var(--sidebar-width) / 2); /* 考虑侧边栏宽度的居中 */
+ transform: translateX(-50%) translateY(-100px);
+ background: rgba(255, 255, 255, 0.9);
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ color: #1d1d1f;
+ padding: 12px 24px;
+ border-radius: 50px;
+ box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 12px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
  z-index: 3000;
- transform: translateX(calc(100% + 24px));
- transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
- border-left: 4px solid var(--success-color);
+ transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
  font-weight: 500;
- font-size: 14px;
- min-width: 200px;
- max-width: 320px;
+ font-size: 15px;
+ min-width: auto;
+ max-width: min(90vw, 400px); /* 限制最大宽度，防止过长 */
  display: flex;
  align-items: center;
- gap: 8px;
+ gap: 10px;
+ opacity: 0;
+ visibility: hidden;
+ white-space: nowrap;
+ overflow: hidden; /* 超出隐藏 */
+ text-overflow: ellipsis; /* 显示省略号 */
  }
 
  .toast.show {
- transform: translateX(0);
+ transform: translateX(-50%) translateY(0);
+ opacity: 1;
+ visibility: visible;
  }
 
- .toast.success { border-left-color: var(--success-color); }
- .toast.warning { border-left-color: var(--warning-color); }
- .toast.error { border-left-color: var(--error-color); }
+ /* Toast类型样式 - 使用图标颜色区分 */
+ .toast.success { color: #1d1d1f; }
+ .toast.warning { color: #1d1d1f; }
+ .toast.error { color: #1d1d1f; }
 
- .toast::before {
- content: '';
- width: 8px;
- height: 8px;
- border-radius: 50%;
- background: var(--success-color);
+ /* 图标样式 */
+ .toast-icon {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 20px;
+ height: 20px;
  flex-shrink: 0;
  }
 
- .toast.warning::before { background: var(--warning-color); }
- .toast.error::before { background: var(--error-color); }
+ .toast.success .toast-icon { color: #34C759; }
+ .toast.warning .toast-icon { color: #FF9500; }
+ .toast.error .toast-icon { color: #FF3B30; }
+ .toast.info .toast-icon { color: #007AFF; }
+
+ .toast::before {
+ display: none; /* 移除原来的圆点 */
+ }
 
  .overlay {
  position: fixed;
@@ -1493,6 +1513,8 @@ z-index: 100;
  color: var(--text-secondary);
  text-align: center;
  padding: 20px;
+ max-width: 800px; /* 限制最大宽度，与输入框对齐 */
+ margin: 0 auto; /* 居中 */
  }
 
  .empty-state-icon {
@@ -1507,7 +1529,7 @@ margin: 12px 0;
 border-radius: 12px;
 overflow: hidden;
 border: 1px solid #d0d7de;
-background: #ffffff;
+background: #f6f8fa; /* 浅灰色背景 */
 box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 transition: all 0.3s ease;
 }
@@ -1891,8 +1913,47 @@ height: 14px;
 
 /* 优化消息气泡最大宽度 */
 .message-bubble {
-max-width: 900px !important; /* 强制限制桌面端气泡最大宽度为800px，确保生效 */
+max-width: 800px !important; /* 调整为800px，与输入框保持一致 */
 width: fit-content;
+}
+
+/* 消息容器居中 */
+.message {
+justify-content: center; /* 让消息整体居中 */
+}
+
+/* 修正用户和AI消息的对齐方式 */
+.message.user {
+justify-content: center; /* 保持居中布局 */
+}
+
+.message.user .message-bubble {
+margin-left: auto; /* 靠右 */
+margin-right: calc(50% - 400px); /* 居中偏移 */
+}
+
+.message.assistant .message-bubble {
+margin-right: auto; /* 靠左 */
+margin-left: calc(50% - 400px); /* 居中偏移 */
+}
+
+/* 适配小屏幕 */
+@media (max-width: 1200px) {
+.message.user .message-bubble {
+margin-right: 0;
+}
+.message.assistant .message-bubble {
+margin-left: 0;
+}
+.message {
+padding: 0 20px;
+}
+.message.user {
+justify-content: flex-end;
+}
+.message.assistant {
+justify-content: flex-start;
+}
 }
 
  /* 优化输入容器 */
@@ -2361,9 +2422,20 @@ animation: slideDownSmooth 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
  background: linear-gradient(180deg, rgba(0, 122, 255, 0.8), rgba(88, 86, 214, 0.8));
 }
 
-/* PC端Toast位置优化 - 下移避免挡住上方UI */
+/* PC端Toast位置优化 - 居中显示 */
  .toast {
- top: 80px;
+ top: 40px; /* 顶部距离 */
+ left: calc(50% + var(--sidebar-width) / 2); /* 考虑侧边栏宽度的居中 */
+ transform: translateX(-50%) translateY(-100px);
+ }
+
+ .toast.show {
+ transform: translateX(-50%) translateY(0);
+ }
+
+ /* 当右侧边栏打开时，调整居中位置 */
+ body.right-sidebar-open .toast {
+ left: calc(50% + var(--sidebar-width) / 2 - var(--right-sidebar-width) / 2);
  }
 
  /* PC端自定义模型选择器样式 */
@@ -3171,7 +3243,7 @@ box-shadow: none; /* 移除强烈阴影 */
  .message-bubble {
  max-width: 94%;
  padding: 12px 16px;
- font-size: 15px;
+ font-size: 15px; /* 移动端保持15px */
  line-height: 1.6;
  border-radius: 18px;
  position: relative;
@@ -3219,13 +3291,15 @@ box-shadow: none; /* 移除强烈阴影 */
  max-width: 100%;
  }
 
- /* 移动端复制按钮优化 - 放在气泡内部右下角 */
+ /* 移动端复制按钮优化 - 放在气泡内部左下角 */
  .message-actions {
  position: absolute;
  bottom: 6px;
- right: 6px;
+ left: 12px;
+ right: auto;
  opacity: 1; /* 移动端始终显示 */
  z-index: 10;
+ gap: 3px; /* 缩小移动端按钮间距 */
  }
 
  /* 隐藏外部复制按钮容器 */
@@ -3236,37 +3310,39 @@ box-shadow: none; /* 移除强烈阴影 */
  /* 移动端气泡内复制按钮样式 */
  .message-bubble .copy-btn,
  .message-bubble .regenerate-btn {
- background: rgba(0, 0, 0, 0.08);
- color: inherit;
- padding: 4px 8px;
- font-size: 11px;
+ background: transparent;
+ color: var(--text-secondary);
+ padding: 8px 10px; /* 移动端显著增加点击区域 */
+ font-size: 13px; /* 移动端增大字体 */
  border-radius: 8px;
  border: none;
  display: flex;
  align-items: center;
  justify-content: center;
- gap: 3px;
+ gap: 4px;
  cursor: pointer;
  -webkit-tap-highlight-color: transparent;
  outline: none;
- transition: transform 0.2s ease, background 0.2s ease;
- box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+ transition: color 0.2s ease, background-color 0.2s ease, transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); /* 优化移动端动画 */
+ box-shadow: none;
  will-change: transform;
  transform: translateZ(0);
  -webkit-transform: translateZ(0);
+ opacity: 0.9; /* 移动端不透明度更高 */
  }
 
  .message-bubble .copy-btn:active,
  .message-bubble .regenerate-btn:active {
- transform: scale(0.95) translateZ(0);
- -webkit-transform: scale(0.95) translateZ(0);
- background: rgba(0, 0, 0, 0.15);
+ transform: scale(0.92) translateZ(0); /* 增强点击缩放反馈 */
+ -webkit-transform: scale(0.92) translateZ(0);
+ background: rgba(0, 0, 0, 0.05);
+ color: var(--text-primary);
  }
 
  .message-bubble .copy-btn svg,
  .message-bubble .regenerate-btn svg {
- width: 11px;
- height: 11px;
+ width: 16px; /* 移动端图标显著增大 */
+ height: 16px;
  }
 
 .input-container {
@@ -3550,70 +3626,55 @@ transform: none;
  box-shadow: 0 2px 10px rgba(0, 122, 255, 0.2);
  }
 
- /* 移动端Toast - 性能优化版本 */
+ /* 移动端Toast - 顶部居中胶囊样式 */
  .toast {
  position: fixed;
- top: max(20px, env(safe-area-inset-top, 20px));
- left: 16px;
- right: 16px;
+ top: max(80px, calc(env(safe-area-inset-top) + 16px)); /* 下移避免遮挡头部 */
+ left: 50%;
+ right: auto;
  width: auto;
- max-width: none;
+ max-width: min(calc(100vw - 32px), 360px); /* 限制最大宽度，防止过长 */
  min-width: auto;
- transform: translateY(-150px) translateZ(0);
- -webkit-transform: translateY(-150px) translateZ(0);
+ transform: translateX(-50%) translateY(-150%);
+ -webkit-transform: translateX(-50%) translateY(-150%);
  opacity: 0;
- font-size: 16px;
- padding: 18px 24px;
- border-radius: 16px;
- text-align: center;
- box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
- z-index: 1900;
- background: var(--card-background);
- border: 1px solid rgba(255, 255, 255, 0.2);
- transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+ font-size: 15px;
+ padding: 10px 20px;
+ border-radius: 50px;
+ text-align: left;
+ box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+ z-index: 3000;
+ background: rgba(255, 255, 255, 0.95);
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ border: none;
+ transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
  will-change: transform, opacity;
- backface-visibility: hidden;
-}
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
+ color: #1d1d1f;
+ white-space: nowrap;
+ overflow: hidden; /* 超出隐藏 */
+ text-overflow: ellipsis; /* 显示省略号 */
+ }
 
-.toast.show {
- transform: translateY(0) translateZ(0);
- -webkit-transform: translateY(0) translateZ(0);
+ .toast.show {
+ transform: translateX(-50%) translateY(0);
+ -webkit-transform: translateX(-50%) translateY(0);
  opacity: 1;
  }
 
- /* Toast隐藏动画 - 向上消失 */
  .toast.hide {
- transform: translateY(-150px) scale(0.95) translateZ(0);
- -webkit-transform: translateY(-150px) scale(0.95) translateZ(0);
+ transform: translateX(-50%) translateY(-150%);
+ -webkit-transform: translateX(-50%) translateY(-150%);
  opacity: 0;
- transition: transform 0.25s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.25s ease;
  }
 
- /* Toast类型样式调整 */
- .toast.success {
- border-left: 4px solid var(--success-color);
- }
-
- .toast.warning {
- border-left: 4px solid var(--warning-color);
- }
-
- .toast.error {
- border-left: 4px solid var(--error-color);
- }
-
- .toast.info {
- border-left: 4px solid var(--primary-color);
- }
-
- /* 移动端Toast位置优化 - 向下移动避免挡住上方UI */
- .toast {
- top: 80px;
- top: max(80px, calc(env(safe-area-inset-top) + 16px));
- right: 16px;
- left: 16px;
- max-width: calc(100vw - 32px);
- min-width: auto;
+ /* 移除左侧边框 */
+ .toast.success, .toast.warning, .toast.error, .toast.info {
+ border-left: none;
  }
 
  .empty-state {
@@ -4261,8 +4322,8 @@ stroke: var(--primary-color);
  .copy-btn .icon-svg,
  .regenerate-btn .icon-svg,
  .copy-code-btn .icon-svg {
- width: 14px;
- height: 14px;
+ width: 16px; /* 增大图标尺寸 */
+ height: 16px;
  }
 
  .new-chat-btn .icon-svg,
@@ -9325,29 +9386,32 @@ updateDOM(bubbleElement, newHTML);
  
  // 恢复 transition 并应用缩放动画
  button.style.transition = 'all 0.2s ease';
- 
- // 修改需求：复制成功后不再自动恢复，直到下次进入预览
- /*
- setTimeout(() => {
- // 恢复原始图标
- button.innerHTML = originalHTML;
- }, 1500);
- */
  } else {
  // 其他地方的复制按钮保持原有逻辑（显示Toast）
  showToast('内容已复制', 'success');
  const originalHTML = button.innerHTML;
- button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg><span>已复制</span>`;
+ 
+ // 优化复制成功动画：使用平滑过渡
+ button.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+ button.style.transform = 'scale(1.1)';
+ button.style.color = 'var(--success-color)';
+ 
  // 如果是纯图标按钮（如代码块头部的），不显示文字
  if (button.classList.contains('copy-code-btn') || button.classList.contains('copy-btn')) {
-    button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+ button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24" style="stroke: var(--success-color);"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+ } else {
+ button.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24" style="stroke: var(--success-color);"><polyline points="20 6 9 17 4 12"></polyline></svg><span>已复制</span>`;
  }
  
- button.style.background = 'rgba(52, 199, 89, 0.2)';
+ // 移除背景色变化，保持透明风格，仅改变图标颜色和缩放
+ // button.style.background = 'rgba(52, 199, 89, 0.2)';
+ 
  setTimeout(() => {
+ button.style.transform = 'scale(1)';
+ button.style.color = ''; // 恢复默认颜色
  button.innerHTML = originalHTML;
- button.style.background = '';
- }, 1000);
+ // button.style.background = '';
+ }, 1500);
  }
  }
 
@@ -10899,10 +10963,24 @@ if (files && files.length > 0) {
 message.files = files;
 }
 conversation.messages.push(message);
+
+// 更新侧边栏消息计数
+updateConversationCount(conversation.id, conversation.messages.length);
 }
 
 
 saveConversations(conversation.id);
+}
+
+// 更新侧边栏消息计数
+function updateConversationCount(conversationId, count) {
+const item = document.querySelector(`.conversation-item[data-id="${conversationId}"]`);
+if (item) {
+const countEl = item.querySelector('.conversation-count');
+if (countEl) {
+countEl.textContent = `${count} 条消息`;
+}
+}
 }
 
  // 清空当前对话
@@ -11086,8 +11164,20 @@ function displayToast(toast, message, type, duration) {
    // 移除所有状态类
    toast.classList.remove('show', 'hide', 'success', 'warning', 'error', 'info');
 
+   // 设置图标
+   let icon = '';
+   if (type === 'success') {
+       icon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+   } else if (type === 'warning') {
+       icon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+   } else if (type === 'error') {
+       icon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+   } else {
+       icon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+   }
+
    // 设置内容和类型
-   toast.textContent = message;
+   toast.innerHTML = `<span class="toast-icon">${icon}</span><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${message}</span>`;
    toast.classList.add(type);
 
    // 显示Toast

@@ -9769,9 +9769,17 @@ function getProgressInfo(text) {
 
  // 还原思考块
  thinkBlocks.forEach((block, index) => {
- const placeholder = `__THINK_BLOCK_${index}__`;
- processedText = processedText.replace(placeholder, createThinkingHTML(block.content, block.isThinking));
+     const placeholder = `__THINK_BLOCK_${index}__`;
+     processedText = processedText.replace(placeholder, createThinkingHTML(block.content, block.isThinking));
  });
+
+ // 预处理：修复包含中文标点（书名号、引号）的粗体格式
+ // 有些 Markdown 解析器（包括 marked）在处理包含中文标点符号的粗体时可能会有问题
+ // 尤其是当 ** 紧挨着 《、》、“ 或 ” 时。
+ // 我们手动将 **《...》** 和 **“...”** 替换为 <strong>$1</strong>
+ // 同时处理带空格的情况，如 ** “...” **
+ processedText = processedText.replace(/\*\*\s*(《[^》]+》)\s*\*\*/g, '<strong>$1</strong>');
+ processedText = processedText.replace(/\*\*\s*(“[^”]+”)\s*\*\*/g, '<strong>$1</strong>');
 
  // 计算当前文本末尾是否处于未闭合的代码块中
  const isCodeOpen = isCodeBlockOpen(processedText);

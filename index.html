@@ -30,7 +30,7 @@ box-sizing: border-box;
 --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.08);
 --radius: 16px;
 --sidebar-width: 320px;
---right-sidebar-width: min(700px, 45vw); /* 动态宽度：不超过700px，且不超过屏幕宽度的45% */
+--right-sidebar-width: min(900px, 45vw); /* 动态宽度：不超过700px，且不超过屏幕宽度的45% */
 --success-color: #34C759;
 --warning-color: #FF9500;
  --error-color: #FF3B30;
@@ -1877,9 +1877,9 @@ height: 14px;
  }
  
  /* 当屏幕很宽时，可以适当放宽右侧边栏 */
- @media (min-width: 1600px) {
+ @media (min-width: 1400px) {
  :root {
- --right-sidebar-width: min(900px, 50vw);
+ --right-sidebar-width: min(900px, 45vw);
  }
  }
 
@@ -7598,6 +7598,8 @@ filterMobileModels();
                 } else {
                     runs.push(new TextRun({ text: `[图片无法获取: ${token.text}]`, color: "FF0000" }));
                 }
+            } else if (token.type === 'list') {
+                // 忽略列表 token，因为它们会在 processListItems 中递归处理
             } else {
                 // 默认回退
                 runs.push(new TextRun({

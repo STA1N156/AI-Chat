@@ -655,34 +655,15 @@ height: 16px;
 
  /* 自定义滚动条样式 - 聊天容器 */
  .chat-container::-webkit-scrollbar {
- width: 10px;
- }
-
- .chat-container::-webkit-scrollbar-track {
- background: var(--background-color);
- border-radius: 10px;
- margin: 10px 0;
- }
-
- .chat-container::-webkit-scrollbar-thumb {
- background: linear-gradient(180deg, rgba(0, 122, 255, 0.4), rgba(88, 86, 214, 0.4));
- border-radius: 10px;
- border: 2px solid var(--background-color);
- transition: all .3s;
- }
-
- .chat-container::-webkit-scrollbar-thumb:hover {
- background: linear-gradient(180deg, rgba(0, 122, 255, 0.6), rgba(88, 86, 214, 0.6));
- }
-
- .chat-container::-webkit-scrollbar-thumb:active {
- background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+ display: none;
+ width: 0;
+ height: 0;
  }
 
  /* Firefox 滚动条样式 */
  .chat-container {
- scrollbar-width: thin;
- scrollbar-color: rgba(0, 122, 255, 0.4) var(--background-color);
+ scrollbar-width: none;
+ -ms-overflow-style: none; /* IE/Edge */
  }
 
 .message {
@@ -4131,7 +4112,7 @@ stroke: var(--primary-color);
  cursor: pointer;
  font-weight: 500;
  font-size: 13px;
- color: var(--text-secondary);
+ color: #363636;
  display: flex;
  align-items: center;
  gap: 8px;
@@ -4206,11 +4187,11 @@ stroke: var(--primary-color);
  color: var(--text-primary);
  line-height: 1.6;
  background-color: transparent;
- opacity: 0.85;
+ opacity: 0.6;
  max-height: 360px;
  overflow-y: auto;
- -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 40px), transparent);
- mask-image: linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+ -webkit-mask-image: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2) 15px, rgba(0,0,0,0.6) 40px, #000 70px);
+ mask-image: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2) 15px, rgba(0,0,0,0.6) 40px, #000 70px);
  }
 
  /* 隐藏思考过程的滚动条 */
@@ -4552,8 +4533,8 @@ stroke: var(--primary-color);
  @keyframes slideInUp {
  0% {
  opacity: 0;
- transform: translateY(40px) scale(0.98);
- filter: blur(4px);
+ transform: translateY(24px) scale(0.98); /* 增大初始位移和缩放幅度，制造更优雅的入场感 */
+ filter: blur(4px); /* 增加模糊度，提升柔和感 */
  }
  100% {
  opacity: 1;
@@ -4563,8 +4544,8 @@ stroke: var(--primary-color);
  }
 
  .element-animate {
- /* 使用这种特殊的贝塞尔曲线，不仅会有平滑的减速，还配合了透明度、位移、缩放和模糊的复合变化 */
- animation: slideInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+ /* 放慢动画速度，使用更平滑的缓动曲线 (Quart ease-out) */
+ animation: slideInUp 0.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
  will-change: transform, opacity, filter;
  }
 
@@ -9196,12 +9177,13 @@ function updateDOM(container, newHTML) {
 }
 
 function updateThinkingBox(oldBox, newBox) {
-    // 自动折叠逻辑：如果之前是思考中，现在思考结束，则移除 open 属性
+    // 自动折叠逻辑：如果之前是思考中，现在思考结束，则执行折叠动画
     const wasThinking = oldBox.dataset.thinking === 'true';
     const isThinking = newBox.dataset.thinking === 'true';
     
     if (wasThinking && !isThinking) {
-        oldBox.removeAttribute('open');
+        // 使用动画收起，而不是直接移除 open 属性
+        animateDetailsClose(oldBox);
     }
     // 更新 dataset
     oldBox.dataset.thinking = isThinking;
@@ -10132,8 +10114,6 @@ function getProgressInfo(text) {
  // 修复包含中文标点（书名号、引号）的粗体格式
  processedText = processedText.replace(/\*\*\s*(《[^》]+》)\s*\*\*/g, '<strong>$1</strong>');
  processedText = processedText.replace(/\*\*\s*(“[^”]+”)\s*\*\*/g, '<strong>$1</strong>');
- // 增强修复：只要包含汉字或全角标点，且被 ** 包裹，就手动转为 strong (解决如 **文本（说明）** 等复杂情况)
- processedText = processedText.replace(/\*\*\s*([^\*\n]*?[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef][^\*\n]*?)\s*\*\*/g, '<strong>$1</strong>');
 
  // 3. 还原代码块
  protectedCodeBlocks.forEach((code, index) => {
@@ -11520,12 +11500,93 @@ function displayToast(toast, message, type, duration) {
  return date.toLocaleDateString();
  }
 
+ // 思考过程折叠/展开动画函数
+ function animateDetailsOpen(details) {
+    details.setAttribute('open', '');
+    const content = details.querySelector('.thinking-content');
+    if (!content) return;
+    
+    // 获取目标高度
+    const targetHeight = content.offsetHeight;
+    
+    // 设置初始状态
+    content.style.height = '0px';
+    content.style.opacity = '0';
+    content.style.paddingTop = '0';
+    content.style.paddingBottom = '0';
+    content.style.overflow = 'hidden';
+    
+    // 强制重绘
+    requestAnimationFrame(() => {
+        content.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease';
+        content.style.height = targetHeight + 'px';
+        content.style.opacity = '0.6';
+        content.style.paddingTop = '16px';
+        content.style.paddingBottom = '16px';
+    });
+    
+    content.addEventListener('transitionend', function onEnd() {
+        content.style.removeProperty('height');
+        content.style.removeProperty('overflow');
+        content.style.removeProperty('transition');
+        content.style.removeProperty('opacity');
+        content.style.removeProperty('padding-top');
+        content.style.removeProperty('padding-bottom');
+        content.removeEventListener('transitionend', onEnd);
+    }, { once: true });
+ }
+
+ function animateDetailsClose(details) {
+    const content = details.querySelector('.thinking-content');
+    if (!content) return;
+    
+    const startHeight = content.offsetHeight;
+    
+    content.style.height = startHeight + 'px';
+    content.style.overflow = 'hidden';
+    
+    requestAnimationFrame(() => {
+        content.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease';
+        content.style.height = '0px';
+        content.style.opacity = '0';
+        content.style.paddingTop = '0';
+        content.style.paddingBottom = '0';
+    });
+    
+    content.addEventListener('transitionend', function onEnd() {
+        details.removeAttribute('open');
+        content.style.removeProperty('height');
+        content.style.removeProperty('overflow');
+        content.style.removeProperty('transition');
+        content.style.removeProperty('opacity');
+        content.style.removeProperty('padding-top');
+        content.style.removeProperty('padding-bottom');
+        content.removeEventListener('transitionend', onEnd);
+    }, { once: true });
+ }
+
  // 事件监听
  document.addEventListener('click', function(event) {
  const settingsModal = document.getElementById('settingsModal');
 
  if (event.target === settingsModal) {
  closeSettings();
+ }
+
+ // 拦截思考过程的点击事件，使用自定义动画
+ const summary = event.target.closest('.thinking-summary');
+ if (summary) {
+    event.preventDefault();
+    const details = summary.closest('details');
+    if (details) {
+        // 如果正在进行动画（简单的防抖），可以忽略，或者强制重置
+        // 这里简单处理：直接执行
+        if (details.hasAttribute('open')) {
+            animateDetailsClose(details);
+        } else {
+            animateDetailsOpen(details);
+        }
+    }
  }
  });
 

@@ -1077,6 +1077,13 @@ z-index: 100;
  position: relative;
  }
 
+ .input-wrapper.drag-over {
+ border-color: var(--primary-color);
+ box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.2);
+ background-color: rgba(0, 122, 255, 0.02);
+ transform: scale(1.01);
+ }
+
  /* 移动端移除 input-wrapper 的 focus-within 效果，改为由 input-container 接管 */
  @media (max-width: 768px) {
  .input-wrapper:focus-within {
@@ -5666,7 +5673,7 @@ stroke: var(--primary-color);
  <div class="file-preview-container" id="filePreviewContainer">
  <!-- 文件预览将在这里显示 -->
  </div>
- <div class="input-wrapper">
+ <div class="input-wrapper" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
  <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()" aria-label="上传文件">
  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
  <path d="M12 5v14M5 12h14"/>
@@ -6887,10 +6894,46 @@ filterMobileModels();
  return CODE_EXTENSIONS.includes(ext);
  }
 
+ // 处理拖拽相关事件
+ function handleDragOver(event) {
+ event.preventDefault();
+ event.stopPropagation();
+ const inputWrapper = event.currentTarget;
+ inputWrapper.classList.add('drag-over');
+ }
+
+ function handleDragLeave(event) {
+ event.preventDefault();
+ event.stopPropagation();
+ const inputWrapper = event.currentTarget;
+ // 确保只有当鼠标真正离开元素时才移除类（防止子元素触发）
+ if (!inputWrapper.contains(event.relatedTarget)) {
+ inputWrapper.classList.remove('drag-over');
+ }
+ }
+
+ function handleDrop(event) {
+ event.preventDefault();
+ event.stopPropagation();
+ const inputWrapper = event.currentTarget;
+ inputWrapper.classList.remove('drag-over');
+
+ const files = event.dataTransfer.files;
+ if (files.length > 0) {
+ processFiles(Array.from(files));
+ }
+ }
+
  // 文件选择处理
  async function handleFileSelect(event) {
  const files = Array.from(event.target.files);
+ await processFiles(files);
+ // 清空input，允许重复选择同一文件
+ event.target.value = '';
+ }
 
+ // 统一文件处理逻辑
+ async function processFiles(files) {
  for (const file of files) {
  const fileInfo = {
  id: Date.now() + Math.random(),
@@ -7132,9 +7175,6 @@ filterMobileModels();
  showToast(`不支持的文件格式: ${file.name}`, 'warning');
  }
  }
-
- // 清空input，允许重复选择同一文件
- event.target.value = '';
  }
 
  // 更新文件预览区域

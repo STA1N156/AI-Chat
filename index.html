@@ -3436,7 +3436,7 @@ transform: none;
 
  /* 移动端按钮大小统一 */
  .file-upload-btn {
- width: 24px; /* 减小宽度 */
+ width: 36px; /* 改为与高度一致，确保圆形高亮 */
  height: 36px;
  font-size: 24px;
  box-shadow: none;
@@ -3445,8 +3445,9 @@ transform: none;
  margin-bottom: 0;
  padding: 0;
  display: flex;
- justify-content: flex-start; /* 左对齐图标 */
- margin-right: 4px; /* 减小右侧间距 */
+ justify-content: center; /* 改回居中对齐 */
+ margin-right: 2px; /* 略微缩短右侧间距 */
+ margin-left: -4px; /* 略微缩短左侧间距，使整体更紧凑 */
  }
 
  /* 移动端文件上传按钮入场动画 */
@@ -3639,7 +3640,7 @@ transform: none;
  /* 移动端Toast - 顶部居中胶囊样式 */
  .toast {
  position: fixed;
- top: max(80px, calc(env(safe-area-inset-top) + 16px)); /* 下移避免遮挡头部 */
+ top: max(60px, calc(env(safe-area-inset-top) + 16px)); /* 略微上移 */
  left: 50%;
  right: auto;
  width: auto;

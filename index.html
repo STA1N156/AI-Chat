@@ -42,7 +42,7 @@ box-sizing: border-box;
 }
 
 body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+font-family: system-ui, sans-serif;
 background-color: var(--background-color);
 color: var(--text-primary);
 -webkit-font-smoothing: antialiased;
@@ -150,7 +150,7 @@ position: relative;
  padding: 12px 16px;
  border-radius: 12px;
  cursor: pointer;
- font-weight: 600;
+ font-weight: 500;
  font-size: 14px;
  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
  box-shadow: var(--shadow);
@@ -175,7 +175,7 @@ position: relative;
  padding: 12px 16px;
  border-radius: 12px;
  cursor: pointer;
- font-weight: 600;
+ font-weight: 500;
  font-size: 14px;
  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
  box-shadow: var(--shadow);
@@ -1551,7 +1551,7 @@ background: #f6f8fa;
 border-bottom: 1px solid #d0d7de;
 color: #24292f;
 font-size: 12px;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+font-family: system-ui, sans-serif;
 user-select: none;
 cursor: pointer;
 list-style: none; /* Firefox */
@@ -1631,7 +1631,7 @@ padding: 16px !important;
 margin: 0 !important;
 border-radius: 0 !important;
 font-size: 13px;
-font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+font-family: ui-monospace, monospace;
 line-height: 1.5;
 overflow-x: auto;
 overflow-y: visible;
@@ -4200,13 +4200,29 @@ stroke: var(--primary-color);
  }
 
  .thinking-content {
- padding: 8px 4px 16px 12px;
+ padding: 16px 12px;
  border-top: none;
  font-size: 14px; /* 稍微减小字体以区分正文 */
  color: var(--text-primary);
  line-height: 1.6;
  background-color: transparent;
- opacity: 0.6;
+ opacity: 0.85;
+ max-height: 360px;
+ overflow-y: auto;
+ -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+ mask-image: linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+ }
+
+ /* 隐藏思考过程的滚动条 */
+ .thinking-content::-webkit-scrollbar {
+ display: none;
+ width: 0;
+ height: 0;
+ }
+
+ .thinking-content {
+ scrollbar-width: none; /* Firefox */
+ -ms-overflow-style: none; /* IE/Edge */
  }
 
  /* 思考内容Markdown样式优化 */
@@ -4970,7 +4986,7 @@ stroke: var(--primary-color);
  }
 
  .doc-preview-content {
- font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+ font-family: system-ui, sans-serif;
  font-size: 16px; /* 略微增大字体大小 */
  line-height: 1.6;
  color: var(--text-primary);
@@ -5100,7 +5116,7 @@ stroke: var(--primary-color);
  font-size: 85%;
  background-color: rgba(0, 0, 0, 0.05);
  border-radius: 6px;
- font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+ font-family: ui-monospace, monospace;
  }
 
  .doc-preview-content pre code {
@@ -5177,7 +5193,7 @@ stroke: var(--primary-color);
  border: none;
  outline: none;
  resize: none;
- font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+ font-family: ui-monospace, monospace;
  font-size: 14px;
  line-height: 1.6;
  color: var(--text-primary);
@@ -6966,10 +6982,18 @@ filterMobileModels();
      }
  } else if (file.type.startsWith('audio/')) {
      try {
+         // 立即添加到列表并显示处理中状态
+         fileInfo.isProcessing = true;
+         fileInfo.progress = '压缩中...';
+         uploadedFiles.push(fileInfo);
+         updateFilePreview();
+
          // 显示持久化 Toast (duration = 0)
          showToast(`正在处理音频: ${file.name}...`, 'info', 0);
          const compressedDataUrl = await compressAudio(file);
          fileInfo.content = compressedDataUrl;
+         fileInfo.isProcessing = false;
+         delete fileInfo.progress;
          
          // 如果进行了压缩，更新大小显示
          if (file.size > 1024 * 1024) {
@@ -6978,11 +7002,13 @@ filterMobileModels();
              fileInfo.size = approxSize;
          }
          
-         uploadedFiles.push(fileInfo);
          updateFilePreview();
          showToast(`音频处理完成: ${file.name}`, 'success');
      } catch (e) {
          console.error("Audio processing failed", e);
+         // 移除失败的文件
+         uploadedFiles = uploadedFiles.filter(f => f.id !== fileInfo.id);
+         updateFilePreview();
          showToast(`音频处理失败: ${file.name}`, 'error');
      }
  } else if (file.type.startsWith('video/')) {
@@ -7213,7 +7239,7 @@ filterMobileModels();
  <div class="file-preview-info">
  <div class="file-preview-name">${fileInfo.name}</div>
  <div class="file-preview-size">
-    ${fileInfo.type === 'application/pdf-processing' ? `<span style="color: var(--primary-color);">${fileInfo.progress || '准备中...'}</span>` :
+    ${(fileInfo.type === 'application/pdf-processing' || fileInfo.isProcessing) ? `<span style="color: var(--primary-color);">${fileInfo.progress || '处理中...'}</span>` :
       (fileInfo.type === 'application/pdf-images' ? `${fileInfo.pageCount} 页 • ` : '') + formatFileSize(fileInfo.size)}
  </div>
  </div>
@@ -9210,8 +9236,22 @@ function updateThinkingBox(oldBox, newBox) {
     const oldContent = oldBox.querySelector('.thinking-content');
     const newContent = newBox.querySelector('.thinking-content');
     if (oldContent && newContent && oldContent.innerHTML !== newContent.innerHTML) {
+        // 检查是否接近底部
+        const isNearBottom = oldContent.scrollHeight - oldContent.scrollTop - oldContent.clientHeight < 50;
+        
         // 递归更新思考内容，让思考过程中的段落也有动画
         updateDOM(oldContent, newContent.innerHTML);
+        
+        // 如果接近底部或内容增加，自动滚动到底部
+        if (isNearBottom || oldContent.scrollHeight > oldContent.clientHeight) {
+            // 使用 requestAnimationFrame 确保在 DOM 更新后滚动
+            requestAnimationFrame(() => {
+                oldContent.scrollTo({
+                    top: oldContent.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+        }
     }
 }
 

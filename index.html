@@ -887,19 +887,6 @@ border-top: none;
 backdrop-filter: blur(20px);
 -webkit-backdrop-filter: blur(20px);
 z-index: 100;
-transition: all 0.3s ease;
-}
-
-/* 拖拽文件时的样式 */
-.input-container.drag-over {
-background: rgba(0, 122, 255, 0.1);
-backdrop-filter: blur(10px);
-}
-
-.input-container.drag-over .input-wrapper {
-border-color: var(--primary-color);
-box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.2);
-transform: scale(1.02);
 }
 
  .file-preview-container {
@@ -5675,7 +5662,7 @@ stroke: var(--primary-color);
  </div>
 
  <!-- 输入区域 -->
- <div class="input-container" id="inputContainer">
+ <div class="input-container">
  <div class="file-preview-container" id="filePreviewContainer">
  <!-- 文件预览将在这里显示 -->
  </div>
@@ -6176,9 +6163,6 @@ document.addEventListener('DOMContentLoaded', async function() {
    if (messageInput) {
        messageInput.addEventListener('paste', handlePaste);
    }
-
-   // 初始化拖拽上传
-   setupDragAndDrop();
 
 // 移动端特殊处理
 if (isMobile()) {

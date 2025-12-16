@@ -3784,7 +3784,7 @@ transform: none;
  -webkit-transform: translateY(100%) translateZ(0);
  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* 调整为更慢更平滑的动画 */
  z-index: 2001;
- max-height: 80vh;
+ max-height: 85vh;
  display: flex;
  flex-direction: column;
  box-shadow: 0 -4px 16px rgba(0, 122, 255, 0.15);
@@ -5556,8 +5556,12 @@ stroke: var(--primary-color);
  }
  
  .right-sidebar-title svg {
- width: 24px;
- height: 24px;
+ display: none;
+ }
+
+ .right-sidebar-header {
+ gap: 4px; /* 进一步减小间距 */
+ padding-left: 8px; /* 进一步减小左侧内边距 */
  }
  
  .doc-tab {
@@ -5678,6 +5682,9 @@ stroke: var(--primary-color);
  <div class="doc-tab" id="diffTab" onclick="switchDocTab('diff')">对比</div>
  </div>
  <div class="right-sidebar-actions">
+ <button class="right-sidebar-btn" onclick="downloadDocAsWord(window.currentDocId || 'latest', event)" title="下载文档">
+ <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+ </button>
  <button class="right-sidebar-btn" id="docCopyBtn" onclick="copyCurrentDoc()" title="复制文档内容">
  <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
  </button>
@@ -5748,13 +5755,19 @@ stroke: var(--primary-color);
  <svg class="model-preset-icon" viewBox="0 0 24 24">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
- 专业 (默认)
+ 专业
  </button>
  <button class="model-preset-btn" id="pcPresetFlash" onclick="selectPCModel('gemini-2.5-flash-thinking')">
  <svg class="model-preset-icon" viewBox="0 0 24 24">
  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
  </svg>
  快速
+ </button>
+ <button class="model-preset-btn" id="pcPresetImage" onclick="selectPCModel('gemini-3-pro-image-preview')">
+ <svg class="model-preset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <path d="m12 3-1.9 5.8a2 2 0 0 1-1.2 1.3L3 12l5.9 1.9a2 2 0 0 1 1.2 1.3L12 21l1.9-5.8a2 2 0 0 1 1.2-1.3L21 12l-5.9-1.9a2 2 0 0 1-1.2-1.3L12 3z"></path>
+ </svg>
+ 生图
  </button>
  </div>
  <div class="model-picker-search">
@@ -5895,13 +5908,19 @@ stroke: var(--primary-color);
 <svg class="mobile-preset-icon" viewBox="0 0 24 24">
 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
 </svg>
-专业 (默认)
+专业
 </button>
 <button class="mobile-preset-btn" id="mobilePresetFlash" onclick="selectMobileModel('gemini-2.5-flash-thinking')">
 <svg class="mobile-preset-icon" viewBox="0 0 24 24">
 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
 </svg>
 快速
+</button>
+<button class="mobile-preset-btn" id="mobilePresetImage" onclick="selectMobileModel('gemini-3-pro-image-preview')">
+<svg class="mobile-preset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="m12 3-1.9 5.8a2 2 0 0 1-1.2 1.3L3 12l5.9 1.9a2 2 0 0 1 1.2 1.3L12 21l1.9-5.8a2 2 0 0 1 1.2-1.3L21 12l-5.9-1.9a2 2 0 0 1-1.2-1.3L12 3z"></path>
+</svg>
+生图
 </button>
 </div>
 <div class="mobile-search-container">
@@ -6539,26 +6558,34 @@ filterMobileModels();
  // PC端
  const pcThinkingBtn = document.getElementById('pcPresetThinking');
  const pcFlashBtn = document.getElementById('pcPresetFlash');
- if (pcThinkingBtn && pcFlashBtn) {
+ const pcImageBtn = document.getElementById('pcPresetImage');
+ if (pcThinkingBtn && pcFlashBtn && pcImageBtn) {
  pcThinkingBtn.classList.remove('active');
  pcFlashBtn.classList.remove('active');
+ pcImageBtn.classList.remove('active');
  if (model === 'gemini-3-pro-preview-thinking') {
  pcThinkingBtn.classList.add('active');
  } else if (model === 'gemini-2.5-flash-thinking') {
  pcFlashBtn.classList.add('active');
+ } else if (model === 'gemini-3-pro-image-preview') {
+ pcImageBtn.classList.add('active');
  }
  }
 
  // 移动端
  const mobileThinkingBtn = document.getElementById('mobilePresetThinking');
  const mobileFlashBtn = document.getElementById('mobilePresetFlash');
- if (mobileThinkingBtn && mobileFlashBtn) {
+ const mobileImageBtn = document.getElementById('mobilePresetImage');
+ if (mobileThinkingBtn && mobileFlashBtn && mobileImageBtn) {
  mobileThinkingBtn.classList.remove('active');
  mobileFlashBtn.classList.remove('active');
+ mobileImageBtn.classList.remove('active');
  if (model === 'gemini-3-pro-preview-thinking') {
  mobileThinkingBtn.classList.add('active');
  } else if (model === 'gemini-2.5-flash-thinking') {
  mobileFlashBtn.classList.add('active');
+ } else if (model === 'gemini-3-pro-image-preview') {
+ mobileImageBtn.classList.add('active');
  }
  }
  }
@@ -7563,14 +7590,20 @@ filterMobileModels();
  document.getElementById('htmlPreview').classList.add('active');
  // 强制重新渲染 HTML 内容，解决切换导致的空白问题
  renderHtmlContent(currentDocContent);
+ // 隐藏对比按钮
+ document.getElementById('diffTab').style.display = 'none';
  } else {
  document.getElementById('docPreview').classList.add('active');
  renderMarkdownDocument(); // 重新渲染预览
+ // 显示对比按钮
+ document.getElementById('diffTab').style.display = 'block';
  }
  } else if (tabName === 'html') {
  // 显式切换到 HTML 预览（通常由 loadHTMLPreview 调用）
  document.getElementById('htmlPreview').classList.add('active');
  currentDocType = 'html';
+ // 隐藏对比按钮
+ document.getElementById('diffTab').style.display = 'none';
  } else if (tabName === 'edit') {
  document.getElementById('docEdit').classList.add('active');
  // 确保编辑器内容是最新的
@@ -7741,6 +7774,9 @@ filterMobileModels();
  document.getElementById('docEditor').value = content;
  renderMarkdownDocument();
  
+ // 显示对比按钮
+ document.getElementById('diffTab').style.display = 'block';
+
  // 先重置按钮，再打开侧边栏
  resetDocCopyButton();
  toggleRightSidebar(true);

@@ -10027,7 +10027,7 @@ function getProgressInfo(text) {
     const progressPattern = /🏃\s*进度[：:]\s*([\d.]+)%/g;
     const waitingPattern = /⌛️?\s*任务正在队列中[，,]?请耐心等待/;
     const completedPattern = /✅.*?(视频生成成功)/; // 更严格的完成检测
-    const failedPattern = /❌.*?(失败|错误|error|failed)/i; // 更严格：必须同时有❌和失败关键词
+    const failedPattern = /❌.*?(fjsjfishfsh)/i; // 更严格：必须同时有❌和失败关键词
     
     // 检测违反政策的提示
     const policyViolationPattern = /(输入的提示词|视频的输出内容).*?违反.*?(OpenAI|服务政策|内容政策)|违反.*?OpenAI.*?政策/i;

@@ -10187,7 +10187,7 @@ function getProgressInfo(text) {
  
  // 判断状态
  if (isGenerating && !isComplete) {
- statusText = `修改中 <span class="diff-stat-badge has-changes">+${totalAdded} / -${totalRemoved}</span>`;
+ statusText = `修改中`;
  statusIcon = '<div class="doc-spinner"></div>';
  } else if (isComplete && docId) {
  // 尝试应用变更
@@ -10228,11 +10228,11 @@ function getProgressInfo(text) {
      // 使用全文统计覆盖累加统计
      totalAdded = fullAdded;
      totalRemoved = fullRemoved;
- }
- 
- statusText = `已完成修改 <span class="diff-stat-badge has-changes">+${totalAdded} / -${totalRemoved}</span>`;
- 
- // 刷新预览并切换到 Diff 视图
+     }
+     
+     statusText = `已完成修改`;
+     
+     // 刷新预览并切换到 Diff 视图
  if (window.currentDocId === docId) {
  // 如果当前正在查看该文档，刷新并切换到 Diff 标签
  // 传递 true 给 autoSwitchDiff 参数（虽然 loadDocumentFromId 内部可能被弱化，但我们可以通过 switchDocTab 强制）
@@ -10259,7 +10259,7 @@ function getProgressInfo(text) {
  // 如果基于上一个版本能成功应用，且结果与当前内容一致，说明已经应用过了
  if (testSuccess > 0 && testContent === window.docData[docId].content) {
  alreadyApplied = true;
- statusText = `已完成修改 <span class="diff-stat-badge has-changes">+${totalAdded} / -${totalRemoved}</span>`;
+ statusText = `已完成修改`;
  statusIcon = '<svg class="doc-check doc-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
  
  // 如果是重新渲染且之前已成功应用，也确保视图处于正确状态
@@ -10281,7 +10281,7 @@ function getProgressInfo(text) {
  }
  } else {
  // 加载历史记录时，直接使用 changes 长度作为修改数量
- statusText = `已完成修改 <span class="diff-stat-badge has-changes">+${totalAdded} / -${totalRemoved}</span>`;
+ statusText = `已完成修改`;
  }
  } else if (!docId) {
  statusText = '文档未找到';
@@ -10719,11 +10719,7 @@ function getProgressInfo(text) {
 
  // 更新 Tab 徽章
  if (diffTab) {
- if (addedCount > 0 || removedCount > 0) {
- diffTab.innerHTML = `对比 <span class="diff-stat-badge has-changes">+${addedCount} / -${removedCount}</span>`;
- } else {
  diffTab.innerHTML = `对比`;
- }
  }
 
  // 构建 Markdown 源码（插入 diff 标签）

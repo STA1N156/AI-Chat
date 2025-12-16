@@ -4837,6 +4837,11 @@ stroke: var(--primary-color);
  transition: all 0.2s;
  }
 
+ /* 隐藏对比 Tab 上的统计徽章 */
+ .doc-tab .diff-stat-badge {
+ display: none;
+ }
+
  .doc-tab:hover {
  color: var(--text-primary);
  background: rgba(255, 255, 255, 0.5);
@@ -5560,10 +5565,6 @@ stroke: var(--primary-color);
  font-size: 15px;
  }
 
- /* 移动端隐藏对比 Tab 上的统计徽章，节省空间 */
- .doc-tab .diff-stat-badge {
- display: none;
- }
  }
  </style>
 <!-- 引入 mammoth.js 用于解析 docx 文件 -->

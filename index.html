@@ -796,6 +796,37 @@ letter-spacing: 0.015em; /* 微调字间距 */
  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
  }
 
+ .delete-msg-btn {
+ background: transparent;
+ border: none;
+ color: var(--text-secondary);
+ padding: 6px;
+ border-radius: 8px;
+ cursor: pointer;
+ font-size: 14px;
+ transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ opacity: 0.85;
+ }
+
+ .delete-msg-btn:hover {
+ background: rgba(255, 59, 48, 0.1);
+ color: var(--danger-color);
+ opacity: 1;
+ }
+
+ .delete-msg-btn:active {
+ transform: scale(0.92);
+ transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+ }
+
+ .delete-msg-btn .icon-svg {
+ width: 16px;
+ height: 16px;
+ }
+
  .typing-indicator {
  display: inline-flex;
  align-items: center;
@@ -3370,7 +3401,8 @@ box-shadow: none; /* 移除强烈阴影 */
 
  /* 移动端气泡内复制按钮样式 */
  .message-bubble .copy-btn,
- .message-bubble .regenerate-btn {
+ .message-bubble .regenerate-btn,
+ .message-bubble .delete-msg-btn {
  background: transparent;
  color: var(--text-secondary);
  padding: 8px 10px; /* 移动端显著增加点击区域 */
@@ -3393,15 +3425,22 @@ box-shadow: none; /* 移除强烈阴影 */
  }
 
  .message-bubble .copy-btn:active,
- .message-bubble .regenerate-btn:active {
+ .message-bubble .regenerate-btn:active,
+ .message-bubble .delete-msg-btn:active {
  transform: scale(0.92) translateZ(0); /* 增强点击缩放反馈 */
  -webkit-transform: scale(0.92) translateZ(0);
  background: rgba(0, 0, 0, 0.05);
  color: var(--text-primary);
  }
 
+ .message-bubble .delete-msg-btn:active {
+ background: rgba(255, 59, 48, 0.1);
+ color: var(--danger-color);
+ }
+
  .message-bubble .copy-btn svg,
- .message-bubble .regenerate-btn svg {
+ .message-bubble .regenerate-btn svg,
+ .message-bubble .delete-msg-btn svg {
  width: 16px; /* 移动端图标显著增大 */
  height: 16px;
  }
@@ -9694,6 +9733,18 @@ showToast('已取消生成', 'warning');
  copyMessageContent(this);
  });
  actionsElement.appendChild(copyBtnInside);
+
+ // 删除按钮
+ const deleteBtnInside = document.createElement('button');
+ deleteBtnInside.className = 'delete-msg-btn';
+ deleteBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+ deleteBtnInside.title = '删除消息及后续';
+ deleteBtnInside.onclick = (e) => {
+ e.stopPropagation();
+ deleteMessageAndContext(messageId);
+ };
+ actionsElement.appendChild(deleteBtnInside);
+
  bubbleElement.appendChild(actionsElement);
 
  // 气泡外的操作按钮（移动端）
@@ -9732,6 +9783,20 @@ showToast('已取消生成', 'warning');
  copyMessageContent(this);
  });
  actionsWrapper.appendChild(copyBtnOutside);
+
+ // 移动端删除按钮
+ const deleteBtnOutside = document.createElement('button');
+ deleteBtnOutside.className = 'delete-msg-btn';
+ deleteBtnOutside.style.color = 'var(--text-secondary)'; // 移动端外部按钮颜色适配
+ deleteBtnOutside.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+ `;
+ deleteBtnOutside.onclick = (e) => {
+ e.stopPropagation();
+ deleteMessageAndContext(messageId);
+ };
+ actionsWrapper.appendChild(deleteBtnOutside);
+
  messageElement.appendChild(bubbleElement);
  messageElement.appendChild(actionsWrapper);
  } else {
@@ -10144,6 +10209,18 @@ updateDOM(bubbleElement, newHTML);
  copyMessageContent(this);
  });
  actionsElement.appendChild(copyBtnInside);
+
+ // 删除按钮
+ const deleteBtnInside = document.createElement('button');
+ deleteBtnInside.className = 'delete-msg-btn';
+ deleteBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+ deleteBtnInside.title = '删除消息及后续';
+ deleteBtnInside.onclick = (e) => {
+ e.stopPropagation();
+ deleteMessageAndContext(messageId);
+ };
+ actionsElement.appendChild(deleteBtnInside);
+
  bubbleElement.appendChild(actionsElement);
  }
 
@@ -10185,6 +10262,20 @@ updateDOM(bubbleElement, newHTML);
  copyMessageContent(this);
  });
  actionsWrapper.appendChild(copyBtnOutside);
+
+ // 移动端删除按钮
+ const deleteBtnOutside = document.createElement('button');
+ deleteBtnOutside.className = 'delete-msg-btn';
+ deleteBtnOutside.style.color = 'var(--text-secondary)'; // 移动端外部按钮颜色适配
+ deleteBtnOutside.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+ `;
+ deleteBtnOutside.onclick = (e) => {
+ e.stopPropagation();
+ deleteMessageAndContext(messageId);
+ };
+ actionsWrapper.appendChild(deleteBtnOutside);
+
  messageElement.appendChild(actionsWrapper);
  }
  }
@@ -12028,10 +12119,10 @@ return;
  }
  }
  } else if (role === 'assistant') {
- const isGeneratingProgress = convertProgressToHTML(content) !== null;
- bubbleElement.innerHTML = parseMarkdown(content, false, false, null, messageId);
- 
- // 如果是生成状态，添加特殊样式
+     const isGeneratingProgress = convertProgressToHTML(content) !== null;
+     bubbleElement.innerHTML = parseMarkdown(content, isGenerating, isGenerating, null, messageId);
+
+     // 如果是生成状态，添加特殊样式
  if (isGeneratingProgress) {
  bubbleElement.classList.add('generating-bubble');
  messageElement.classList.add('generating');
@@ -12079,9 +12170,21 @@ return;
  copyMessageContent(this);
  });
  actionsElement.appendChild(copyBtnInside);
+
+ // 删除按钮
+ const deleteBtnInside = document.createElement('button');
+ deleteBtnInside.className = 'delete-msg-btn';
+ deleteBtnInside.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+ deleteBtnInside.title = '删除消息及后续';
+ deleteBtnInside.onclick = (e) => {
+ e.stopPropagation();
+ deleteMessageAndContext(messageId);
+ };
+ actionsElement.appendChild(deleteBtnInside);
+
  bubbleElement.appendChild(actionsElement);
 
- // 气泡外的操作按钮（移动端）
+ // 气泡外的复制按钮（移动端）
  const actionsWrapper = document.createElement('div');
  actionsWrapper.className = 'message-actions-wrapper';
  
@@ -12117,6 +12220,20 @@ return;
  copyMessageContent(this);
  });
  actionsWrapper.appendChild(copyBtnOutside);
+
+ // 移动端删除按钮
+ const deleteBtnOutside = document.createElement('button');
+ deleteBtnOutside.className = 'delete-msg-btn';
+ deleteBtnOutside.style.color = 'var(--text-secondary)'; // 移动端外部按钮颜色适配
+ deleteBtnOutside.innerHTML = `
+ <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+ `;
+ deleteBtnOutside.onclick = (e) => {
+ e.stopPropagation();
+ deleteMessageAndContext(messageId);
+ };
+ actionsWrapper.appendChild(deleteBtnOutside);
+
  messageElement.appendChild(bubbleElement);
  messageElement.appendChild(actionsWrapper);
  } else {
@@ -12292,10 +12409,10 @@ bubbleElement.appendChild(tempDiv.firstElementChild);
 }
 }
 } else if (role === 'assistant') {
-const isGeneratingProgress = convertProgressToHTML(content) !== null;
-bubbleElement.innerHTML = parseMarkdown(content, false, false, null, messageId);
+    const isGeneratingProgress = convertProgressToHTML(content) !== null;
+    bubbleElement.innerHTML = parseMarkdown(content, isGenerating, isGenerating, null, messageId);
 
-// 如果是生成状态，添加特殊样式
+    // 如果是生成状态，添加特殊样式
 if (isGeneratingProgress) {
 bubbleElement.classList.add('generating-bubble');
 messageElement.classList.add('generating');
@@ -12381,36 +12498,91 @@ setTimeout(() => requestAnimationFrame(scrollBottom), 300);
 return messageId;
 }
 
+// 删除单条消息及其上下文
+async function deleteMessageAndContext(messageId) {
+if (!currentConversationId) return;
+
+const confirmText = isMobile() ? '删除此消息及后续所有对话？' : '确定要删除此消息及其后续的所有对话内容吗？此操作不可恢复。';
+if (!confirm(confirmText)) return;
+
+const conversation = conversations.find(c => c.id === currentConversationId);
+if (!conversation) return;
+
+// 找到消息索引
+// 注意：这里的 messageId 是 DOM 元素的 ID，我们需要根据 DOM 元素在 chatContainer 中的位置来确定索引
+// 或者我们可以在生成消息时将索引或唯一标识符绑定到 DOM 元素上
+// 由于目前的实现是重新渲染整个对话时才会有准确的索引，或者每次 addMessage 时没有保存唯一标识符到 messages 数组
+// 所以我们需要通过 DOM 顺序来反推索引
+
+const messageElement = document.getElementById(messageId);
+if (!messageElement) return;
+
+// 获取所有消息元素
+const allMessages = Array.from(document.getElementById('chatContainer').querySelectorAll('.message'));
+const domIndex = allMessages.indexOf(messageElement);
+
+if (domIndex === -1) {
+showToast('定位消息失败', 'error');
+return;
+}
+
+// 逻辑：
+// 点击的是 Assistant 消息：删除上一条 User 消息（如果存在且紧邻）+ 该 Assistant 消息 + 后续所有消息
+// 点击的是 User 消息（虽然目前只给 Assistant 加了按钮，但逻辑通用）：删除该 User 消息 + 后续所有消息
+
+// 在 addMessage 和 updateMessage 中，我们只给 assistant 消息加了删除按钮
+// 所以这里的 messageElement 肯定是 assistant 消息
+// 我们需要删除它的上一条（User）和它自己以及后面的所有
+
+let startIndex = domIndex;
+
+// 检查上一条是否是 User 消息
+if (domIndex > 0) {
+const prevMessage = allMessages[domIndex - 1];
+if (prevMessage.classList.contains('user')) {
+startIndex = domIndex - 1;
+}
+}
+
+// 执行删除：保留 0 到 startIndex - 1 的消息
+conversation.messages = conversation.messages.slice(0, startIndex);
+
+// 保存并刷新
+await saveConversations(currentConversationId);
+switchConversation(currentConversationId);
+showToast('消息及上下文已删除', 'success');
+}
+
 // 删除对话
 async function deleteConversation(conversationId, event) {
- event.stopPropagation();
+event.stopPropagation();
 
- const confirmText = isMobile() ? '删除这个对话？' : '确定要删除这个对话吗？';
+const confirmText = isMobile() ? '删除这个对话？' : '确定要删除这个对话吗？';
 
- if (confirm(confirmText)) {
- conversations = conversations.filter(conv => conv.id !== conversationId);
+if (confirm(confirmText)) {
+conversations = conversations.filter(conv => conv.id !== conversationId);
 
- if (currentConversationId === conversationId) {
- currentConversationId = null;
- const chatContainer = document.getElementById('chatContainer');
- chatContainer.innerHTML = `
- <div class="empty-state">
- <div class="empty-state-icon">💬</div>
- <h3>开始新的对话</h3>
- <p>${isMobile() ? '点击右上角图标选择模型' : '选择一个模型开始聊天，或者点击"获取模型"来加载可用模型'}</p>
- </div>
- `;
- }
+if (currentConversationId === conversationId) {
+currentConversationId = null;
+const chatContainer = document.getElementById('chatContainer');
+chatContainer.innerHTML = `
+<div class="empty-state">
+<div class="empty-state-icon">💬</div>
+<h3>开始新的对话</h3>
+<p>${isMobile() ? '点击右上角图标选择模型' : '选择一个模型开始聊天，或者点击"获取模型"来加载可用模型'}</p>
+</div>
+`;
+}
 
- // 从DB删除
- await dbManager.delete(conversationId);
- // 不需要调用 saveConversations() 全量保存了
- 
- renderConversations();
- updateMobileTitle();
- showToast('对话已删除', 'success');
- }
- }
+// 从DB删除
+await dbManager.delete(conversationId);
+// 不需要调用 saveConversations() 全量保存了
+
+renderConversations();
+updateMobileTitle();
+showToast('对话已删除', 'success');
+}
+}
 
 // 渲染对话列表
 function renderConversations() {

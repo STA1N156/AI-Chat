@@ -2287,6 +2287,9 @@ justify-content: flex-start;
  inset 0 -1px 1px rgba(0, 0, 0, 0.05);
  position: relative;
  overflow: hidden;
+ display: flex;
+ margin-left: auto;
+ width: fit-content;
  }
 
  .save-settings-btn::before {
@@ -11479,6 +11482,27 @@ return div.innerHTML;
 
  // 处理粘贴事件
  function handlePaste(event) {
+     // 优先处理剪贴板中的文件（包括图片）
+     const items = (event.clipboardData || window.clipboardData).items;
+     const files = [];
+
+     if (items) {
+         for (let i = 0; i < items.length; i++) {
+             if (items[i].kind === 'file') {
+                 const file = items[i].getAsFile();
+                 if (file) {
+                     files.push(file);
+                 }
+             }
+         }
+     }
+
+     if (files.length > 0) {
+         event.preventDefault();
+         processFiles(files);
+         return;
+     }
+
      const paste = (event.clipboardData || window.clipboardData).getData('text');
      
      // 如果粘贴内容超过300字

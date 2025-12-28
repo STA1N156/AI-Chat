@@ -269,6 +269,8 @@ position: relative;
  overflow: hidden;
  border: 1px solid rgba(0, 122, 255, 0.12);
  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 122, 255, 0.02), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+ content-visibility: auto; /* 性能优化：仅渲染可见区域 */
+ contain-intrinsic-size: 0 72px; /* 预估高度，避免滚动条跳动 */
  }
 
  .conversation-item:hover {
@@ -3185,10 +3187,14 @@ box-shadow: none; /* 移除强烈阴影 */
  display: flex;
  align-items: center;
  box-shadow: none;
- transition: all 0.2s ease;
- will-change: transform;
- transform: translateZ(0);
- -webkit-transform: translateZ(0);
+ transition: none; /* 移除过渡动画以提升性能 */
+ will-change: auto; /* 移除 will-change 以减少内存占用 */
+ transform: none; /* 移除 transform */
+ -webkit-transform: none;
+ backdrop-filter: none !important; /* 强制移除毛玻璃效果 */
+ -webkit-backdrop-filter: none !important;
+ content-visibility: auto; /* 性能优化：仅渲染可见区域 */
+ contain-intrinsic-size: 0 72px; /* 预估高度 */
  }
  
  .conversation-item:active {

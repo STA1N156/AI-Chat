@@ -4637,7 +4637,7 @@ stroke: var(--primary-color);
  width: 100%;
  height: 100%;
  background-color: rgba(0, 0, 0, 0.9);
- z-index: 10000;
+ z-index: 12000; /* 确保在多页预览模态框之上 */
  display: flex;
  align-items: center;
  justify-content: center;
@@ -4769,6 +4769,136 @@ stroke: var(--primary-color);
  stroke: currentColor;
  stroke-width: 2;
  fill: none;
+ }
+
+ /* 多页预览模态框样式 */
+ .multi-page-preview-modal {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: rgba(0, 0, 0, 0.95);
+ z-index: 11000;
+ display: flex;
+ flex-direction: column;
+ opacity: 0;
+ visibility: hidden;
+ transition: all 0.3s ease;
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ }
+
+ .multi-page-preview-modal.show {
+ opacity: 1;
+ visibility: visible;
+ }
+
+ .multi-page-header {
+ padding: 20px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ color: white;
+ background: rgba(0, 0, 0, 0.5);
+ backdrop-filter: blur(5px);
+ z-index: 11001;
+ }
+
+ .multi-page-title {
+ font-size: 18px;
+ font-weight: 600;
+ }
+
+ .multi-page-close {
+ background: rgba(255, 255, 255, 0.2);
+ border: none;
+ color: white;
+ width: 36px;
+ height: 36px;
+ border-radius: 50%;
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 20px;
+ transition: background 0.2s;
+ }
+
+ .multi-page-close:hover {
+ background: rgba(255, 255, 255, 0.3);
+ }
+
+ .multi-page-grid {
+ flex: 1;
+ overflow-y: auto;
+ padding: 32px;
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+ gap: 32px;
+ align-content: start;
+ }
+
+ .multi-page-item {
+ background: rgba(255, 255, 255, 0.05);
+ border-radius: 12px;
+ overflow: hidden;
+ border: 1px solid rgba(255, 255, 255, 0.1);
+ transition: transform 0.2s, border-color 0.2s;
+ cursor: pointer;
+ position: relative;
+ }
+
+ .multi-page-item:hover {
+ transform: translateY(-4px);
+ border-color: var(--primary-color);
+ background: rgba(255, 255, 255, 0.1);
+ }
+
+ .multi-page-img {
+ width: 100%;
+ height: auto;
+ min-height: 100px;
+ object-fit: contain;
+ background: #1a1a1a;
+ display: block;
+ }
+
+ .multi-page-number {
+ position: absolute;
+ bottom: 8px;
+ right: 8px;
+ background: rgba(0, 0, 0, 0.6);
+ color: white;
+ padding: 2px 8px;
+ border-radius: 10px;
+ font-size: 12px;
+ }
+@media (max-width: 768px) {
+.multi-page-grid {
+grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+gap: 16px;
+padding: 16px;
+}
+}
+
+ /* 预览按钮样式 */
+ .view-all-btn {
+ background: rgba(0, 122, 255, 0.1);
+ color: var(--primary-color);
+ border: 1px solid rgba(0, 122, 255, 0.2);
+ padding: 4px 10px;
+ border-radius: 6px;
+ font-size: 12px;
+ font-weight: 600;
+ cursor: pointer;
+ transition: all 0.2s;
+ margin-left: 8px;
+ }
+
+ .view-all-btn:hover {
+ background: var(--primary-color);
+ color: white;
  }
 
  /* 流式输出过渡动画 - 优雅非线性版 */
@@ -6386,6 +6516,17 @@ aria-label="搜索模型"
  </button>
  </div>
 
+ <!-- 多页预览模态框 -->
+ <div class="multi-page-preview-modal" id="multiPagePreviewModal" onclick="closeMultiPagePreview()">
+ <div class="multi-page-header" onclick="event.stopPropagation()">
+ <div class="multi-page-title" id="multiPagePreviewTitle">文件预览</div>
+ <button class="multi-page-close" onclick="closeMultiPagePreview()">×</button>
+ </div>
+ <div class="multi-page-grid" id="multiPagePreviewGrid" onclick="event.stopPropagation()">
+ <!-- 预览图片将在这里生成 -->
+ </div>
+ </div>
+
  <script>
  // 配置 PDF.js worker
  if (typeof pdfjsLib !== 'undefined') {
@@ -7268,32 +7409,13 @@ filterMobileModels();
     }
  }
 
- // 将 PPTX 文件转换为图片列表
- async function convertPPTXToImages(file, onProgress) {
+ // 从 PPTX 文件提取文本
+ async function extractTextFromPPTX(file, onProgress) {
     try {
         const zip = await JSZip.loadAsync(file);
-        const images = [];
+        let fullText = "";
 
-        // 1. 解析 presentation.xml 获取幻灯片尺寸
-        const presentationXml = await zip.file("ppt/presentation.xml").async("text");
-        const parser = new DOMParser();
-        const presentationDoc = parser.parseFromString(presentationXml, "text/xml");
-        const sldSz = presentationDoc.getElementsByTagName("p:sldSz")[0] || presentationDoc.getElementsByTagName("sldSz")[0];
-        
-        let width = 1280; // 默认宽
-        let height = 720; // 默认高
-
-        if (sldSz) {
-            // EMU to Pixels (914400 EMUs per inch, assuming 96 DPI)
-            // 1 pixel = 9525 EMUs
-            const cx = parseInt(sldSz.getAttribute("cx"));
-            const cy = parseInt(sldSz.getAttribute("cy"));
-            width = Math.round(cx / 9525);
-            height = Math.round(cy / 9525);
-        }
-
-        // 2. 获取幻灯片列表 (从 _rels/presentation.xml.rels 或 直接遍历 ppt/slides/slide*.xml)
-        // 简单起见，我们查找 ppt/slides/ 下的所有 slideX.xml 文件并按数字排序
+        // 1. 获取幻灯片列表
         const slideFiles = Object.keys(zip.files).filter(name => name.match(/^ppt\/slides\/slide\d+\.xml$/));
         
         // 按 slide 数字排序
@@ -7304,8 +7426,9 @@ filterMobileModels();
         });
 
         const totalSlides = slideFiles.length;
+        const parser = new DOMParser();
 
-        // 3. 逐个渲染幻灯片
+        // 2. 逐个解析幻灯片文本
         for (let i = 0; i < totalSlides; i++) {
             if (onProgress) {
                 onProgress(i + 1, totalSlides);
@@ -7315,143 +7438,67 @@ filterMobileModels();
             const slideXml = await zip.file(slidePath).async("text");
             const slideDoc = parser.parseFromString(slideXml, "text/xml");
 
-            // 获取该幻灯片的资源关联 (Relationships)
-            const relsPath = slidePath.replace("ppt/slides/", "ppt/slides/_rels/") + ".rels";
-            const relsFile = zip.file(relsPath);
-            const relsMap = {}; // id -> target
-            
-            if (relsFile) {
-                const relsXml = await relsFile.async("text");
-                const relsDoc = parser.parseFromString(relsXml, "text/xml");
-                const relationships = relsDoc.getElementsByTagName("Relationship");
-                for (let j = 0; j < relationships.length; j++) {
-                    const id = relationships[j].getAttribute("Id");
-                    const target = relationships[j].getAttribute("Target");
-                    relsMap[id] = target;
-                }
-            }
+            let slideTextElements = [];
 
-            // 创建 Canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
+            // 递归处理所有元素提取文本和坐标
+            const spTree = slideDoc.getElementsByTagName("p:spTree")[0];
+            if (spTree) {
+                const processElements = (elements) => {
+                    for (let j = 0; j < elements.length; j++) {
+                        const el = elements[j];
+                        const tagName = el.tagName;
 
-            // 填充白色背景
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, width, height);
+                        if (tagName === "p:sp") {
+                            const xfrm = el.getElementsByTagName("a:xfrm")[0];
+                            const txBody = el.getElementsByTagName("p:txBody")[0];
+                            if (xfrm && txBody) {
+                                const off = xfrm.getElementsByTagName("a:off")[0];
+                                const x = off ? parseInt(off.getAttribute("x")) : 0;
+                                const y = off ? parseInt(off.getAttribute("y")) : 0;
 
-            // 简单的文本渲染逻辑
-            // 查找所有文本框 (p:sp -> p:txBody -> a:p -> a:r -> a:t)
-            const shapes = slideDoc.getElementsByTagName("p:sp");
-            
-            // 遍历形状 (包括文本框)
-            for (let j = 0; j < shapes.length; j++) {
-                const shape = shapes[j];
-                const spPr = shape.getElementsByTagName("p:spPr")[0];
-                const xfrm = spPr ? spPr.getElementsByTagName("a:xfrm")[0] : null;
-                const off = xfrm ? xfrm.getElementsByTagName("a:off")[0] : null;
-                const ext = xfrm ? xfrm.getElementsByTagName("a:ext")[0] : null;
-
-                if (off && ext) {
-                    const x = Math.round(parseInt(off.getAttribute("x")) / 9525);
-                    const y = Math.round(parseInt(off.getAttribute("y")) / 9525);
-                    const w = Math.round(parseInt(ext.getAttribute("cx")) / 9525);
-                    const h = Math.round(parseInt(ext.getAttribute("cy")) / 9525);
-
-                    // 提取文本
-                    const txBody = shape.getElementsByTagName("p:txBody")[0];
-                    if (txBody) {
-                        const paragraphs = txBody.getElementsByTagName("a:p");
-                        let textY = y + 24; // 简单垂直偏移
-
-                        for (let k = 0; k < paragraphs.length; k++) {
-                            const runs = paragraphs[k].getElementsByTagName("a:r");
-                            let lineText = "";
-                            for (let l = 0; l < runs.length; l++) {
-                                const t = runs[l].getElementsByTagName("a:t")[0];
-                                if (t) lineText += t.textContent;
+                                let text = "";
+                                const paragraphs = txBody.getElementsByTagName("a:p");
+                                for (let k = 0; k < paragraphs.length; k++) {
+                                    const runs = paragraphs[k].getElementsByTagName("a:r");
+                                    let paraText = "";
+                                    for (let l = 0; l < runs.length; l++) {
+                                        const t = runs[l].getElementsByTagName("a:t")[0];
+                                        if (t) paraText += t.textContent;
+                                    }
+                                    if (paraText) text += paraText + "\n";
+                                }
+                                if (text.trim()) {
+                                    slideTextElements.push({ x, y, text: text.trim() });
+                                }
                             }
-                            
-                            if (lineText) {
-                                ctx.fillStyle = '#000000';
-                                ctx.font = '24px Arial'; // 默认字体
-                                ctx.fillText(lineText, x, textY);
-                                textY += 30; // 行高
-                            }
+                        } else if (tagName === "p:grpSp") {
+                            processElements(el.children);
                         }
                     }
-                }
+                };
+                processElements(spTree.children);
             }
 
-            // 简单的图片渲染逻辑
-            const pics = slideDoc.getElementsByTagName("p:pic");
-            for (let j = 0; j < pics.length; j++) {
-                const pic = pics[j];
-                const blipFill = pic.getElementsByTagName("p:blipFill")[0];
-                const blip = blipFill ? blipFill.getElementsByTagName("a:blip")[0] : null;
-                const embedId = blip ? blip.getAttribute("r:embed") : null;
-
-                const spPr = pic.getElementsByTagName("p:spPr")[0];
-                const xfrm = spPr ? spPr.getElementsByTagName("a:xfrm")[0] : null;
-                const off = xfrm ? xfrm.getElementsByTagName("a:off")[0] : null;
-                const ext = xfrm ? xfrm.getElementsByTagName("a:ext")[0] : null;
-
-                if (embedId && relsMap[embedId] && off && ext) {
-                    const x = Math.round(parseInt(off.getAttribute("x")) / 9525);
-                    const y = Math.round(parseInt(off.getAttribute("y")) / 9525);
-                    const w = Math.round(parseInt(ext.getAttribute("cx")) / 9525);
-                    const h = Math.round(parseInt(ext.getAttribute("cy")) / 9525);
-
-                    // 获取图片路径
-                    // Target 通常是 "../media/image1.png" 这样的相对路径
-                    let imgTarget = relsMap[embedId];
-                    let imgPath = "";
-                    
-                    if (imgTarget) {
-                        if (imgTarget.startsWith('../')) {
-                            imgPath = imgTarget.replace('../', 'ppt/');
-                        } else if (imgTarget.startsWith('media/')) {
-                            imgPath = 'ppt/media/' + imgTarget.split('/').pop();
-                        } else {
-                            imgPath = 'ppt/media/' + imgTarget.split('/').pop();
-                        }
-                    }
-                    
-                    const imgFile = zip.file(imgPath);
-                    if (imgFile) {
-                        // 检查是否是不支持的格式 (EMF/WMF)
-                        const ext = imgPath.split('.').pop().toLowerCase();
-                        if (['emf', 'wmf'].includes(ext)) {
-                            console.warn(`Skipping unsupported image format: ${ext} at ${imgPath}`);
-                            continue;
-                        }
-
-                        try {
-                            const imgBlob = await imgFile.async("blob");
-                            // 使用 try-catch 保护图片解码过程，防止 InvalidStateError 中断整个流程
-                            const imgBitmap = await createImageBitmap(imgBlob);
-                            ctx.drawImage(imgBitmap, x, y, w, h);
-                        } catch (decodeError) {
-                            console.error(`Failed to decode image ${imgPath}:`, decodeError);
-                            // 继续处理下一张图片，不中断整个幻灯片的渲染
-                        }
-                    }
+            // 按坐标排序：Y 轴优先，X 轴次之
+            slideTextElements.sort((a, b) => {
+                if (Math.abs(a.y - b.y) > 100000) { // 允许一定的 Y 轴偏差（EMU单位，100000 EMU 约 0.1 英寸）
+                    return a.y - b.y;
                 }
-            }
+                return a.x - b.x;
+            });
 
-            // 转换为图片
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            images.push(dataUrl);
+            if (slideTextElements.length > 0) {
+                fullText += `\n=== 第 ${i + 1} 页 ===\n`;
+                fullText += slideTextElements.map(el => el.text).join("\n") + "\n";
+            }
         }
 
-        return images;
+        return fullText.trim();
     } catch (error) {
-        console.error('PPTX to Image conversion failed:', error);
+        console.error('PPTX text extraction failed:', error);
         throw error;
     }
  }
-
  // 从 Excel 文件提取文本
  async function extractTextFromExcel(file) {
  try {
@@ -7543,7 +7590,7 @@ filterMobileModels();
  ];
 
  // 压缩音频函数 (使用 Web Worker 避免阻塞 UI)
- async function compressAudio(file) {
+ async function compressAudio(file, onProgress) {
     // 阈值 1MB
     if (file.size <= 1024 * 1024) {
         return new Promise((resolve, reject) => {
@@ -7591,7 +7638,8 @@ filterMobileModels();
                     const rightInt16 = right ? convertBuffer(right) : undefined;
                     
                     const sampleBlockSize = 1152;
-                    for (let i = 0; i < leftInt16.length; i += sampleBlockSize) {
+                    const totalSamples = leftInt16.length;
+                    for (let i = 0; i < totalSamples; i += sampleBlockSize) {
                         const leftChunk = leftInt16.subarray(i, i + sampleBlockSize);
                         let mp3buf;
                         
@@ -7604,6 +7652,11 @@ filterMobileModels();
                         
                         if (mp3buf.length > 0) {
                             mp3Data.push(mp3buf);
+                        }
+
+                        // 每处理 20 个块发送一次进度，避免通信过于频繁
+                        if (i % (sampleBlockSize * 20) === 0) {
+                            self.postMessage({ type: 'progress', percentage: Math.round((i / totalSamples) * 100) });
                         }
                     }
 
@@ -7625,6 +7678,10 @@ filterMobileModels();
 
         return new Promise((resolve, reject) => {
             worker.onmessage = function(e) {
+                if (e.data.type === 'progress') {
+                    if (onProgress) onProgress(e.data.percentage);
+                    return;
+                }
                 if (e.data.success) {
                     const mp3Blob = new Blob(e.data.mp3Data, { type: 'audio/mp3' });
                     console.log(`[Audio Compression] Done: ${file.name}, New Size: ${(mp3Blob.size / 1024 / 1024).toFixed(2)} MB, Ratio: ${(mp3Blob.size / file.size * 100).toFixed(1)}%`);
@@ -7904,7 +7961,10 @@ filterMobileModels();
 
          // 显示持久化 Toast (duration = 0)
          showToast(`正在处理音频: ${file.name}...`, 'info', 0);
-         const compressedDataUrl = await compressAudio(file);
+         const compressedDataUrl = await compressAudio(file, (percentage) => {
+             fileInfo.progress = `压缩中: ${percentage}%`;
+             updateFilePreview();
+         });
          fileInfo.content = compressedDataUrl;
          fileInfo.isProcessing = false;
          delete fileInfo.progress;
@@ -8034,14 +8094,8 @@ filterMobileModels();
  showToast(`无法解析 ${file.name}，请确保文件未损坏`, 'error');
  }
  } else if (file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || file.name.toLowerCase().endsWith('.pptx')) {
- // 如果是 PPTX 文件，转换为图片
+ // 如果是 PPTX 文件，提取文本
  try {
- // 立即添加到列表并显示初始状态
- fileInfo.type = 'application/pdf-processing'; // 复用 PDF 的处理中状态样式
- fileInfo.progress = '准备中...';
- uploadedFiles.push(fileInfo);
- updateFilePreview();
- 
  showToast(`正在解析 PPTX: ${file.name}`, 'info');
  
  // 检查 JSZip 是否加载
@@ -8049,35 +8103,18 @@ filterMobileModels();
  throw new Error('JSZip 库未加载');
  }
  
- const images = await convertPPTXToImages(file, (current, total) => {
- // 更新进度
- fileInfo.progress = `解析中: ${current}/${total}`;
- updateFilePreview();
+ const text = await extractTextFromPPTX(file, (current, total) => {
+ // 可以在这里更新进度，但文本提取通常很快
  });
  
- // 解析完成，更新文件信息
- fileInfo.content = images; // 存储图片数组
- fileInfo.type = 'application/pdf-images'; // 复用 PDF 的图片集类型，因为逻辑一致（都是多张图片）
- fileInfo.pageCount = images.length;
- 
- // 计算所有图片的总大小
- let totalSize = 0;
- images.forEach(img => {
-    // 估算 base64 大小
-    totalSize += Math.round((img.length - 22) * 0.75);
- });
- fileInfo.size = totalSize;
- 
- fileInfo.preview = images[0]; // 预览图使用第一页
- delete fileInfo.progress;
- 
+ console.log('PPTX 解析内容:', text);
+ fileInfo.content = text;
+ fileInfo.type = 'text/plain';
+ uploadedFiles.push(fileInfo);
  updateFilePreview();
- showToast(`已完成 ${file.name} 解析，共 ${images.length} 页`, 'success');
+ showToast(`已读取 ${file.name} 的文本内容`, 'success');
  } catch (error) {
  console.error(error);
- // 移除失败的文件
- uploadedFiles = uploadedFiles.filter(f => f.id !== fileInfo.id);
- updateFilePreview();
  showToast(`无法解析 ${file.name}：${error.message}`, 'error');
  }
  } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
@@ -8202,6 +8239,7 @@ filterMobileModels();
  <div class="file-preview-size">
     ${(fileInfo.type === 'application/pdf-processing' || fileInfo.isProcessing) ? `<span style="color: var(--primary-color);">${fileInfo.progress || '处理中...'}</span>` :
       (fileInfo.type === 'application/pdf-images' ? `${fileInfo.pageCount} 页 • ` : '') + formatFileSize(fileInfo.size)}
+    ${fileInfo.type === 'application/pdf-images' ? `<button class="view-all-btn" onclick="openMultiPagePreview(${fileInfo.id})">查看全部</button>` : ''}
  </div>
  </div>
  <button class="file-preview-remove" onclick="removeFile(${fileInfo.id})">✕</button>
@@ -13267,6 +13305,46 @@ function displayToast(toast, message, type, duration) {
  document.body.removeChild(link);
  
  showToast('正在下载...', 'success');
+ }
+
+ // 多页预览相关函数
+ function openMultiPagePreview(fileId) {
+ const fileInfo = uploadedFiles.find(f => f.id === fileId);
+ if (!fileInfo || !Array.isArray(fileInfo.content)) return;
+
+ const modal = document.getElementById('multiPagePreviewModal');
+ const grid = document.getElementById('multiPagePreviewGrid');
+ const title = document.getElementById('multiPagePreviewTitle');
+
+ title.textContent = fileInfo.name;
+ grid.innerHTML = fileInfo.content.map((src, index) => `
+ <div class="multi-page-item" onclick="handleMultiPageItemClick(this)">
+ <img src="${src}" class="multi-page-img" alt="第 ${index + 1} 页" loading="lazy">
+ <div class="multi-page-number">${index + 1}</div>
+ </div>
+ `).join('');
+
+ modal.classList.add('show');
+ document.body.style.overflow = 'hidden';
+ }
+
+ // 处理多页预览项点击
+ function handleMultiPageItemClick(item) {
+ const img = item.querySelector('img');
+ if (img && img.src) {
+ openImagePreview(img.src);
+ }
+ }
+
+ function closeMultiPagePreview() {
+ const modal = document.getElementById('multiPagePreviewModal');
+ modal.classList.remove('show');
+ document.body.style.overflow = '';
+ 
+ // 延迟清空内容，避免动画过程中闪烁
+ setTimeout(() => {
+ document.getElementById('multiPagePreviewGrid').innerHTML = '';
+ }, 300);
  }
  </script>
 </body>

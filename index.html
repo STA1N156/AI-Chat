@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
  <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
  <meta name="apple-mobile-web-app-capable" content="yes">
  <meta name="apple-mobile-web-app-status-bar-style" content="default">
  <title>Chat Assistant</title>
@@ -3024,11 +3024,12 @@ overscroll-behavior: none;
 .app-container {
 position: relative;
 height: 100%;
-height: 100dvh; /* 优先使用动态视口高度 */
-height: calc(var(--vh, 1vh) * 100); /* 适配虚拟键盘 */
+height: 100dvh; /* 现代浏览器优先使用 dvh */
+height: calc(var(--vh, 1vh) * 100); /* 适配虚拟键盘，优先使用 JS 计算的高度 */
 display: flex;
 flex-direction: column;
 overflow: hidden;
+will-change: height;
 }
 
  /* 移动端顶部导航栏 */
@@ -3570,7 +3571,7 @@ transform: none;
  border: 1px solid rgba(0, 0, 0, 0.05);
  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
  align-items: center; /* 垂直居中对齐 */
- transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+ transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; /* 避免 transition: all 导致键盘呼出时闪屏 */
  }
 
  .input-wrapper:focus-within {
@@ -3592,7 +3593,7 @@ transform: none;
  border-radius: 0;
  border: none;
  background: transparent; /* 背景透明 */
- transition: all 0.3s ease;
+ transition: opacity 0.3s ease; /* 避免 transition: all 导致键盘呼出时闪屏 */
  /* 确保移动端也隐藏滚动条 */
  scrollbar-width: none;
  -ms-overflow-style: none;
@@ -6951,10 +6952,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // 移动端特殊处理
 if (isMobile()) {
-// 初始化视口高度变量
+// 初始化虚拟键盘处理和视口高度
 handleVirtualKeyboard();
-// 处理虚拟键盘
-window.addEventListener('resize', handleVirtualKeyboard);
 
 // 确保聊天容器可以滚动
 const chatContainer = document.getElementById('chatContainer');
@@ -6975,22 +6974,31 @@ appContainer.classList.remove('initial-load');
 
  // 处理虚拟键盘（移动端）
  function handleVirtualKeyboard() {
- if (isMobile()) {
- // 实时计算视口高度，解决软键盘弹出时的高度问题
- const vh = window.innerHeight * 0.01;
+ if (!isMobile()) return;
+
+ const updateHeight = () => {
+ // 优先使用 VisualViewport API 获取实际可见区域高度
+ const viewport = window.visualViewport;
+ const height = viewport ? viewport.height : window.innerHeight;
+ const vh = height * 0.01;
  document.documentElement.style.setProperty('--vh', `${vh}px`);
  
  // 确保输入框可见
  const activeElement = document.activeElement;
  if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
- // 立即执行一次，无需等待
- activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
- // 稍微延迟再次确认，防止键盘动画未完成
- setTimeout(() => {
- activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
- }, 50);
+ activeElement.scrollIntoView({ behavior: 'auto', block: 'nearest' });
  }
+ };
+
+ if (window.visualViewport) {
+ window.visualViewport.addEventListener('resize', updateHeight);
+ window.visualViewport.addEventListener('scroll', updateHeight);
+ } else {
+ window.addEventListener('resize', updateHeight);
  }
+ 
+ // 初始执行一次
+ updateHeight();
  }
 
  // 更新移动端标题

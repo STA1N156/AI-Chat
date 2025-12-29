@@ -263,6 +263,7 @@ position: relative;
  }
 
  .conversation-item {
+ flex-shrink: 0; /* 防止被压缩 */
  background: linear-gradient(135deg, var(--conversation-bg), rgba(255, 255, 255, 0.9));
  backdrop-filter: blur(15px) saturate(150%);
  -webkit-backdrop-filter: blur(15px) saturate(150%);
@@ -1994,6 +1995,8 @@ height: 14px;
  height: 100vh;
  border-radius: 0;
  z-index: 1000;
+ display: flex;
+ flex-direction: column;
  }
 
  /* PC端侧边栏关闭状态 */
@@ -11906,12 +11909,6 @@ stopBtn.style.display = 'none';
 
 // 创建新对话
 function createNewChat() {
-// PC端限制最多8个对话
-if (window.innerWidth > 768 && conversations.length >= 8) {
-showToast('最多支持8个对话，请删除部分对话后再新建', 'warning');
-return;
-}
-
 // 计算新对话的默认标题（新对话 1, 新对话 2...）
 let nextNum = 1;
 const newChatPattern = /^新对话\s*(\d+)?$/;

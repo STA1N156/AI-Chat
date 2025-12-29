@@ -7406,34 +7406,36 @@ filterMobileModels();
                     // 获取图片路径
                     // Target 通常是 "../media/image1.png" 这样的相对路径
                     let imgTarget = relsMap[embedId];
-                    if (imgTarget.startsWith('../')) {
-                        imgTarget = imgTarget.replace('../', 'ppt/');
-                    } else if (imgTarget.startsWith('media/')) {
-                        imgTarget = 'ppt/slides/' + imgTarget; // 这种情况比较少见，通常是相对 slide 的
-                        // 修正：如果是 "media/image1.png"，且当前在 "ppt/slides/"，则应该是 "ppt/media/image1.png"
-                        // 实际上 pptx 结构通常是 ppt/media/
-                        // 如果 rels 在 ppt/slides/_rels/，target 是 "../media/x.png"，则解析为 ppt/media/x.png
-                    }
-                    
-                    // 尝试在 zip 中找到文件
-                    // 最稳妥的方式：解析路径
-                    // slidePath 是 ppt/slides/slide1.xml
-                    // relsMap[embedId] 是 ../media/image1.png
-                    // 结果应该是 ppt/media/image1.png
-                    
-                    // 简易路径解析
                     let imgPath = "";
-                    if (imgTarget.includes("media/")) {
-                        // 假设所有媒体都在 ppt/media 下
-                        const fileName = imgTarget.split('/').pop();
-                        imgPath = "ppt/media/" + fileName;
+                    
+                    if (imgTarget) {
+                        if (imgTarget.startsWith('../')) {
+                            imgPath = imgTarget.replace('../', 'ppt/');
+                        } else if (imgTarget.startsWith('media/')) {
+                            imgPath = 'ppt/media/' + imgTarget.split('/').pop();
+                        } else {
+                            imgPath = 'ppt/media/' + imgTarget.split('/').pop();
+                        }
                     }
-
+                    
                     const imgFile = zip.file(imgPath);
                     if (imgFile) {
-                        const imgBlob = await imgFile.async("blob");
-                        const imgBitmap = await createImageBitmap(imgBlob);
-                        ctx.drawImage(imgBitmap, x, y, w, h);
+                        // 检查是否是不支持的格式 (EMF/WMF)
+                        const ext = imgPath.split('.').pop().toLowerCase();
+                        if (['emf', 'wmf'].includes(ext)) {
+                            console.warn(`Skipping unsupported image format: ${ext} at ${imgPath}`);
+                            continue;
+                        }
+
+                        try {
+                            const imgBlob = await imgFile.async("blob");
+                            // 使用 try-catch 保护图片解码过程，防止 InvalidStateError 中断整个流程
+                            const imgBitmap = await createImageBitmap(imgBlob);
+                            ctx.drawImage(imgBitmap, x, y, w, h);
+                        } catch (decodeError) {
+                            console.error(`Failed to decode image ${imgPath}:`, decodeError);
+                            // 继续处理下一张图片，不中断整个幻灯片的渲染
+                        }
                     }
                 }
             }
@@ -7780,7 +7782,10 @@ filterMobileModels();
      document.getElementById('overlay').classList.add('show');
      document.getElementById('uploadMenu').classList.remove('show');
      document.getElementById('linkInput').value = '';
-     setTimeout(() => document.getElementById('linkInput').focus(), 100);
+     // 移动端不自动聚焦，防止键盘弹出遮挡
+     if (!isMobile()) {
+         setTimeout(() => document.getElementById('linkInput').focus(), 100);
+     }
  }
 
  // 关闭链接模态框
@@ -9261,6 +9266,9 @@ filterMobileModels();
  lastAutoOpenedDocIndex: 0 // 记录最后自动打开的文档索引，防止跳回旧文档
  };
 
+ // 更新侧边栏状态（显示生成中图标）
+ renderConversations();
+
  // 更新当前对话的发送按钮状态
  updateSendButton();
 
@@ -9644,7 +9652,7 @@ filterMobileModels();
  }
  
  if (error.name === 'AbortError') {
- updateMessage(loadingId, '已取消生成');
+ updateMessage(loadingId, '已取消生成', false);
  } else {
  // 直接输出错误信息，不添加任何格式化
  updateMessage(loadingId, error.message);
@@ -9659,6 +9667,7 @@ filterMobileModels();
  // 更新当前对话的按钮状态
  updateSendButton();
  hideTypingIndicator(loadingId);
+ renderConversations();
  }
  }
 
@@ -11405,7 +11414,7 @@ return div.innerHTML;
  if (lastThinkOpenIndex > lastThinkCloseIndex) {
  const beforeThink = processedText.substring(0, lastThinkOpenIndex);
  const thinkContent = processedText.substring(lastThinkOpenIndex + 7); // 7 is length of <think>
- thinkBlocks.push({ content: thinkContent, isThinking: true });
+ thinkBlocks.push({ content: thinkContent, isThinking: isStreaming });
  processedText = beforeThink + `__THINK_BLOCK_${thinkBlocks.length - 1}__`;
  }
 

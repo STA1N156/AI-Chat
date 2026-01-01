@@ -5475,7 +5475,7 @@ padding: 16px;
  .doc-preview-content ul, .diff-content ul {
  list-style: none;
  padding-left: 0;
- margin-left: 8px;
+ margin-left: 10px;
  margin-bottom: 16px;
  position: relative;
  }
@@ -5487,8 +5487,9 @@ padding: 16px;
  
  .doc-preview-content ul li, .diff-content ul li {
  position: relative;
- padding-left: 24px;
- margin-bottom: 0.25em;
+ padding-left: 30px;
+ margin-bottom: 0.6em;
+ line-height: 1.6;
  }
  
  .doc-preview-content ul li::before, .diff-content ul li::before {
@@ -5497,24 +5498,26 @@ padding: 16px;
  left: 0;
  top: 0;
  bottom: 0;
- width: 1px;
- background-color: var(--border-color);
- opacity: 0.8; /* 提高可见度 */
+ width: 2px;
+ background-color: var(--text-secondary);
+ opacity: 0.3;
+ border-radius: 1px;
  }
  
  .doc-preview-content ul li:last-child::before, .diff-content ul li:last-child::before {
- height: 0.8em;
+ height: 14px;
  }
  
  .doc-preview-content ul li::after, .diff-content ul li::after {
  content: '';
  position: absolute;
  left: 0;
- top: 0.8em;
- width: 16px;
- height: 1px;
- background-color: var(--border-color);
- opacity: 0.8; /* 提高可见度 */
+ top: 13px;
+ width: 22px;
+ height: 2px;
+ background-color: var(--text-secondary);
+ opacity: 0.3;
+ border-radius: 1px;
  }
  
  .doc-preview-content li > p, .diff-content li > p {

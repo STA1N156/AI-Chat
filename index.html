@@ -6920,8 +6920,8 @@ let streamingStates = {}; // { conversationId: { messageId, controller, isGenera
  // 翻译文本函数
  async function translateText(text) {
     try {
-        // 使用 gemini-2.5-flash-thinking 进行快速翻译，如果不可用则回退到当前模型
-        const modelToUse = 'gemini-2.5-flash-nothinking';
+        // 使用 gemini-3-flash-preview-thinking 进行快速翻译，如果不可用则回退到当前模型
+        const modelToUse = 'gemini-3-flash-preview-nothinking';
         
         const response = await fetch(`${API_BASE}/v1/chat/completions`, {
             method: 'POST',

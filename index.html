@@ -4903,6 +4903,7 @@ stroke: var(--primary-color);
  display: grid;
  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
  gap: 32px;
+ align-items: start; /* 顶部对齐，防止高度强制拉伸 */
  align-content: start;
  }
 
@@ -4911,24 +4912,27 @@ stroke: var(--primary-color);
  border-radius: 12px;
  overflow: hidden;
  border: 1px solid rgba(255, 255, 255, 0.1);
- transition: transform 0.2s, border-color 0.2s;
+ transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
  cursor: pointer;
  position: relative;
+ transform: translateZ(0);
+ display: flex; /* 消除图片底部的幽灵空白 */
+ flex-direction: column;
  }
 
  .multi-page-item:hover {
  transform: translateY(-4px);
  border-color: var(--primary-color);
  background: rgba(255, 255, 255, 0.1);
+ box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
  }
 
  .multi-page-img {
  width: 100%;
- height: auto;
- min-height: 100px;
- object-fit: contain;
- background: #1a1a1a;
+ height: auto; /* 保持原始比例，高度自适应 */
  display: block;
+ background: #1a1a1a;
+ object-fit: contain; /* 确保图片完整显示 */
  }
 
  .multi-page-number {
@@ -4940,14 +4944,24 @@ stroke: var(--primary-color);
  padding: 2px 8px;
  border-radius: 10px;
  font-size: 12px;
+ backdrop-filter: blur(4px);
+ pointer-events: none; /* 防止遮挡点击 */
  }
-@media (max-width: 768px) {
-.multi-page-grid {
-grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-gap: 16px;
-padding: 16px;
-}
-}
+
+ @media (max-width: 900px) {
+ .multi-page-grid {
+ gap: 16px;
+ padding: 20px;
+ grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+ }
+ }
+
+ @media (max-width: 600px) {
+ .multi-page-grid {
+ padding: 16px;
+ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+ }
+ }
 
  /* 预览按钮样式 */
  .view-all-btn {
@@ -6651,7 +6665,7 @@ aria-label="搜索模型"
  // IndexedDB 管理类
  const DBConfig = {
     name: 'AIChatDB',
-    version: 2,
+    version: 3,
     storeName: 'conversations',
     docStoreName: 'documents'
  };

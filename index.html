@@ -6242,24 +6242,50 @@ stroke: var(--primary-color);
 .personality-chips {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* 强制不换行 */
   margin-bottom: 12px;
+  overflow-x: auto; /* 允许横向滚动（作为兜底） */
+  scrollbar-width: none; /* 隐藏滚动条 */
+}
+
+.personality-chips::-webkit-scrollbar {
+  display: none;
 }
 
 .personality-chip {
   padding: 6px 14px;
   border-radius: 20px;
-  background: rgba(0,0,0,0.05);
-  border: 1px solid transparent;
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   color: var(--text-primary);
   font-weight: 500;
+  white-space: nowrap; /* 防止文字换行 */
+  flex: 1; /* 让按钮均分宽度 */
+  text-align: center; /* 文字居中 */
+  display: flex; /* Flex布局保证内容居中 */
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .personality-chip {
+    padding: 6px 2px; /* 移动端大幅减小内边距 */
+    font-size: 12px; /* 移动端微调字体 */
+    border-radius: 12px; /* 稍微减小圆角以节省空间视觉 */
+  }
+  
+  .personality-chips {
+    gap: 4px; /* 移动端减小间距 */
+  }
 }
 
 .personality-chip:hover {
-  background: rgba(0, 122, 255, 0.08);
+  background: rgba(0, 122, 255, 0.08); /* 保持 */
+  border-color: rgba(0, 122, 255, 0.2); /* 新增：边框也变色 */
   color: var(--primary-color);
   transform: translateY(-1px);
 }

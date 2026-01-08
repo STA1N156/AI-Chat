@@ -897,25 +897,76 @@ backdrop-filter: blur(20px);
 z-index: 100;
 }
 
- .file-preview-container {
+ .file-preview-wrapper {
+ position: relative;
  max-width: 800px;
  margin: 0 auto 16px;
- padding: 0;
- background: transparent;
- border: none;
- border-radius: 0;
  display: none;
- width: 100%; /* 确保在移动端占满宽度 */
+ width: 100%;
+ }
+
+ .file-preview-wrapper.show {
+ display: block;
+ }
+
+ .file-preview-container {
+ max-height: 200px;
+ overflow-y: auto;
+ scrollbar-width: none;
+ -ms-overflow-style: none; /* IE 10+ */
+ padding: 10px; /* Add padding to prevent clipping of hover effects */
+ box-sizing: border-box;
+ }
+
+ /* 隐藏 Chrome/Safari 滚动条 */
+ .file-preview-container::-webkit-scrollbar {
+ display: none;
+ width: 0;
+ height: 0;
+ }
+
+ .file-scroll-indicator {
+ position: absolute;
+ bottom: 0;
+ left: 0;
+ right: 0;
+ height: 40px;
+ background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95));
+ pointer-events: none;
+ display: flex;
+ align-items: flex-end;
+ justify-content: center;
+ padding-bottom: 5px;
+ color: var(--primary-color);
+ opacity: 0;
+ transition: opacity 0.3s ease;
+ pointer-events: none;
+ z-index: 10;
+ }
+
+ .file-scroll-indicator.visible {
+ opacity: 1;
+ }
+
+ .file-scroll-icon {
+ width: 24px;
+ height: 24px;
+ animation: bounce 2s infinite;
+ filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+ }
+
+ @keyframes bounce {
+ 0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+ 40% {transform: translateY(-5px);}
+ 60% {transform: translateY(-3px);}
  }
 
  @media (max-width: 768px) {
- .file-preview-container {
- margin: 0 0 8px 0; /* 减少间距 */
+ .file-preview-wrapper {
+ margin: 0 0 8px 0;
  width: 100%;
  box-sizing: border-box;
- border: none; /* 移动端移除边框 */
- background: transparent; /* 移动端背景透明 */
- padding: 0 4px; /* 减少左右内边距 */
+ padding: 0 4px;
  }
  }
 
@@ -6394,8 +6445,15 @@ stroke: var(--primary-color);
 
  <!-- 输入区域 -->
  <div class="input-container">
- <div class="file-preview-container" id="filePreviewContainer">
+ <div class="file-preview-wrapper" id="filePreviewWrapper">
+ <div class="file-preview-container" id="filePreviewContainer" onscroll="checkScrollIndicator()">
  <!-- 文件预览将在这里显示 -->
+ </div>
+ <div class="file-scroll-indicator" id="fileScrollIndicator">
+ <svg class="file-scroll-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <polyline points="6 9 12 15 18 9"></polyline>
+ </svg>
+ </div>
  </div>
  <div class="input-wrapper" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
  <div class="upload-menu" id="uploadMenu">
@@ -8340,15 +8398,16 @@ filterMobileModels();
 
  // 更新文件预览区域
  function updateFilePreview() {
+ const wrapper = document.getElementById('filePreviewWrapper');
  const container = document.getElementById('filePreviewContainer');
 
  if (uploadedFiles.length === 0) {
- container.classList.remove('show');
+ wrapper.classList.remove('show');
  container.innerHTML = '';
  return;
  }
 
- container.classList.add('show');
+ wrapper.classList.add('show');
  container.innerHTML = uploadedFiles.map(fileInfo => `
  <div class="file-preview-item">
  ${fileInfo.preview ?
@@ -8382,6 +8441,27 @@ filterMobileModels();
  <button class="file-preview-remove" onclick="removeFile(${fileInfo.id})">✕</button>
  </div>
  `).join('');
+ 
+ // 检查滚动指示器
+ setTimeout(checkScrollIndicator, 0); // 确保渲染后检查
+ }
+
+ // 检查是否需要显示滚动指示器
+ function checkScrollIndicator() {
+ const container = document.getElementById('filePreviewContainer');
+ const indicator = document.getElementById('fileScrollIndicator');
+ if (!container || !indicator) return;
+
+ // 检查是否有溢出且未滚动到底部
+ const hasOverflow = container.scrollHeight > container.clientHeight;
+ // 使用 5px 容差
+ const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 5;
+
+ if (hasOverflow && !atBottom) {
+ indicator.classList.add('visible');
+ } else {
+ indicator.classList.remove('visible');
+ }
  }
 
  // 移除文件

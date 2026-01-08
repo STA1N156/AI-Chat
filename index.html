@@ -8768,7 +8768,10 @@ filterMobileModels();
                     runs.push(...subRuns);
                 } else {
                     // 处理纯文本中的换行符
-                    const textContent = token.text || token.raw || "";
+                    let textContent = token.text || token.raw || "";
+
+                    // 解码 HTML 实体 (修复 -> 变成 -&gt; 等问题)
+                    textContent = textContent.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
                     
                     // [新增] 手动解析未被 marked 识别的粗体 (**...**)
                     // 简单的正则分割：匹配 **内容**
@@ -8852,8 +8855,12 @@ filterMobileModels();
                     }));
                 }
             } else if (token.type === 'codespan') {
+                let codeText = token.text;
+                // 解码 HTML 实体
+                codeText = codeText.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+
                 runs.push(new TextRun({
-                    text: ` ${token.text} `, // 添加一点间距
+                    text: ` ${codeText} `, // 添加一点间距
                     font: "Courier New",
                     color: "C7254E",
                     shading: { fill: "F9F2F4", color: "auto" },
@@ -8893,8 +8900,11 @@ filterMobileModels();
                 // 忽略列表 token，因为它们会在 processListItems 中递归处理
             } else {
                 // 默认回退
+                let fallbackText = token.text || token.raw || "";
+                fallbackText = fallbackText.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+
                 runs.push(new TextRun({
-                    text: token.text || token.raw || "",
+                    text: fallbackText,
                     ...currentStyle
                 }));
             }
@@ -8958,7 +8968,10 @@ filterMobileModels();
 
         } else if (token.type === 'code') {
             // 代码块：整体放在一个表格单元格中，模拟背景色
-            const lines = token.text.split('\n');
+            // 解码代码块内容
+            let codeContent = token.text || "";
+            codeContent = codeContent.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+            const lines = codeContent.split('\n');
             const codeParagraphs = lines.map(line => new Paragraph({
                 children: [new TextRun({
                     text: line,
@@ -9006,7 +9019,9 @@ filterMobileModels();
                 if (cell.tokens) {
                     cellContent = await processInlineTokensAsync(cell.tokens);
                 } else {
-                    cellContent = [new TextRun({ text: cell.text || cell, bold: true, size: 26 })];
+                    let cellText = cell.text || cell || "";
+                    cellText = cellText.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                    cellContent = [new TextRun({ text: cellText, bold: true, size: 26 })];
                 }
 
                 return new TableCell({
@@ -9033,7 +9048,9 @@ filterMobileModels();
                     if (cell.tokens) {
                         cellContent = await processInlineTokensAsync(cell.tokens);
                     } else {
-                        cellContent = [new TextRun({ text: cell.text || cell, size: 24 })];
+                        let cellText = cell.text || cell || "";
+                        cellText = cellText.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                        cellContent = [new TextRun({ text: cellText, size: 24 })];
                     }
 
                     return new TableCell({

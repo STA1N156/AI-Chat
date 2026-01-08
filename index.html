@@ -4491,34 +4491,75 @@ stroke: var(--primary-color);
  display: inline-flex;
  align-items: center;
  justify-content: center;
- margin-right: 6px;
+ margin-right: 4px; /* 减小右侧间距 */
+ position: relative;
+ width: 32px; /* 增大尺寸 */
+ height: 32px;
  }
  
  .gemini-logo svg {
- width: 26px;
- height: 26px;
+ width: 100%;
+ height: 100%;
  fill: url(#gemini-gradient);
  transition: all 0.3s ease;
+ position: relative;
+ z-index: 2;
  }
 
- /* 思考时的动态效果 */
- @keyframes gemini-pulse-rotate {
- 0% {
- transform: rotate(0deg) scale(1);
- filter: drop-shadow(0 0 2px rgba(78, 117, 246, 0.3));
+ /* 思考时的动态效果 - 精美非线性 */
+/* 思考时的动态效果 - 精美非线性 */
+ @keyframes gemini-spin-ease {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
  }
- 50% {
- transform: rotate(180deg) scale(1.1);
- filter: drop-shadow(0 0 8px rgba(78, 117, 246, 0.6));
+
+ @keyframes gemini-breath {
+ 0%, 100% { 
+ transform: scale(0.92);
+ opacity: 0.8;
+ filter: drop-shadow(0 0 0 rgba(78, 117, 246, 0));
  }
- 100% {
- transform: rotate(360deg) scale(1);
- filter: drop-shadow(0 0 2px rgba(78, 117, 246, 0.3));
+ 50% { 
+ transform: scale(1.0);
+ opacity: 1;
+ filter: drop-shadow(0 0 6px rgba(78, 117, 246, 0.3));
  }
  }
 
  .gemini-logo.thinking-active svg {
- animation: gemini-pulse-rotate 2s linear infinite;
+ animation: gemini-breath 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+ z-index: 2;
+ }
+
+ /* 动态旋转环 - SVG实现 */
+ .thinking-ring {
+ opacity: 0;
+ transform-origin: center;
+ transition: opacity 0.3s ease;
+ }
+
+ .gemini-logo.thinking-active .thinking-ring {
+ opacity: 1;
+ animation: ring-rotate 2s linear infinite, ring-dash 1.5s ease-in-out infinite;
+ }
+
+ @keyframes ring-rotate {
+ 100% { transform: rotate(360deg); }
+ }
+
+ @keyframes ring-dash {
+ 0% {
+ stroke-dasharray: 1, 150;
+ stroke-dashoffset: 0;
+ }
+ 50% {
+ stroke-dasharray: 50, 150;
+ stroke-dashoffset: -20;
+ }
+ 100% {
+ stroke-dasharray: 50, 150;
+ stroke-dashoffset: -69;
+ }
  }
 
  .thinking-content {
@@ -4750,18 +4791,19 @@ stroke: var(--primary-color);
  }
 
  /* 思考中转圈动画 */
+ /* 思考中转圈动画 - 优化版 */
  @keyframes thinking-spin {
- from { transform: rotate(0deg); }
- to { transform: rotate(360deg); }
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
  }
 
  .thinking-spinner {
  width: 14px;
  height: 14px;
- border: 2px solid var(--text-secondary);
- border-top-color: transparent;
+ border: 1.5px solid rgba(0, 0, 0, 0.1); /* 添加淡色轨道 */
+ border-top-color: var(--text-secondary);
  border-radius: 50%;
- animation: thinking-spin 1s linear infinite;
+ animation: thinking-spin 0.8s cubic-bezier(0.5, 0.15, 0.45, 0.85) infinite; /* 保持非线性一致性 */
  display: inline-block;
  }
 
@@ -11987,7 +12029,8 @@ return div.innerHTML;
    <stop offset="100%" style="stop-color:#FF8F76;stop-opacity:1" />
    </linearGradient>
    </defs>
-   <path d="M19.07 4.93L17.07 6.93L19.07 8.93L21.07 6.93L19.07 4.93ZM10.5 2C10.5 2 9.5 7 6.5 10C3.5 13 2.5 13 2.5 13C2.5 13 7.5 14 10.5 17C13.5 20 14.5 22 14.5 22C14.5 22 15.5 17 18.5 14C21.5 11 22.5 11 22.5 11C22.5 11 17.5 10 14.5 7C11.5 4 10.5 2 10.5 2Z" fill="url(#gemini-gradient)"/>
+   <path transform="translate(12, 12) scale(0.7) translate(-12, -12)" d="M19.07 4.93L17.07 6.93L19.07 8.93L21.07 6.93L19.07 4.93ZM10.5 2C10.5 2 9.5 7 6.5 10C3.5 13 2.5 13 2.5 13C2.5 13 7.5 14 10.5 17C13.5 20 14.5 22 14.5 22C14.5 22 15.5 17 18.5 14C21.5 11 22.5 11 22.5 11C22.5 11 17.5 10 14.5 7C11.5 4 10.5 2 10.5 2Z" fill="url(#gemini-gradient)"/>
+   <circle class="thinking-ring" cx="12" cy="12" r="11" fill="none" stroke="url(#gemini-gradient)" stroke-width="2" stroke-linecap="round" />
    </svg>
  </span>`;
 

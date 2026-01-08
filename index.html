@@ -677,16 +677,42 @@ height: 16px;
 display: flex;
 flex-direction: column;
 margin-bottom: 24px; /* 增加消息间距，提升呼吸感 */
-animation: messageAppear 0.3s ease-out;
 min-width: 0; /* 防止子元素（代码块）撑开整个容器 */
+will-change: transform, opacity; /* 性能优化 */
 }
 
  .message.user {
  align-items: flex-end;
+ animation: messageEntranceUser 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+ transform-origin: bottom right;
  }
 
  .message.assistant {
  align-items: flex-start;
+ animation: messageEntranceAI 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+ transform-origin: bottom left;
+ }
+
+ @keyframes messageEntranceUser {
+ from {
+ opacity: 0;
+ transform: translate3d(20px, 20px, 0) scale(0.95);
+ }
+ to {
+ opacity: 1;
+ transform: translate3d(0, 0, 0) scale(1);
+ }
+ }
+
+ @keyframes messageEntranceAI {
+ from {
+ opacity: 0;
+ transform: translate3d(-20px, 20px, 0) scale(0.95);
+ }
+ to {
+ opacity: 1;
+ transform: translate3d(0, 0, 0) scale(1);
+ }
  }
 
 .message-bubble {
@@ -762,6 +788,7 @@ letter-spacing: 0.015em; /* 微调字间距 */
  border: 1px solid rgba(0, 122, 255, 0.15);
  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.06);
  white-space: pre-wrap;
+ padding: 10px 16px; /* 缩短内边距 */
  }
 
  .message.assistant .message-bubble {

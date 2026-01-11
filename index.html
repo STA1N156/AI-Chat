@@ -9335,9 +9335,9 @@ filterMobileModels();
                         
                         // 计算动态悬挂缩进
                         // 树的深度（前缀段数） = ancestorStates.length + 1 (当前段)
-                        // 每段（4个字符）大约占用 480 twips (Consolas 11pt)
+                        // 每段（4个字符）大约占用 520 twips (Consolas 11pt)
                         const treeDepth = ancestorStates.length + 1;
-                        const prefixWidth = treeDepth * 480;
+                        const prefixWidth = treeDepth * 520;
                         
                         // 左缩进 = 根缩进 + 前缀宽度
                         // 悬挂 = 前缀宽度 (这样第一行 text 紧接前缀，换行后 text 对齐前缀右侧)

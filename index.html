@@ -6942,7 +6942,7 @@ aria-label="搜索模型"
  // IndexedDB 管理类
  const DBConfig = {
     name: 'AIChatDB',
-    version: 3,
+    version: 7,
     storeName: 'conversations',
     docStoreName: 'documents'
  };
@@ -9278,33 +9278,96 @@ filterMobileModels();
             }));
         } else if (token.type === 'list') {
             // 处理列表
-            const processListItems = async (items, level = 0, ordered = false) => {
-                for (const item of items) {
+            // 处理列表
+            // 处理列表
+            const processListItems = async (items, level = 0, ordered = false, ancestorStates = [], startNum = 1, treeRootIndent = 0) => {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    const isLast = i === items.length - 1;
+
                     // 列表项内容
                     const textRuns = await processInlineTokensAsync(item.tokens);
                     
-                    children.push(new Paragraph({
-                        children: textRuns,
-                        bullet: { level: level }, // docx.js 会自动处理有序/无序，只要 numbering 引用正确
-                        numbering: {
-                            reference: ordered ? "ordered-list" : "unordered-list",
-                            level: level
-                        },
-                        spacing: { before: 60, after: 60 }
-                    }));
+                    let paragraphConfig = {
+                        children: [], 
+                        spacing: { before: 40, after: 40 } 
+                    };
 
-                    // 处理嵌套列表 (marked 将嵌套列表放在 item.tokens 中，或者作为单独的 token)
-                    // marked 的结构比较复杂，这里做简化处理：检查 item.tokens 中是否有 list 类型的 token
+                    // 手动构建前缀
+                    let prefixText = "";
+                    let nextTreeRootIndent = treeRootIndent;
+                    
+                    if (ordered) {
+                        // 有序列表：手动生成数字，使用 startNum + i
+                        prefixText = `${startNum + i}. `;
+                        
+                        // 缩进计算
+                        // 使用悬挂缩进，left 递增，hanging 固定
+                        const indentStep = 500;
+                        const hanging = 400;
+                        const leftIndent = (level * indentStep) + 500; 
+                        
+                        paragraphConfig.indent = { left: leftIndent, hanging: hanging };
+                        
+                        // 有序列表的子级如果是树状结构，应该从当前文本起始处开始
+                        // 即 leftIndent (文本左边界)
+                        nextTreeRootIndent = leftIndent;
+                        
+                        const prefixRun = new TextRun({
+                            text: prefixText,
+                            size: 26
+                        });
+                        paragraphConfig.children.push(prefixRun);
+                    } else {
+                        // 无序列表：树状结构
+                        paragraphConfig.spacing = { before: 0, after: 0, line: 240, lineRule: "auto" };
+                        
+                        // 计算树状前缀
+                        const prefixBase = ancestorStates.map(isLastAncestor => isLastAncestor ? '    ' : '│   ').join('');
+                        const prefixCurrent = isLast ? '└── ' : '├── ';
+                        prefixText = prefixBase + prefixCurrent;
+                        
+                        const prefixRun = new TextRun({
+                            text: prefixText,
+                            font: "Consolas", 
+                            size: 22 
+                        });
+                        
+                        // 计算动态悬挂缩进
+                        // 树的深度（前缀段数） = ancestorStates.length + 1 (当前段)
+                        // 每段（4个字符）大约占用 480 twips (Consolas 11pt)
+                        const treeDepth = ancestorStates.length + 1;
+                        const prefixWidth = treeDepth * 480;
+                        
+                        // 左缩进 = 根缩进 + 前缀宽度
+                        // 悬挂 = 前缀宽度 (这样第一行 text 紧接前缀，换行后 text 对齐前缀右侧)
+                        paragraphConfig.indent = { left: treeRootIndent + prefixWidth, hanging: prefixWidth };
+                        
+                        paragraphConfig.children.push(prefixRun);
+                        
+                        // 传递 treeRootIndent 保持不变，因为我们是通过增加 hanging/left 来深入的
+                        nextTreeRootIndent = treeRootIndent;
+                    }
+
+                    // 添加正文内容
+                    paragraphConfig.children.push(...textRuns);
+
+                    children.push(new Paragraph(paragraphConfig));
+
+                    // 处理嵌套列表
                     if (item.tokens) {
                         for (const subToken of item.tokens) {
                             if (subToken.type === 'list') {
-                                await processListItems(subToken.items, level + 1, subToken.ordered);
+                                // 递归处理
+                                const nextAncestorStates = ordered ? [] : [...ancestorStates, isLast];
+                                await processListItems(subToken.items, level + 1, subToken.ordered, nextAncestorStates, subToken.start || 1, nextTreeRootIndent);
                             }
                         }
                     }
                 }
             };
-            await processListItems(token.items, 0, token.ordered);
+            // 初始调用传递 token.start
+            await processListItems(token.items, 0, token.ordered, [], token.start || 1, 0);
 
         } else if (token.type === 'code') {
             // 代码块：整体放在一个表格单元格中，模拟背景色
@@ -9515,7 +9578,7 @@ filterMobileModels();
                     document: {
                         run: {
                             size: 26, // 13pt
-                            font: "Microsoft YaHei"
+                            font: "SimHei"
                         },
                         paragraph: {
                             spacing: {

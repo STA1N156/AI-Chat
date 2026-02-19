@@ -6529,7 +6529,7 @@ stroke: var(--primary-color);
  <svg class="model-icon" viewBox="0 0 24 24" width="20" height="20">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
- <span class="model-name" id="currentModelName">gemini-3-pro-preview-maxthinking-search</span>
+ <span class="model-name" id="currentModelName">gemini-3-pro-preview-high-search</span>
  <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
  <polyline points="6 9 12 15 18 9"></polyline>
  </svg>
@@ -6537,13 +6537,13 @@ stroke: var(--primary-color);
  <!-- 模型选择器下拉面板 -->
  <div class="pc-model-picker" id="pcModelPicker">
  <div class="model-presets">
- <button class="model-preset-btn active" id="pcPresetThinking" onclick="selectPCModel('gemini-3-pro-preview-maxthinking-search')">
+ <button class="model-preset-btn active" id="pcPresetThinking" onclick="selectPCModel('gemini-3-pro-preview-high-search')">
  <svg class="model-preset-icon" viewBox="0 0 24 24">
  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
  </svg>
  专业
  </button>
- <button class="model-preset-btn" id="pcPresetFlash" onclick="selectPCModel('gemini-3-flash-preview-maxthinking-search')">
+ <button class="model-preset-btn" id="pcPresetFlash" onclick="selectPCModel('gemini-3-flash-preview-high-search')">
  <svg class="model-preset-icon" viewBox="0 0 24 24">
  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
  </svg>
@@ -6564,9 +6564,9 @@ stroke: var(--primary-color);
  <input type="text" class="model-search-input" id="modelSearchInput" placeholder="搜索模型..." oninput="filterPCModels()" />
  </div>
  <div class="model-picker-list" id="pcModelList">
- <div class="model-list-item selected" data-model="gemini-3-pro-preview-maxthinking-search" onclick="selectPCModel('gemini-3-pro-preview-maxthinking-search')">
+ <div class="model-list-item selected" data-model="gemini-3-pro-preview-high-search" onclick="selectPCModel('gemini-3-pro-preview-high-search')">
  <div class="model-item-content">
- <span class="model-item-name">gemini-3-pro-preview-maxthinking-search</span>
+ <span class="model-item-name">gemini-3-pro-preview-high-search</span>
  </div>
  <span class="model-check">✓</span>
  </div>
@@ -6576,7 +6576,7 @@ stroke: var(--primary-color);
  <!-- 移动端保留原始select -->
  <select class="model-select mobile-only" id="modelSelect" aria-label="选择模型" style="display: none;">
  <option value="">选择模型</option>
- <option value="gemini-3-pro-preview-maxthinking-search">gemini-3-pro-preview-maxthinking-search</option>
+ <option value="gemini-3-pro-preview-high-search">gemini-3-pro-preview-high-search</option>
  </select>
  </div>
  <div class="header-actions">
@@ -6711,13 +6711,13 @@ stroke: var(--primary-color);
 <div class="model-picker-title">选择模型</div>
 </div>
 <div class="mobile-model-presets">
-<button class="mobile-preset-btn active" id="mobilePresetThinking" onclick="selectMobileModel('gemini-3-pro-preview-maxthinking-search')">
+<button class="mobile-preset-btn active" id="mobilePresetThinking" onclick="selectMobileModel('gemini-3-pro-preview-high-search')">
 <svg class="mobile-preset-icon" viewBox="0 0 24 24">
 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
 </svg>
 专业
 </button>
-<button class="mobile-preset-btn" id="mobilePresetFlash" onclick="selectMobileModel('gemini-3-flash-preview-maxthinking-search')">
+<button class="mobile-preset-btn" id="mobilePresetFlash" onclick="selectMobileModel('gemini-3-flash-preview-high-search')">
 <svg class="mobile-preset-icon" viewBox="0 0 24 24">
 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
 </svg>
@@ -6745,8 +6745,8 @@ aria-label="搜索模型"
 </svg>
 </div>
 <div class="model-options" id="mobileModelOptions">
-<div class="model-option selected" data-model="gemini-3-pro-preview-maxthinking-search">
-<span>gemini-3-pro-preview-maxthinking-search</span>
+<div class="model-option selected" data-model="gemini-3-pro-preview-high-search">
+<span>gemini-3-pro-preview-high-search</span>
 <span class="model-check">✓</span>
 </div>
 </div>
@@ -7236,7 +7236,7 @@ settings.webSearchEnabled = false; // 强制默认为关闭
 // 强制更新为新的 Key (每次加载都强制刷新)
 settings.serperKey = "a7caca15ece74744b68803bccf3f2d8249c93915";
 
-let selectedModel = 'gemini-3-pro-preview-maxthinking-search';
+let selectedModel = 'gemini-3-pro-preview-high-search';
 let toastTimeout = null;
 let uploadedFiles = []; // 存储上传的文件信息
 window.docData = {}; // 存储文档数据 { id: { title, content, history: [] } }
@@ -7530,9 +7530,9 @@ filterMobileModels();
  pcThinkingBtn.classList.remove('active');
  pcFlashBtn.classList.remove('active');
  pcImageBtn.classList.remove('active');
- if (model === 'gemini-3-pro-preview-maxthinking-search') {
+ if (model === 'gemini-3-pro-preview-high-search') {
  pcThinkingBtn.classList.add('active');
- } else if (model === 'gemini-3-flash-preview-maxthinking-search') {
+ } else if (model === 'gemini-3-flash-preview-high-search') {
  pcFlashBtn.classList.add('active');
  } else if (model === 'gemini-3-pro-image') {
  pcImageBtn.classList.add('active');
@@ -7547,9 +7547,9 @@ filterMobileModels();
  mobileThinkingBtn.classList.remove('active');
  mobileFlashBtn.classList.remove('active');
  mobileImageBtn.classList.remove('active');
- if (model === 'gemini-3-pro-preview-maxthinking-search') {
+ if (model === 'gemini-3-pro-preview-high-search') {
  mobileThinkingBtn.classList.add('active');
- } else if (model === 'gemini-3-flash-preview-maxthinking-search') {
+ } else if (model === 'gemini-3-flash-preview-high-search') {
  mobileFlashBtn.classList.add('active');
  } else if (model === 'gemini-3-pro-image') {
  mobileImageBtn.classList.add('active');
@@ -7753,11 +7753,11 @@ filterMobileModels();
  optionsContainer.innerHTML = '';
 
  // 添加默认模型
- const defaultOption = createMobileModelOption('gemini-3-pro-preview-maxthinking-search', selectedModel === 'gemini-3-pro-preview-maxthinking-search');
+ const defaultOption = createMobileModelOption('gemini-3-pro-preview-high-search', selectedModel === 'gemini-3-pro-preview-high-search');
  optionsContainer.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'gemini-3-pro-preview-maxthinking-search') {
+ if (model.id !== 'gemini-3-pro-preview-high-search') {
  const option = createMobileModelOption(model.id, selectedModel === model.id);
  optionsContainer.appendChild(option);
  }
@@ -7769,12 +7769,12 @@ filterMobileModels();
  pcModelList.innerHTML = '';
 
  // 添加默认模型（带推荐标签）
- const defaultItem = createPCModelItem('gemini-3-pro-preview-maxthinking-search', true, selectedModel === 'gemini-3-pro-preview-maxthinking-search');
+ const defaultItem = createPCModelItem('gemini-3-pro-preview-high-search', true, selectedModel === 'gemini-3-pro-preview-high-search');
  pcModelList.appendChild(defaultItem);
 
  // 添加其他模型
  models.forEach(model => {
- if (model.id !== 'gemini-3-pro-preview-maxthinking-search') {
+ if (model.id !== 'gemini-3-pro-preview-high-search') {
  const item = createPCModelItem(model.id, false, selectedModel === model.id);
  pcModelList.appendChild(item);
  }
@@ -7788,12 +7788,12 @@ filterMobileModels();
  modelSelect.innerHTML = '<option value="">选择模型</option>';
 
  const defaultOption = document.createElement('option');
- defaultOption.value = 'gemini-3-pro-preview-maxthinking-search';
- defaultOption.textContent = 'gemini-3-pro-preview-maxthinking-search';
+ defaultOption.value = 'gemini-3-pro-preview-high-search';
+ defaultOption.textContent = 'gemini-3-pro-preview-high-search';
  modelSelect.appendChild(defaultOption);
 
  models.forEach(model => {
- if (model.id !== 'gemini-3-pro-preview-maxthinking-search') {
+ if (model.id !== 'gemini-3-pro-preview-high-search') {
  const option = document.createElement('option');
  option.value = model.id;
  option.textContent = model.id;

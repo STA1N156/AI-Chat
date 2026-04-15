@@ -7371,28 +7371,28 @@
                     <label class="setting-label">专业模型</label>
                     <select class="setting-input" id="proModelInput"
                         style="appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22black%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 98%; background-position-y: center;">
-                        <option value="">留空则不使用自定义</option>
+                        <option value="">请选择模型</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="setting-label">快速模型</label>
                     <select class="setting-input" id="fastModelInput"
                         style="appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22black%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 98%; background-position-y: center;">
-                        <option value="">留空则不使用自定义</option>
+                        <option value="">请选择模型</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="setting-label">生图模型</label>
                     <select class="setting-input" id="imageModelInput"
                         style="appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22black%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 98%; background-position-y: center;">
-                        <option value="">留空则不使用自定义</option>
+                        <option value="">请选择模型</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="setting-label">翻译模型</label>
                     <select class="setting-input" id="translationModelInput"
                         style="appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22black%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 98%; background-position-y: center;">
-                        <option value="">留空则不使用自定义</option>
+                        <option value="">请选择模型</option>
                     </select>
                 </div>
 
@@ -8493,6 +8493,7 @@
 
                 const data = await response.json();
                 const models = data.data.sort((a, b) => a.id.localeCompare(b.id));
+                window.globalModelsList = models;
 
                 if (isMobile()) {
                     // 更新移动端模型选择器
@@ -14174,6 +14175,7 @@ onclick="switchConversation('${conv.id}')">
 
                 const data = await response.json();
                 const models = data.data.sort((a, b) => a.id.localeCompare(b.id));
+                window.globalModelsList = models;
 
                 const selects = ['proModelInput', 'fastModelInput', 'imageModelInput', 'translationModelInput'];
 
@@ -14181,7 +14183,7 @@ onclick="switchConversation('${conv.id}')">
                     const selectEl = document.getElementById(id);
                     const currentValue = selectEl.value;
 
-                    selectEl.innerHTML = '<option value="">留空则不使用自定义</option>';
+                    selectEl.innerHTML = '<option value="">请选择模型</option>';
                     let foundCurrent = false;
 
                     models.forEach(m => {
@@ -14243,9 +14245,26 @@ onclick="switchConversation('${conv.id}')">
                 const select = document.getElementById(key + 'Input');
                 if (!select) return;
                 const val = settings[key] || '';
-                select.innerHTML = '<option value="">留空则不使用自定义</option>';
-                if (val) {
-                    select.innerHTML += `<option value="${val}">${val}</option>`;
+                
+                select.innerHTML = '<option value="">请选择模型</option>';
+                let found = false;
+
+                if (window.globalModelsList && window.globalModelsList.length > 0) {
+                    window.globalModelsList.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        opt.textContent = m.id;
+                        if (m.id === val) {
+                            opt.selected = true;
+                            found = true;
+                        }
+                        select.appendChild(opt);
+                    });
+                }
+                
+                if (val && !found) {
+                    const extraStr = (window.globalModelsList && window.globalModelsList.length > 0) ? ' (未找到)' : '';
+                    select.innerHTML += `<option value="${val}">${val}${extraStr}</option>`;
                 }
                 select.value = val;
             });
@@ -14491,9 +14510,11 @@ onclick="switchConversation('${conv.id}')">
         document.addEventListener('click', function (event) {
             const settingsModal = document.getElementById('settingsModal');
 
+            /* 
             if (event.target === settingsModal) {
                 closeSettings();
-            }
+            } 
+            */
 
             // 点击外部关闭上传菜单
             const uploadMenu = document.getElementById('uploadMenu');

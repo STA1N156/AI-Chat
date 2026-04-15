@@ -7925,9 +7925,9 @@
             // 这里我们只是更新 UI，用户需要点击保存按钮
         }
 
-        // 强制每次加载都重置为默认值
-        settings.temperature = 1.0;
-        settings.systemPrompt = defaultSystemPrompt;
+        // 仅当配置未定义时使用默认值，确保用户配置能持久化
+        if (settings.temperature === undefined) settings.temperature = 1.0;
+        if (settings.systemPrompt === undefined) settings.systemPrompt = defaultSystemPrompt;
 
         // 仅当配置未定义时使用默认值，确保用户配置能持久化
         if (settings.maxTokens === undefined) settings.maxTokens = 60000;

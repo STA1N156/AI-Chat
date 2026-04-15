@@ -7389,7 +7389,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="setting-label">翻译模型</label>
+                    <label class="setting-label">思维链翻译模型</label>
                     <select class="setting-input" id="translationModelInput"
                         style="appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22black%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/><path d=%22M0 0h24v24H0z%22 fill=%22none%22/></svg>'); background-repeat: no-repeat; background-position-x: 98%; background-position-y: center;">
                         <option value="">请选择模型</option>
@@ -14245,7 +14245,7 @@ onclick="switchConversation('${conv.id}')">
                 const select = document.getElementById(key + 'Input');
                 if (!select) return;
                 const val = settings[key] || '';
-                
+
                 select.innerHTML = '<option value="">请选择模型</option>';
                 let found = false;
 
@@ -14261,7 +14261,7 @@ onclick="switchConversation('${conv.id}')">
                         select.appendChild(opt);
                     });
                 }
-                
+
                 if (val && !found) {
                     const extraStr = (window.globalModelsList && window.globalModelsList.length > 0) ? ' (未找到)' : '';
                     select.innerHTML += `<option value="${val}">${val}${extraStr}</option>`;
